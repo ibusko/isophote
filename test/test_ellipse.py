@@ -11,20 +11,13 @@ class TestSampling(unittest.TestCase):
 
     def test_sampling(self):
 
-        test_data = pyfits.open("M51.fits")
+        test_data = pyfits.open("test.fits")
         test_data = test_data[0].data
 
-        sample = Sample(test_data, 100.)
+        sample = Sample(test_data, 50., eps=0.4)
         s = sample.extract()
-
 
         self.assertEqual(len(s), 3)
 
+        print ('@@@@@@     line: 26  - ', s)
 
-        print ('@@@@@@     line: 19  - ', len(s))
-
-
-
-    # def test_something(self):
-    #
-    #     self.assertEqual(True, False)
