@@ -14,10 +14,16 @@ class TestSampling(unittest.TestCase):
         test_data = pyfits.open("test.fits")
         test_data = test_data[0].data
 
-        sample = Sample(test_data, 50., eps=0.4)
+        sample = Sample(test_data, 40., eps=0.4)
         s = sample.extract()
 
         self.assertEqual(len(s), 3)
 
-        print ('@@@@@@     line: 26  - ', s)
+        # values for image test.fits, sma=40., eps=0.4
+        # intensities
+        self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
+        self.assertAlmostEqual(np.std(s[2]),  0.00097, 5)
+        # radii
+        self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
+        self.assertAlmostEqual(np.min(s[1]), 24.0, 2)
 
