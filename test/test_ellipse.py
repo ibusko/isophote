@@ -18,8 +18,11 @@ class TestSampling(unittest.TestCase):
         s = sample.extract()
 
         self.assertEqual(len(s), 3)
+        self.assertEqual(len(s[0]), len(s[1]))
+        self.assertEqual(len(s[0]), len(s[2]))
 
         # values for image test.fits, sma=40., eps=0.4
+        self.assertEqual(len(s[0]), 126)
         # intensities
         self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
         self.assertAlmostEqual(np.std(s[2]),  0.00097, 5)
