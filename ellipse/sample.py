@@ -77,13 +77,13 @@ class Sample(object):
         intensities = []
 
         # support only nearest-neighbor integration for now.
-        integrator = NearestNeighborIntegrator(self.image, self.sma, self.position_angle, angles, radii, intensities)
+        integrator = NearestNeighborIntegrator(self.image, self.x0, self.y0, self.sma, self.position_angle, angles, radii, intensities)
         self._phistep = integrator.get_phi_step()
 
         # scan along elliptical path
         while (self.phi < np.pi*2.):
 
-            integrator.integrate(self.x0, self.y0, self.radius, self.phi)
+            integrator.integrate(self.radius, self.phi)
 
             # update angle and radius to be used to define
             # next sector along the elliptical path

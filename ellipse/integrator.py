@@ -5,12 +5,16 @@ import math
 
 class Integrator(object):
 
-    def __init__(self, image, sma, position_angle, angles, radii, intensities):
+    def __init__(self, image, x0, y0, sma, position_angle, angles, radii, intensities):
         '''
         Constructor
 
         :param image: 2-d numpy array
              image array
+        :param x0: float
+            center coordinate in pixels along image row
+        :param y0: float
+            center coordinate in pixels along image column
         :param sma: float
              semi-major axis in pixels
         :param position_angle: float
@@ -26,22 +30,20 @@ class Integrator(object):
         self._image = image
         self._sma = sma
         self._position_angle = position_angle
+        self._x0 = x0
+        self._y0 = y0
 
         self._angles = angles
         self._radii = radii
         self._intensities = intensities
 
-    def integrate(self, x0, y0, radius, phi):
+    def integrate(self, radius, phi):
         '''
         The three input lists are updated with one sample point taken
         from the image by a chosen integration method.
 
         Sub classes should implement the actual integration method.
 
-        :param x0: float
-            center coordinate in pixels along image row
-        :param y0: float
-            center coordinate in pixels along image column
         :param radius: float
             length of radius vector in pixels
         :param phi: float
@@ -55,13 +57,14 @@ class Integrator(object):
     def get_sector_area(self):
         raise NotImplementedError
 
+
 class NearestNeighborIntegrator(Integrator):
 
-    def integrate(self, x0, y0, radius, phi):
+    def integrate(self, radius, phi):
 
         # Get image coordinates of (radius, phi) pixel
-        i = int(radius * math.cos(phi + self._position_angle) + x0)
-        j = int(radius * math.sin(phi + self._position_angle) + y0)
+        i = int(radius * math.cos(phi + self._position_angle) + self._x0)
+        j = int(radius * math.sin(phi + self._position_angle) + self._y0)
 
         # ignore data point if outside image boundaries
         if ((i >= 0) and (i < self._image.shape[0]) and
