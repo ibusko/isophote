@@ -5,21 +5,14 @@ import math
 
 class Integrator(object):
 
-    def __init__(self, image, x0, y0, sma, position_angle, angles, radii, intensities):
+    def __init__(self, image, geometry, angles, radii, intensities):
         '''
         Constructor
 
         :param image: 2-d numpy array
              image array
-        :param x0: float
-            center coordinate in pixels along image row
-        :param y0: float
-            center coordinate in pixels along image column
-        :param sma: float
-             semi-major axis in pixels
-        :param position_angle: float
-             position angle of ellipse in relation
-             to the +X axis of the image array.
+        :param geometry: Geometry instance
+            object that encapsulates geometry information about current ellipse
         :param angles: list
             output list; contains the angle values along the elliptical path
         :param radii:  list
@@ -28,10 +21,7 @@ class Integrator(object):
             output list; contains the extracted intensity values along the elliptical path
         '''
         self._image = image
-        self._sma = sma
-        self._position_angle = position_angle
-        self._x0 = x0
-        self._y0 = y0
+        self._geometry = geometry
 
         self._angles = angles
         self._radii = radii
@@ -63,8 +53,8 @@ class NearestNeighborIntegrator(Integrator):
     def integrate(self, radius, phi):
 
         # Get image coordinates of (radius, phi) pixel
-        i = int(radius * math.cos(phi + self._position_angle) + self._x0)
-        j = int(radius * math.sin(phi + self._position_angle) + self._y0)
+        i = int(radius * math.cos(phi + self._geometry.pa) + self._geometry.x0)
+        j = int(radius * math.sin(phi + self._geometry.pa) + self._geometry.y0)
 
         # ignore data point if outside image boundaries
         if ((i >= 0) and (i < self._image.shape[0]) and
@@ -79,7 +69,7 @@ class NearestNeighborIntegrator(Integrator):
             self._intensities.append(sample)
 
     def get_phi_step(self):
-        return 2. / self._sma
+        return 2. / self._geometry.sma
 
     def get_sector_area(self):
         return 1.
