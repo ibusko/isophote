@@ -50,6 +50,8 @@ class Sample(object):
         else:
             a1 = self.geometry.sma * (1. - ((1. - 1./self.astep) / 2.))
             a2 = self.geometry.sma * (1. + (self.astep - 1.) / 2.)
+        self._inner_geometry = Geometry(_x0, _y0, a1, eps, position_angle)
+        self._outer_geometry = Geometry(_x0, _y0, a2, eps, position_angle)
 
         # parameters for building first sector
         self.radius = sma

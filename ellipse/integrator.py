@@ -27,6 +27,10 @@ class Integrator(object):
         self._radii = radii
         self._intensities = intensities
 
+        # for bounds checking
+        self._i_range = range(self._image.shape[0])
+        self._j_range = range(self._image.shape[1])
+
     def integrate(self, radius, phi):
         '''
         The three input lists are updated with one sample point taken
@@ -40,6 +44,11 @@ class Integrator(object):
             polar angle of radius vector
         '''
         raise NotImplementedError
+
+    def _store_results(self, phi, radius, sample):
+        self._angles.append(phi)
+        self._radii.append(radius)
+        self._intensities.append(sample)
 
     def get_phi_step(self):
         raise NotImplementedError
@@ -57,16 +66,13 @@ class NearestNeighborIntegrator(Integrator):
         j = int(radius * math.sin(phi + self._geometry.pa) + self._geometry.y0)
 
         # ignore data point if outside image boundaries
-        if ((i >= 0) and (i < self._image.shape[0]) and
-            (j >= 0) and (j < self._image.shape[1])):
+        if (i in self._i_range) and (j in self._j_range):
 
             # need to handle masked pixels here
             sample = self._image[j][i]
 
             # store results
-            self._angles.append(phi)
-            self._radii.append(radius)
-            self._intensities.append(sample)
+            self._store_results(phi, radius, sample)
 
     def get_phi_step(self):
         return 2. / self._geometry.sma
