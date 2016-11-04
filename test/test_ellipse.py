@@ -11,7 +11,7 @@ class TestSampling(unittest.TestCase):
 
     def test_sampling(self):
 
-        test_data = pyfits.open("test.fits")
+        test_data = pyfits.open("test_image.fits")
         test_data = test_data[0].data
 
         sample = Sample(test_data, 40., eps=0.4)
@@ -21,7 +21,7 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(len(s[0]), len(s[1]))
         self.assertEqual(len(s[0]), len(s[2]))
 
-        # values for image test.fits, sma=40., eps=0.4
+        # values for image test_image.fits, sma=40., eps=0.4
         self.assertEqual(len(s[0]), 126)
         # intensities
         self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
