@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-from ellipse.integrator import NearestNeighborIntegrator
+from ellipse.integrator import integrators, BI_LINEAR
 
 # limits for sector angular width
 PHI_MAX = 0.2
@@ -13,11 +13,13 @@ PHI_MIN = 0.05
 
 class Sample(object):
 
-    def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0, linear=False):
+    def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
+                 linear=False, integrmode=BI_LINEAR):
 
         self.image = image
         self.astep = astep
         self.linear = linear
+        self.integrmode = integrmode
 
         # Many parameters below can be made private.
         # Each integration method may need just a
@@ -76,9 +78,8 @@ class Sample(object):
         radii = []
         intensities = []
 
-        # support only nearest-neighbor integration for now.
-        integrator = NearestNeighborIntegrator(self.image, self.geometry, angles, radii, intensities)
-        self._phistep = integrator.get_phi_step()
+        # build integrator
+        integrator = integrators[self.integrmode](self.image, self.geometry, angles, radii, intensities)
 
         # scan along elliptical path
         while (self.phi < np.pi*2.):
@@ -87,7 +88,8 @@ class Sample(object):
 
             # update angle and radius to be used to define
             # next sector along the elliptical path
-            self.phi += min (self._phistep, 0.5)
+            phistep_ = integrator.get_phi_step()
+            self.phi += min (phistep_, 0.5)
             self.radius = self.geometry.sma * (1. - self.geometry.eps) / \
                           math.sqrt(((1. - self.geometry.eps) * math.cos(self.phi))**2 + (math.sin(self.phi))**2)
 
