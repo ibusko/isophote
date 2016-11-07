@@ -28,9 +28,6 @@ class TestSampling(unittest.TestCase):
         self.assertAlmostEqual(np.mean(s[2]), 0.1717, 3)
         self.assertAlmostEqual(np.std(s[2]),  0.0022, 3)
 
-        # std deviation above is larger than with nearest-neighbor
-        # interpolation, perhaps because this is artificial data?
-
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
         self.assertAlmostEqual(np.min(s[1]), 24.0, 2)
