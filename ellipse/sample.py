@@ -1,15 +1,9 @@
 from __future__ import division
 
-import math
-
 import numpy as np
 
-import ellipse.integrator as I
+from ellipse.geometry import Geometry
 from ellipse.integrator import integrators, BI_LINEAR
-
-# limits for sector angular width
-PHI_MAX = 0.2
-PHI_MIN = 0.05
 
 
 class Sample(object):
@@ -44,28 +38,13 @@ class Sample(object):
 
         self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep,linear_growth)
 
-        # limiting annulus ellipses
-        a1, a2 = I.limiting_ellipses(self.geometry)
-        self._inner_geometry = Geometry(_x0, _y0, a1, eps, position_angle, astep, linear_growth)
-        self._outer_geometry = Geometry(_x0, _y0, a2, eps, position_angle, astep, linear_growth)
-
-        # parameters for building first sector
-        self.radius = sma
-        aux         = min ((a2 - a1), 3.)
-        self.sarea  = (a2 - a1) * aux
-        self.dphi   = max (min ((aux / self.geometry.sma), PHI_MAX), PHI_MIN)
-        self.phi    = self.dphi / 2.
-        self.phi2   = self.phi - self.dphi / 2.
-        aux         = 1. - self.geometry.eps
-        self.r3     = a2 * aux / math.sqrt ((aux * math.cos (self.phi2))**2 + (math.sin (self.phi2))**2)
-        self.r4     = a1 * aux / math.sqrt ((aux * math.cos (self.phi2))**2 + (math.sin (self.phi2))**2)
-
     def extract(self):
         ''' Build sample by scanning elliptical path over image array
 
-            :return: 2-d array with three elements. Each element is a 1-d
-                     array containing respectively angles, radii, and
-                     extracted intensity values.
+            :return: numpy 2-d array
+                contains three elements. Each element is a 1-d
+                array containing respectively angles, radii, and
+                extracted intensity values.
         '''
         # individual extracted sample points will be stored in here
         angles = []
@@ -75,17 +54,21 @@ class Sample(object):
         # build integrator
         integrator = integrators[self.integrmode](self.image, self.geometry, angles, radii, intensities)
 
-        # scan along elliptical path
+        # initialize walk along elliptical path
+        self.radius = self.geometry.initial_polar_radius
+        self.phi = self.geometry.initial_polar_angle
+
+        # walk along elliptical path, integrating at specified
+        # places defined by polar vector.
         while (self.phi < np.pi*2.):
 
             integrator.integrate(self.radius, self.phi)
 
             # update angle and radius to be used to define
-            # next sector along the elliptical path
+            # next polar vector along the elliptical path
             phistep_ = integrator.get_phi_step()
             self.phi += min (phistep_, 0.5)
-            self.radius = self.geometry.sma * (1. - self.geometry.eps) / \
-                          math.sqrt(((1. - self.geometry.eps) * math.cos(self.phi))**2 + (math.sin(self.phi))**2)
+            self.radius = self.geometry.radius(self.phi)
 
         # average sector area is probably calculated after the integrator had time to
         # step over the entire elliptical path. But this remains to be seen. It's not
@@ -96,47 +79,4 @@ class Sample(object):
         result = np.array([np.array(angles), np.array(radii), np.array(intensities)])
 
         return result
-
-
-class Geometry(object):
-
-    def __init__(self, x0, y0, sma, eps, pa, astep, linear_growth):
-        '''
-        This is basically a container that allows storage of all parameters
-        associated with a given ellipse's geometry.
-
-        Parameters that describe the relationship of a given ellipse with
-        other associated ellipses are also encapsulated in this container.
-        These associate ellipses may include e.g. the two (inner and outer)
-        bounding ellipses that are used to build sectors along the elliptical
-        path.
-
-        :param x0: float
-            center coordinate in pixels along image row
-        :param y0: float
-            center coordinate in pixels along image column
-        :param sma: float
-             semi-major axis in pixels
-        :param eps: ellipticity
-             ellipticity
-        :param pa: float
-             position angle of ellipse in relation
-             to the +X axis of the image array.
-        :param astep: float
-            step value for growing/shrinking the semi-
-            major axis. It can be expressed either in
-            pixels (when 'linear_growth'=True) or in
-            relative value (when 'linear_growth=False')
-        :param linear_growth: boolean
-            semi-major axis growing/shrinking mode
-        '''
-        self.x0  = x0
-        self.y0  = y0
-        self.sma = sma
-        self.eps = eps
-        self.pa  = pa
-
-        self.astep = astep
-        self.linear_growth = linear_growth
-
 

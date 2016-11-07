@@ -5,25 +5,7 @@ import math
 # integration modes
 NEAREST_NEIGHBOR = 'nearest_neighbor'
 BI_LINEAR = 'bi-linear'
-
-
-def limiting_ellipses(geometry):
-    '''
-    Compute the semi-major axis of the two ellipses that bound
-    the annulus where integrations take place.
-
-    :param geometry: Geometry instance
-         describe the ellipse geometry and associated parameters
-    :return: tuple with two floats: the smaller and
-        larger value of SMA that define the annulus bounding ellipses
-    '''
-    if (geometry.linear_growth):
-        a1 = geometry.sma - geometry.astep / 2.
-        a2 = geometry.sma + geometry.astep / 2.
-    else:
-        a1 = geometry.sma * (1. - geometry.astep/2.)
-        a2 = geometry.sma * (1. + geometry.astep/2.)
-    return a1, a2
+MEAN = 'mean'
 
 
 class Integrator(object):
@@ -175,7 +157,7 @@ class AreaIntegrator(Integrator):
 
         self._r = radius
 
-        a1, a2 = limiting_ellipses(self._geometry)
+        a1, a2 = self._geometry.bounding_ellipses()
 
 
         # Get image coordinates of the four corners of the subraster which
@@ -187,8 +169,8 @@ class AreaIntegrator(Integrator):
         # phi2 = phi + dphi / 2.
         # aux  = 1. - self._geometry.eps
         #
-        # r3 = a2 * aux / math.sqrt ((aux * math.cos(phi2))^2 + (math.sin(phi2))^2)
-        # r4 = a1 * aux / math.sqrt ((aux * math.cos(phi2))^2 + (math.sin(phi2))^2)
+        # r3 = a2 * aux / math.sqrt ((aux * math.cos(phi2))**2 + (math.sin(phi2))**2)
+        # r4 = a1 * aux / math.sqrt ((aux * math.cos(phi2))**2 + (math.sin(phi2))**2)
         #
         # x[1] = r1 * math.cos (phi1 + self._geometry.pa) + self._geometry.x0
         # y[1] = r1 * math.sin (phi1 + self._geometry.pa) + self._geometry.y0
@@ -354,7 +336,8 @@ class AreaIntegrator(Integrator):
 
 
 
-
+class MeanIntegrator(AreaIntegrator):
+    pass
 
 
 
@@ -362,6 +345,7 @@ class AreaIntegrator(Integrator):
 
 integrators = {
     NEAREST_NEIGHBOR: NearestNeighborIntegrator,
-    BI_LINEAR: BiLinearIntegrator
+    BI_LINEAR: BiLinearIntegrator,
+    MEAN: MeanIntegrator
 }
 

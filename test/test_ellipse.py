@@ -7,7 +7,7 @@ import pyfits
 
 import ellipse.integrator as I
 from ellipse.sample import Sample, Geometry
-from ellipse.integrator import NEAREST_NEIGHBOR
+from ellipse.integrator import NEAREST_NEIGHBOR, MEAN
 
 
 class TestGeometry(unittest.TestCase):
@@ -16,14 +16,14 @@ class TestGeometry(unittest.TestCase):
 
         geometry = Geometry(255., 255., 100., 0.4, np.pi/2, 0.2, False)
 
-        a1, a2 = I.limiting_ellipses(geometry)
+        a1, a2 = geometry.bounding_ellipses()
 
         self.assertAlmostEqual(a1, 90.0,  3)
         self.assertAlmostEqual(a2, 110.0, 3)
 
         geometry = Geometry(255., 255., 100., 0.4, np.pi/2, 20., True)
 
-        a1, a2 = I.limiting_ellipses(geometry)
+        a1, a2 = geometry.bounding_ellipses()
 
         self.assertAlmostEqual(a1, 90.0,  3)
         self.assertAlmostEqual(a2, 110.0, 3)
@@ -73,4 +73,25 @@ class TestSampling(unittest.TestCase):
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
         self.assertAlmostEqual(np.min(s[1]), 24.001, 2)
+
+    # def test_mean(self):
+    #
+    #     test_data = pyfits.open("test_image.fits")
+    #     test_data = test_data[0].data
+    #
+    #     sample = Sample(test_data, 40., eps=0.4, integrmode=MEAN)
+    #     s = sample.extract()
+
+        # self.assertEqual(len(s), 3)
+        # self.assertEqual(len(s[0]), len(s[1]))
+        # self.assertEqual(len(s[0]), len(s[2]))
+        #
+        # # values for image test_image.fits, sma=40., eps=0.4
+        # self.assertEqual(len(s[0]), 96)
+        # # intensities
+        # self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
+        # self.assertAlmostEqual(np.std(s[2]),  0.00097, 3)
+        # # radii
+        # self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
+        # self.assertAlmostEqual(np.min(s[1]), 24.001, 2)
 
