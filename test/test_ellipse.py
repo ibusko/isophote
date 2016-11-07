@@ -14,14 +14,16 @@ class TestGeometry(unittest.TestCase):
 
     def test_ellipse(self):
 
-        geometry = Geometry(255., 255., 100., 0.4, np.pi/2)
+        geometry = Geometry(255., 255., 100., 0.4, np.pi/2, 0.2, False)
 
-        a1, a2 = I.limiting_ellipses(geometry.sma, 0.2, False)
+        a1, a2 = I.limiting_ellipses(geometry)
 
         self.assertAlmostEqual(a1, 90.0,  3)
         self.assertAlmostEqual(a2, 110.0, 3)
 
-        a1, a2 = I.limiting_ellipses(geometry.sma, 20., True)
+        geometry = Geometry(255., 255., 100., 0.4, np.pi/2, 20., True)
+
+        a1, a2 = I.limiting_ellipses(geometry)
 
         self.assertAlmostEqual(a1, 90.0,  3)
         self.assertAlmostEqual(a2, 110.0, 3)

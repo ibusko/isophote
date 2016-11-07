@@ -15,11 +15,9 @@ PHI_MIN = 0.05
 class Sample(object):
 
     def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
-                 linear=False, integrmode=BI_LINEAR):
+                 linear_growth=False, integrmode=BI_LINEAR):
 
         self.image = image
-        self.astep = astep
-        self.linear = linear
         self.integrmode = integrmode
 
         # Many parameters below can be made private.
@@ -44,13 +42,12 @@ class Sample(object):
             _x0 = image.shape[0] / 2
             _y0 = image.shape[1] / 2
 
-        self.geometry = Geometry(_x0, _y0, sma, eps, position_angle)
+        self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep,linear_growth)
 
         # limiting annulus ellipses
-        a1, a2 = I.limiting_ellipses(self.geometry.sma, self.astep, self.linear)
-
-        self._inner_geometry = Geometry(_x0, _y0, a1, eps, position_angle)
-        self._outer_geometry = Geometry(_x0, _y0, a2, eps, position_angle)
+        a1, a2 = I.limiting_ellipses(self.geometry)
+        self._inner_geometry = Geometry(_x0, _y0, a1, eps, position_angle, astep, linear_growth)
+        self._outer_geometry = Geometry(_x0, _y0, a2, eps, position_angle, astep, linear_growth)
 
         # parameters for building first sector
         self.radius = sma
@@ -102,13 +99,17 @@ class Sample(object):
 
 
 class Geometry(object):
-    '''
-    This is basically a container that allows storage of all parameters
-    associated with a given ellipse's geometry. It will eventually be
-    augmented with geometry-associated operations.
-    '''
-    def __init__(self, x0, y0, sma, eps, pa):
+
+    def __init__(self, x0, y0, sma, eps, pa, astep, linear_growth):
         '''
+        This is basically a container that allows storage of all parameters
+        associated with a given ellipse's geometry.
+
+        Parameters that describe the relationship of a given ellipse with
+        other associated ellipses are also encapsulated in this container.
+        These associate ellipses may include e.g. the two (inner and outer)
+        bounding ellipses that are used to build sectors along the elliptical
+        path.
 
         :param x0: float
             center coordinate in pixels along image row
@@ -121,11 +122,21 @@ class Geometry(object):
         :param pa: float
              position angle of ellipse in relation
              to the +X axis of the image array.
+        :param astep: float
+            step value for growing/shrinking the semi-
+            major axis. It can be expressed either in
+            pixels (when 'linear_growth'=True) or in
+            relative value (when 'linear_growth=False')
+        :param linear_growth: boolean
+            semi-major axis growing/shrinking mode
         '''
         self.x0  = x0
         self.y0  = y0
         self.sma = sma
         self.eps = eps
         self.pa  = pa
+
+        self.astep = astep
+        self.linear_growth = linear_growth
 
 

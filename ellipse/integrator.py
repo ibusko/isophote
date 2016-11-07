@@ -7,27 +7,22 @@ NEAREST_NEIGHBOR = 'nearest_neighbor'
 BI_LINEAR = 'bi-linear'
 
 
-def limiting_ellipses(sma, astep, linear):
+def limiting_ellipses(geometry):
     '''
     Compute the semi-major axis of the two ellipses that bound
     the annulus where integrations take place.
 
-    :param sma: float
-        semi-major axis os ellipse, in pixels
-    :param astep: float
-        step value. It can be expressed either in pixels (when
-        'linear'=True) or in relative value (when 'linear=False')
-    :param linear: boolean
-         ellipse SMA growing mode
-    :return: tuple with two floats: the smaller and larger value
-        of SMA that define the annulus bounding ellipses
+    :param geometry: Geometry instance
+         describe the ellipse geometry and associated parameters
+    :return: tuple with two floats: the smaller and
+        larger value of SMA that define the annulus bounding ellipses
     '''
-    if (linear):
-        a1 = sma - astep / 2.
-        a2 = sma + astep / 2.
+    if (geometry.linear_growth):
+        a1 = geometry.sma - geometry.astep / 2.
+        a2 = geometry.sma + geometry.astep / 2.
     else:
-        a1 = sma * (1. - astep/2.)
-        a2 = sma * (1. + astep/2.)
+        a1 = geometry.sma * (1. - geometry.astep/2.)
+        a2 = geometry.sma * (1. + geometry.astep/2.)
     return a1, a2
 
 
@@ -180,40 +175,37 @@ class AreaIntegrator(Integrator):
 
         self._r = radius
 
-        # Get image coordinates of (radius, phi) pixel
-        i = int(radius * math.cos(phi + self._geometry.pa) + self._geometry.x0)
-        j = int(radius * math.sin(phi + self._geometry.pa) + self._geometry.y0)
+        a1, a2 = limiting_ellipses(self._geometry)
 
 
         # Get image coordinates of the four corners of the subraster which
         # contains the elliptical sector. The sector has a width in phi such
         # that it comes out with roughly constant area along the ellipse.
-        phi1 = phi2
-
-
-
-# 145	                r1   = r4
-# 146	                r2   = r3
-# 147	                phi2 = phi + dphi / 2.
-# 148	                aux  = 1. - eps
-# 149	                r3   = a2 * aux / sqrt ((aux * cos (phi2))**2 + (sin (phi2))**2)
-# 150	                r4   = a1 * aux / sqrt ((aux * cos (phi2))**2 + (sin (phi2))**2)
-# 151	                x[1] = r1 * cos (phi1 + teta) + x0
-# 152	                y[1] = r1 * sin (phi1 + teta) + y0
-# 153	                x[2] = r2 * cos (phi1 + teta) + x0
-# 154	                y[2] = r2 * sin (phi1 + teta) + y0
-# 155	                x[3] = r3 * cos (phi2 + teta) + x0
-# 156	                y[3] = r3 * sin (phi2 + teta) + y0
-# 157	                x[4] = r4 * cos (phi2 + teta) + x0
-# 158	                y[4] = r4 * sin (phi2 + teta) + y0
-# 159	                call el_qsortr (x, 4, el_comparer)
-# 160	                call el_qsortr (y, 4, el_comparer)
-# 161	                i1 = x[1] - 1.
-# 162	                j1 = y[1] - 1.
-# 163	                i2 = x[4] + 1.
-# 164	                j2 = y[4] + 1.
-
-
+        # phi1 = phi2
+        # r1   = r4
+        # r2   = r3
+        # phi2 = phi + dphi / 2.
+        # aux  = 1. - self._geometry.eps
+        #
+        # r3 = a2 * aux / math.sqrt ((aux * math.cos(phi2))^2 + (math.sin(phi2))^2)
+        # r4 = a1 * aux / math.sqrt ((aux * math.cos(phi2))^2 + (math.sin(phi2))^2)
+        #
+        # x[1] = r1 * math.cos (phi1 + self._geometry.pa) + self._geometry.x0
+        # y[1] = r1 * math.sin (phi1 + self._geometry.pa) + self._geometry.y0
+        # x[2] = r2 * math.cos (phi1 + self._geometry.pa) + self._geometry.x0
+        # y[2] = r2 * math.sin (phi1 + self._geometry.pa) + self._geometry.y0
+        # x[3] = r3 * math.cos (phi2 + self._geometry.pa) + self._geometry.x0
+        # y[3] = r3 * math.sin (phi2 + self._geometry.pa) + self._geometry.y0
+        # x[4] = r4 * math.cos (phi2 + self._geometry.pa) + self._geometry.x0
+        # y[4] = r4 * math.sin (phi2 + self._geometry.pa) + self._geometry.y0
+        #
+        # call el_qsortr (x, 4, el_comparer)
+        # call el_qsortr (y, 4, el_comparer)
+        #
+        # i1 = x[1] - 1.
+        # j1 = y[1] - 1.
+        # i2 = x[4] + 1.
+        # j2 = y[4] + 1.
 
 
 
