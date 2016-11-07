@@ -4,6 +4,7 @@ import math
 
 import numpy as np
 
+import ellipse.integrator as I
 from ellipse.integrator import integrators, BI_LINEAR
 
 # limits for sector angular width
@@ -46,12 +47,8 @@ class Sample(object):
         self.geometry = Geometry(_x0, _y0, sma, eps, position_angle)
 
         # limiting annulus ellipses
-        if (self.linear):
-            a1 = self.geometry.sma - self.astep / 2.
-            a2 = self.geometry.sma + self.astep / 2.
-        else:
-            a1 = self.geometry.sma * (1. - ((1. - 1./self.astep) / 2.))
-            a2 = self.geometry.sma * (1. + (self.astep - 1.) / 2.)
+        a1, a2 = I.limiting_ellipses(self.geometry.sma, self.astep, self.linear)
+
         self._inner_geometry = Geometry(_x0, _y0, a1, eps, position_angle)
         self._outer_geometry = Geometry(_x0, _y0, a2, eps, position_angle)
 
