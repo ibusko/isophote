@@ -57,7 +57,7 @@ class Integrator(object):
         self._radii.append(radius)
         self._intensities.append(sample)
 
-    def get_phi_step(self):
+    def get_polar_angle_step(self):
         raise NotImplementedError
 
     def get_sector_area(self):
@@ -83,7 +83,7 @@ class NearestNeighborIntegrator(Integrator):
             # store results
             self._store_results(phi, radius, sample)
 
-    def get_phi_step(self):
+    def get_polar_angle_step(self):
         return 2. / self._r
 
     def get_sector_area(self):
@@ -146,7 +146,7 @@ class BiLinearIntegrator(Integrator):
                 sum = sum + z
         return sum / NCELL**2
 
-    def get_phi_step(self):
+    def get_polar_angle_step(self):
         return 1. / self._r
 
     def get_sector_area(self):
@@ -275,7 +275,7 @@ class AreaIntegrator(Integrator):
 # 253
 
 
-    def get_phi_step(self):
+    def get_polar_angle_step(self):
         return self._phistep
 
     def get_sector_area(self):

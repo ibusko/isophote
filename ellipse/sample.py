@@ -66,7 +66,7 @@ class Sample(object):
 
             # update angle and radius to be used to define
             # next polar vector along the elliptical path
-            phistep_ = integrator.get_phi_step()
+            phistep_ = integrator.get_polar_angle_step()
             self.phi += min (phistep_, 0.5)
             self.radius = self.geometry.radius(self.phi)
 
