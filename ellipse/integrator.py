@@ -2,6 +2,8 @@ from __future__ import division
 
 import math
 
+from ellipse.geometry import PHI_MIN, PHI_MAX
+
 # integration modes
 NEAREST_NEIGHBOR = 'nearest_neighbor'
 BI_LINEAR = 'bi-linear'
@@ -157,37 +159,22 @@ class AreaIntegrator(Integrator):
 
         self._r = radius
 
-        a1, a2 = self._geometry.bounding_ellipses()
+        # Get image coordinates of the four vertices of the elliptical sector.
+        vertex_x, vertex_y = self._geometry.initialize_sector_geometry(phi)
 
+        self._sector_area = self._geometry.sector_area
 
-        # Get image coordinates of the four corners of the subraster which
-        # contains the elliptical sector. The sector has a width in phi such
-        # that it comes out with roughly constant area along the ellipse.
-        # phi1 = phi2
-        # r1   = r4
-        # r2   = r3
-        # phi2 = phi + dphi / 2.
-        # aux  = 1. - self._geometry.eps
-        #
-        # r3 = a2 * aux / math.sqrt ((aux * math.cos(phi2))**2 + (math.sin(phi2))**2)
-        # r4 = a1 * aux / math.sqrt ((aux * math.cos(phi2))**2 + (math.sin(phi2))**2)
-        #
-        # x[1] = r1 * math.cos (phi1 + self._geometry.pa) + self._geometry.x0
-        # y[1] = r1 * math.sin (phi1 + self._geometry.pa) + self._geometry.y0
-        # x[2] = r2 * math.cos (phi1 + self._geometry.pa) + self._geometry.x0
-        # y[2] = r2 * math.sin (phi1 + self._geometry.pa) + self._geometry.y0
-        # x[3] = r3 * math.cos (phi2 + self._geometry.pa) + self._geometry.x0
-        # y[3] = r3 * math.sin (phi2 + self._geometry.pa) + self._geometry.y0
-        # x[4] = r4 * math.cos (phi2 + self._geometry.pa) + self._geometry.x0
-        # y[4] = r4 * math.sin (phi2 + self._geometry.pa) + self._geometry.y0
-        #
-        # call el_qsortr (x, 4, el_comparer)
-        # call el_qsortr (y, 4, el_comparer)
-        #
-        # i1 = x[1] - 1.
-        # j1 = y[1] - 1.
-        # i2 = x[4] + 1.
-        # j2 = y[4] + 1.
+        # step in polar angle to be used by caller next time
+        # when updating the current polar angle 'phi' to point
+        # to the next sector.
+        self._phistep = self._geometry.sector_angular_width
+
+        i1 = int(vertex_x[0] - 1)
+        j1 = int(vertex_y[0] - 1)
+        i2 = int(vertex_x[3] + 1)
+        j2 = int(vertex_y[3] + 1)
+
+        print("@@@@@@  file integrator.py; line 177 - ",  i1, i2, j1, j2)
 
 
 
@@ -200,62 +187,15 @@ class AreaIntegrator(Integrator):
 
 
 
-
-        # ignore data point if outside image boundaries
+        i = int(radius * math.cos(phi + self._geometry.pa) + self._geometry.x0)
+        j = int(radius * math.sin(phi + self._geometry.pa) + self._geometry.y0)
         if (i in self._i_range) and (j in self._j_range):
-
-            # need to handle masked pixels here
             sample = self._image[j][i]
-
-            # store results
             self._store_results(phi, radius, sample)
 
-    def get_phi_step(self):
-        return 2. / self._r
-
-    def get_sector_area(self):
-        return 1.
 
 
 
-
-#                # Get image coordinates of the four corners of the
-# 141	                # subraster which contains the elliptical sector. The
-# 142	                # sector has a whidth in phi such that it comes out
-# 143	                # whith roughly constant area along the ellipse.
-# 144	                phi1 = phi2
-# 145	                r1   = r4
-# 146	                r2   = r3
-# 147	                phi2 = phi + dphi / 2.
-# 148	                aux  = 1. - eps
-# 149	                r3   = a2 * aux / sqrt ((aux * cos (phi2))**2 + (sin (phi2))**2)
-# 150	                r4   = a1 * aux / sqrt ((aux * cos (phi2))**2 + (sin (phi2))**2)
-# 151	                x[1] = r1 * cos (phi1 + teta) + x0
-# 152	                y[1] = r1 * sin (phi1 + teta) + y0
-# 153	                x[2] = r2 * cos (phi1 + teta) + x0
-# 154	                y[2] = r2 * sin (phi1 + teta) + y0
-# 155	                x[3] = r3 * cos (phi2 + teta) + x0
-# 156	                y[3] = r3 * sin (phi2 + teta) + y0
-# 157	                x[4] = r4 * cos (phi2 + teta) + x0
-# 158	                y[4] = r4 * sin (phi2 + teta) + y0
-# 159	                call el_qsortr (x, 4, el_comparer)
-# 160	                call el_qsortr (y, 4, el_comparer)
-# 161	                i1 = x[1] - 1.
-# 162	                j1 = y[1] - 1.
-# 163	                i2 = x[4] + 1.
-# 164	                j2 = y[4] + 1.
-# 165
-# 166	                # Compute sector area.
-# 167	                sa1  = el_sarea (a1, eps, phi1, r1)
-# 168	                sa2  = el_sarea (a2, eps, phi1, r2)
-# 169	                sa3  = el_sarea (a2, eps, phi2, r3)
-# 170	                sa4  = el_sarea (a1, eps, phi2, r4)
-# 171	                area = abs ((sa3 - sa2) - (sa4 - sa1))
-# 172
-# 173	                # Compute step to next sector and its angular span.
-# 174	                dphi = max (min ((sarea / (r3 - r4) / r4), PHI_MAX), PHI_MIN)
-# 175	                phistep = dphi / 2. + phi2 - phi
-# 176
 # 177	                # Read subraster. If outside image boundaries,
 # 178	                # invalidate data point.
 # 179	                if ((i1 > 0) && (i1 < IM_LEN (im, 1)) &&
@@ -334,6 +274,12 @@ class AreaIntegrator(Integrator):
 # 252	                    sample = INDEFR
 # 253
 
+
+    def get_phi_step(self):
+        return self._phistep
+
+    def get_sector_area(self):
+        return self._sector_area
 
 
 class MeanIntegrator(AreaIntegrator):

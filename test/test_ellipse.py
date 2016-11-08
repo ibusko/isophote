@@ -7,43 +7,67 @@ import pyfits
 
 import ellipse.integrator as I
 from ellipse.sample import Sample, Geometry
-from ellipse.integrator import NEAREST_NEIGHBOR, MEAN
+from ellipse.integrator import NEAREST_NEIGHBOR, BI_LINEAR, MEAN
 
 
 class TestGeometry(unittest.TestCase):
 
+    def _check_geometry(self, geometry):
+
+        sma1, sma2 = geometry._bounding_ellipses()
+
+        self.assertAlmostEqual(sma1, 90.0, 3)
+        self.assertAlmostEqual(sma2, 110.0, 3)
+
+        # using an arbitrary angle of 0.5 rad. This is
+        # to avoid a polar vector that sits on top of
+        # one of the ellipse's axis.
+        vertex_x, vertex_y = geometry.initialize_sector_geometry(0.5)
+
+        self.assertAlmostEqual(geometry.sector_angular_width, 0.0571, 2)
+        self.assertAlmostEqual(geometry.sector_area, 71.00, 2)
+
+        self.assertAlmostEqual(vertex_x[0], 219.86, 2)
+        self.assertAlmostEqual(vertex_x[1], 212.05, 2)
+        self.assertAlmostEqual(vertex_x[2], 217.49, 2)
+        self.assertAlmostEqual(vertex_x[3], 209.16, 2)
+
+        self.assertAlmostEqual(vertex_y[0], 323.33, 2)
+        self.assertAlmostEqual(vertex_y[1], 338.52, 2)
+        self.assertAlmostEqual(vertex_y[2], 319.75, 2)
+        self.assertAlmostEqual(vertex_y[3], 334.14, 2)
+
     def test_ellipse(self):
 
+        # Geometrical steps
         geometry = Geometry(255., 255., 100., 0.4, np.pi/2, 0.2, False)
 
-        a1, a2 = geometry.bounding_ellipses()
+        self._check_geometry(geometry)
 
-        self.assertAlmostEqual(a1, 90.0,  3)
-        self.assertAlmostEqual(a2, 110.0, 3)
-
+        # Linear steps
         geometry = Geometry(255., 255., 100., 0.4, np.pi/2, 20., True)
 
-        a1, a2 = geometry.bounding_ellipses()
-
-        self.assertAlmostEqual(a1, 90.0,  3)
-        self.assertAlmostEqual(a2, 110.0, 3)
-
+        self._check_geometry(geometry)
 
 class TestSampling(unittest.TestCase):
 
-    def test_bilinear(self):
-
+    def _init_test(self, integrmode=BI_LINEAR):
         test_data = pyfits.open("test_image.fits")
         test_data = test_data[0].data
 
-        sample = Sample(test_data, 40., eps=0.4)
+        sample = Sample(test_data, 40., eps=0.4, integrmode=integrmode)
         s = sample.extract()
 
         self.assertEqual(len(s), 3)
         self.assertEqual(len(s[0]), len(s[1]))
         self.assertEqual(len(s[0]), len(s[2]))
 
-        # values for image test_image.fits, sma=40., eps=0.4
+        return s
+
+    def test_bilinear(self):
+
+        s = self._init_test()
+
         self.assertEqual(len(s[0]), 191)
         # intensities
         self.assertAlmostEqual(np.mean(s[2]), 0.1717, 3)
@@ -55,17 +79,8 @@ class TestSampling(unittest.TestCase):
 
     def test_nearest_neighbor(self):
 
-        test_data = pyfits.open("test_image.fits")
-        test_data = test_data[0].data
+        s = self._init_test(integrmode=NEAREST_NEIGHBOR)
 
-        sample = Sample(test_data, 40., eps=0.4, integrmode=NEAREST_NEIGHBOR)
-        s = sample.extract()
-
-        self.assertEqual(len(s), 3)
-        self.assertEqual(len(s[0]), len(s[1]))
-        self.assertEqual(len(s[0]), len(s[2]))
-
-        # values for image test_image.fits, sma=40., eps=0.4
         self.assertEqual(len(s[0]), 96)
         # intensities
         self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
@@ -74,24 +89,15 @@ class TestSampling(unittest.TestCase):
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
         self.assertAlmostEqual(np.min(s[1]), 24.001, 2)
 
-    # def test_mean(self):
-    #
-    #     test_data = pyfits.open("test_image.fits")
-    #     test_data = test_data[0].data
-    #
-    #     sample = Sample(test_data, 40., eps=0.4, integrmode=MEAN)
-    #     s = sample.extract()
+    def test_mean(self):
 
-        # self.assertEqual(len(s), 3)
-        # self.assertEqual(len(s[0]), len(s[1]))
-        # self.assertEqual(len(s[0]), len(s[2]))
-        #
-        # # values for image test_image.fits, sma=40., eps=0.4
-        # self.assertEqual(len(s[0]), 96)
-        # # intensities
-        # self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
-        # self.assertAlmostEqual(np.std(s[2]),  0.00097, 3)
-        # # radii
-        # self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
-        # self.assertAlmostEqual(np.min(s[1]), 24.001, 2)
+        s = self._init_test(integrmode=MEAN)
+
+        self.assertEqual(len(s[0]), 38)
+        # intensities
+        self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
+        self.assertAlmostEqual(np.std(s[2]),  0.00097, 3)
+        # radii
+        self.assertAlmostEqual(np.max(s[1]), 39.95, 2)
+        self.assertAlmostEqual(np.min(s[1]), 24.031, 2)
 
