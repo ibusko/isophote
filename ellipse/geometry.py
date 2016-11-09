@@ -93,19 +93,19 @@ class Geometry(object):
         # outer ellipses that define the first sector.
         eps_ = 1. - self.eps
         # polar vector at one side of the elliptical sector
-        phi1 = phi - self.sector_angular_width / 2.
-        r1 = self.sma1 * eps_ / math.sqrt((eps_ * math.cos(phi1))**2 + (math.sin(phi1))**2)
-        r2 = self.sma2 * eps_ / math.sqrt((eps_ * math.cos(phi1))**2 + (math.sin(phi1))**2)
+        self.phi1 = phi - self.sector_angular_width / 2.
+        r1 = self.sma1 * eps_ / math.sqrt((eps_ * math.cos(self.phi1))**2 + (math.sin(self.phi1))**2)
+        r2 = self.sma2 * eps_ / math.sqrt((eps_ * math.cos(self.phi1))**2 + (math.sin(self.phi1))**2)
         # polar vector at the other side of the elliptical sector
-        phi2 = phi + self.sector_angular_width / 2.
-        r3 = self.sma2 * eps_ / math.sqrt((eps_ * math.cos(phi2))**2 + (math.sin(phi2))**2)
-        r4 = self.sma1 * eps_ / math.sqrt((eps_ * math.cos(phi2))**2 + (math.sin(phi2))**2)
+        self.phi2 = phi + self.sector_angular_width / 2.
+        r3 = self.sma2 * eps_ / math.sqrt((eps_ * math.cos(self.phi2))**2 + (math.sin(self.phi2))**2)
+        r4 = self.sma1 * eps_ / math.sqrt((eps_ * math.cos(self.phi2))**2 + (math.sin(self.phi2))**2)
 
         # sector area
-        sa1  = _area (self.sma1, self.eps, phi1, r1)
-        sa2  = _area (self.sma2, self.eps, phi1, r2)
-        sa3  = _area (self.sma2, self.eps, phi2, r3)
-        sa4  = _area (self.sma1, self.eps, phi2, r4)
+        sa1  = _area (self.sma1, self.eps, self.phi1, r1)
+        sa2  = _area (self.sma2, self.eps, self.phi1, r2)
+        sa3  = _area (self.sma2, self.eps, self.phi2, r3)
+        sa4  = _area (self.sma1, self.eps, self.phi2, r4)
         self.sector_area = abs ((sa3 - sa2) - (sa4 - sa1))
 
         # angular width of sector. It is defined such that it
@@ -117,14 +117,14 @@ class Geometry(object):
         vertex_y = np.zeros(shape=4, dtype=float)
 
         # vertices are labelled in counterclockwise sequence
-        vertex_x[0] = r1 * math.cos (phi1 + self.pa) + self.x0
-        vertex_y[0] = r1 * math.sin (phi1 + self.pa) + self.y0
-        vertex_x[1] = r2 * math.cos (phi1 + self.pa) + self.x0
-        vertex_y[1] = r2 * math.sin (phi1 + self.pa) + self.y0
-        vertex_x[2] = r4 * math.cos (phi2 + self.pa) + self.x0
-        vertex_y[2] = r4 * math.sin (phi2 + self.pa) + self.y0
-        vertex_x[3] = r3 * math.cos (phi2 + self.pa) + self.x0
-        vertex_y[3] = r3 * math.sin (phi2 + self.pa) + self.y0
+        vertex_x[0] = r1 * math.cos (self.phi1 + self.pa) + self.x0
+        vertex_y[0] = r1 * math.sin (self.phi1 + self.pa) + self.y0
+        vertex_x[1] = r2 * math.cos (self.phi1 + self.pa) + self.x0
+        vertex_y[1] = r2 * math.sin (self.phi1 + self.pa) + self.y0
+        vertex_x[2] = r4 * math.cos (self.phi2 + self.pa) + self.x0
+        vertex_y[2] = r4 * math.sin (self.phi2 + self.pa) + self.y0
+        vertex_x[3] = r3 * math.cos (self.phi2 + self.pa) + self.x0
+        vertex_y[3] = r3 * math.sin (self.phi2 + self.pa) + self.y0
 
         return vertex_x, vertex_y
 
@@ -161,6 +161,49 @@ class Geometry(object):
 
         return a1, a2
 
+    def to_polar(self, x, y):
+        '''
+        Given x,y coordinates on image grid, returns radius
+        and polar angle on ellipse coordinate system. Takes
+        care of different definitions for pa and phi:
 
+        -PI < pa < PI
+        0 < phi  < 2*PI
 
+        Note that radius can be anything; solution is not tied
+        to the semi-major axis length, but to the center position
+        and tilt angle only.
 
+        :param x: float
+            image coordinate
+        :param y: float
+            image coordinate
+        :return: 2 floats
+            radius, angle
+        '''
+        x1 = x - self.x0
+        y1 = y - self.y0
+
+        radius = x1**2 + y1**2
+        if (radius > 0.0):
+            radius = math.sqrt(radius)
+            angle  = math.asin(abs(y1) / radius)
+        else:
+            radius = 0.
+            angle = 1.
+
+        if x1 >= 0. and y1 < 0.:
+            angle = 2*np.pi - angle
+        elif x1 < 0. and y1 >= 0.:
+            angle = np.pi - angle
+        elif x1 < 0. and y1 < 0.:
+            angle = np.pi + angle
+
+        pa1 = self.pa
+        if self.pa < 0.:
+            pa1 = self.pa + 2*np.pi
+        angle = angle - pa1
+        if angle < 0.:
+            angle = angle + 2*np.pi
+
+        return radius, angle

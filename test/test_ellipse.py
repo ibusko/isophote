@@ -49,6 +49,40 @@ class TestGeometry(unittest.TestCase):
 
         self._check_geometry(geometry)
 
+    def test_to_polar(self):
+        # trivial case of a circle centered in (0.,0.)
+        geometry = Geometry(0., 0., 100., 0.0, 0., 0.2, False)
+
+        r, p = geometry.to_polar(100., 0.)
+        self.assertAlmostEqual(r, 100., 2)
+        self.assertAlmostEqual(p, 0., 4)
+
+        r, p = geometry.to_polar(0., 100.)
+        self.assertAlmostEqual(r, 100., 2)
+        self.assertAlmostEqual(p, np.pi/2., 4)
+
+        # vector with length 100. at 45 deg angle
+        r, p = geometry.to_polar(70.71, 70.71)
+        self.assertAlmostEqual(r, 100., 2)
+        self.assertAlmostEqual(p, np.pi/4., 4)
+
+        # position angle tilted 45 deg from X axis
+        geometry = Geometry(0., 0., 100., 0.0, np.pi/4., 0.2, False)
+
+        r, p = geometry.to_polar(100., 0.)
+        self.assertAlmostEqual(r, 100., 2)
+        self.assertAlmostEqual(p, np.pi*7./4., 4)
+
+        r, p = geometry.to_polar(0., 100.)
+        self.assertAlmostEqual(r, 100., 2)
+        self.assertAlmostEqual(p, np.pi/4., 4)
+
+        # vector with length 100. at 45 deg angle
+        r, p = geometry.to_polar(70.71, 70.71)
+        self.assertAlmostEqual(r, 100., 2)
+        self.assertAlmostEqual(p, np.pi*2., 4)
+
+
 class TestSampling(unittest.TestCase):
 
     def _init_test(self, integrmode=BI_LINEAR):
@@ -93,11 +127,11 @@ class TestSampling(unittest.TestCase):
 
         s = self._init_test(integrmode=MEAN)
 
-        self.assertEqual(len(s[0]), 38)
+        self.assertEqual(len(s[0]), 13)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
+        self.assertAlmostEqual(np.mean(s[2]), 0.1707,  3)
         self.assertAlmostEqual(np.std(s[2]),  0.00097, 3)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 39.95, 2)
-        self.assertAlmostEqual(np.min(s[1]), 24.031, 2)
+        self.assertAlmostEqual(np.min(s[1]), 24.70, 2)
 

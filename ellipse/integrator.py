@@ -2,7 +2,7 @@ from __future__ import division
 
 import math
 
-from ellipse.geometry import PHI_MIN, PHI_MAX
+import numpy as np
 
 # integration modes
 NEAREST_NEIGHBOR = 'nearest_neighbor'
@@ -157,8 +157,6 @@ class AreaIntegrator(Integrator):
 
     def integrate(self, radius, phi):
 
-        self._r = radius
-
         # Get image coordinates of the four vertices of the elliptical sector.
         vertex_x, vertex_y = self._geometry.initialize_sector_geometry(phi)
 
@@ -174,38 +172,65 @@ class AreaIntegrator(Integrator):
         i2 = int(vertex_x[3] + 1)
         j2 = int(vertex_y[3] + 1)
 
-        print("@@@@@@  file integrator.py; line 177 - ",  i1, i2, j1, j2)
+        phi1 = self._geometry.phi1
+        phi2 = self._geometry.phi2
 
 
+        print ('@@@@@@     line: 179  -     indices    ', i1, j1, i2, j2)
 
+        # print ('@@@@@@     line: 191  - ',
+        # (i1 in self._i_range) and (j1 in self._j_range) and \
+        # (i2 in self._i_range) and (j2 in self._j_range)
+        # )
 
+        # ignore data point if the elliptical sector lies
+        # partially, ou totally, outside image boundaries
+        if (i1 in self._i_range) and (j1 in self._j_range) and \
+           (i2 in self._i_range) and (j2 in self._j_range):
 
+            print ('@@@@@@     line: 201  - ')
 
+            # Scan sector, compute mean or median intensity.
+            sample = 0.
+            npix   = 0
+            for j in range(j1,j2):
 
+                print ('@@@@@@     line: 198  -    looping in j  ', j)
 
+                for i in range(i1, i2):
 
+                    print ('@@@@@@     line: 202  -    looping in i   ', i)
 
+                    # Check if polar coordinates of each pixel
+                    # put it inside elliptical sector.
+                    rp, phip = self._geometry.to_polar(i, j)
 
+                    print ('@@@@@@     line: 194  -   angle       ', phi1/np.pi*180, phip/np.pi*180, phi2/np.pi*180)
 
-        i = int(radius * math.cos(phi + self._geometry.pa) + self._geometry.x0)
-        j = int(radius * math.sin(phi + self._geometry.pa) + self._geometry.y0)
-        if (i in self._i_range) and (j in self._j_range):
-            sample = self._image[j][i]
-            self._store_results(phi, radius, sample)
+                    if phip < phi2 and phip >= phi1:
 
+                        aux = (1. - self._geometry.eps) / math.sqrt(((1. - self._geometry.eps) *
+                              math.cos(phip))**2 + (math.sin(phip))**2)
+                        rp1 = self._geometry.sma1 * aux
+                        rp2 = self._geometry.sma2 * aux
 
+                        print ('@@@@@@     line: 201  -    radii      ',rp1, rp, rp2)
 
+                        if rp < rp2 and rp >= rp1:
+                            sample += self._image[j][i]
+                            npix += 1
 
-# 177	                # Read subraster. If outside image boundaries,
-# 178	                # invalidate data point.
-# 179	                if ((i1 > 0) && (i1 < IM_LEN (im, 1)) &&
-# 180	                    (j1 > 0) && (j1 < IM_LEN (im, 2)) &&
-# 181	                    (i2 > 0) && (i2 < IM_LEN (im, 1)) &&
-# 182	                    (j2 > 0) && (j2 < IM_LEN (im, 2))) {
-# 183	                    call el_getsec (im, sec, i1, i2, j1, j2)
-# 184	                    # Create buffer for median computation.
-# 185	                    if (integrmode == INT_MED)
-# 186	                        call malloc (medbuf, (i2-i1+1)*(j2-j1+1) , TY_REAL)
+                            print ('@@@@@@     line: 207      npix    - ', npix)
+
+            if npix > 0:
+                self._store_results(phi, radius, sample / npix)
+
+            print ('@@@@@@     line: 205  - ', phi/np.pi*180, radius, npix)
+
+            # Create buffer for median computation.
+#           if (integrmode == INT_MED)
+# 	            call malloc (medbuf, (i2-i1+1)*(j2-j1+1) , TY_REAL)
+#           }
 # 187	                    # Scan subraster, compute mean or median intensity.
 # 188	                    sample = 0.
 # 189	                    npix   = 0
@@ -238,7 +263,6 @@ class AreaIntegrator(Integrator):
 # 216	                                }
 # 217	                            }
 # 218	                        }
-# 219	                    }
 # 220	                    # If 6 or less pixels were sampled, get the
 # 221	                    # bi-linear interpolated value instead.
 # 222	                    if (npix <= 6) {
