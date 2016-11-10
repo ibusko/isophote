@@ -180,7 +180,7 @@ class AreaIntegrator(Integrator):
 
         # print ('@@@@@@     line: 191  - ',
         # (i1 in self._i_range) and (j1 in self._j_range) and \
-        # (i2 in self._i_range) and (j2 in self._j_range)
+        # (i2 in self._i_range) and (j2 i0n self._j_range)
         # )
 
         # ignore data point if the elliptical sector lies
