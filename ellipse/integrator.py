@@ -8,6 +8,7 @@ import numpy as np
 NEAREST_NEIGHBOR = 'nearest_neighbor'
 BI_LINEAR = 'bi-linear'
 MEAN = 'mean'
+MEDIAN = 'median'
 
 
 class Integrator(object):
@@ -170,8 +171,8 @@ class AreaIntegrator(Integrator):
 
         super(AreaIntegrator, self).__init__(image, geometry, angles, radii, intensities)
 
-        # build auxiliary bi-linear integrator to be
-        # used when sector areas are too small.
+        # build auxiliary bi-linear integrator to be used when
+        # sector areas contain a too small number of valid pixels.
         self._bi_linear_integrator = integrators[BI_LINEAR](image, geometry, angles, radii, intensities)
 
     def integrate(self, radius, phi):
@@ -270,9 +271,26 @@ class MeanIntegrator(AreaIntegrator):
         return sample / npix
 
 
+class MedianIntegrator(AreaIntegrator):
+
+    def initialize_accumulator(self):
+        sample = []
+        return sample
+
+    def accumulate(self, pixel_value, npix, sample):
+        sample.append(pixel_value)
+        npix += 1
+        return sample, npix
+
+    def compute_sample_value(self, sample, npix):
+        sample.sort()
+        return sample[int(npix/2)]
+
+
 integrators = {
     NEAREST_NEIGHBOR: NearestNeighborIntegrator,
     BI_LINEAR: BiLinearIntegrator,
-    MEAN: MeanIntegrator
+    MEAN: MeanIntegrator,
+    MEDIAN: MedianIntegrator
 }
 

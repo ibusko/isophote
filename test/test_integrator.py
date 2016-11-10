@@ -7,7 +7,7 @@ import pyfits
 
 from ellipse.sample import Sample
 
-from ellipse.integrator import NEAREST_NEIGHBOR, BI_LINEAR, MEAN
+from ellipse.integrator import NEAREST_NEIGHBOR, BI_LINEAR, MEAN, MEDIAN
 
 
 class TestIntegrator(unittest.TestCase):
@@ -53,6 +53,18 @@ class TestIntegrator(unittest.TestCase):
     def test_mean(self):
 
         s = self._init_test(integrmode=MEAN)
+
+        self.assertEqual(len(s[0]), 38)
+        # intensities
+        self.assertAlmostEqual(np.mean(s[2]), 0.1716,  3)
+        self.assertAlmostEqual(np.std(s[2]),  0.001593, 3)
+        # radii
+        self.assertAlmostEqual(np.max(s[1]), 39.95, 2)
+        self.assertAlmostEqual(np.min(s[1]), 24.03, 2)
+
+    def test_median(self):
+
+        s = self._init_test(integrmode=MEDIAN)
 
         self.assertEqual(len(s[0]), 38)
         # intensities
