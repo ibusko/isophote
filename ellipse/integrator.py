@@ -52,6 +52,17 @@ class Integrator(object):
         '''
         raise NotImplementedError
 
+    def _reset(self):
+        '''
+        Starts the results lists anew.
+
+        This method is for internal use and shouldn't
+        be used by external callers.
+        '''
+        self._angles = []
+        self._radii = []
+        self._intensities = []
+
     def _store_results(self, phi, radius, sample):
         self._angles.append(phi)
         self._radii.append(radius)
@@ -155,6 +166,14 @@ class BiLinearIntegrator(Integrator):
 
 class AreaIntegrator(Integrator):
 
+    def __init__(self, image, geometry, angles, radii, intensities):
+
+        super(AreaIntegrator, self).__init__(image, geometry, angles, radii, intensities)
+
+        # build auxiliary bi-linear integrator to be
+        # used when sector areas are too small.
+        self._bi_linear_integrator = integrators[BI_LINEAR](image, geometry, angles, radii, intensities)
+
     def integrate(self, radius, phi):
 
         # Get image coordinates of the four vertices of the elliptical sector.
@@ -206,81 +225,19 @@ class AreaIntegrator(Integrator):
                             pix_value = self._image[j][i]
                             accumulator, npix = self.accumulate(pix_value, npix, accumulator)
 
-            if npix > 0:
-                sample_value = self.compute_sample_value(accumulator, npix)
+            # If 6 or less pixels were sampled, get the bi-linear interpolated value instead.
+            if npix in range (1,7):
+                # must reset integrator to remove older samples.
+                self._bi_linear_integrator._reset()
+                self._bi_linear_integrator.integrate(radius, phi)
+                # because it was reset, current value is the only one stored
+                # internally in the bi-linear integrator instance.
+                sample_value = self._bi_linear_integrator._intensities[0]
                 self._store_results(phi, radius, sample_value)
 
-            # Create buffer for median computation.
-#           if (integrmode == INT_MED)
-# 	            call malloc (medbuf, (i2-i1+1)*(j2-j1+1) , TY_REAL)
-#           }
-# 187	                    # Scan subraster, compute mean or median intensity.
-# 188	                    sample = 0.
-# 189	                    npix   = 0
-# 190	                    do j = j1, j2 {
-# 191	                        do i = i1, i2 {
-# 192	                            # Check if polar coordinates of each subraster
-# 193	                            # pixel put it inside elliptical sector.
-# 194	                            call el_polar (float(i), float(j), x0, y0, teta,
-# 195	                                           rp, phip)
-# 196	                            if ((phip < phi2) && (phip >= phi1)) {
-# 197	                                aux = (1. - eps) / sqrt (((1. - eps) *
-# 198	                                      cos (phip))**2 + (sin (phip))**2)
-# 199	                                rp1 = a1 * aux
-# 200	                                rp2 = a2 * aux
-# 201	                                if ((rp < rp2) && (rp >= rp1)) {
-# 202	                                    pixel = Memr[SUBRASTER(sec) +
-# 203	                                                 (j-j1) * (i2 - i1 + 1) +
-# 204	                                                 i - i1]
-# 205	                                    # Add valid pixel to accumulator.
-# 206	                                    if (!IS_INDEFR (pixel)) {
-# 207	                                        switch (integrmode) {
-# 208	                                        case INT_MED:
-# 209	                                            Memr[medbuf+npix] = pixel
-# 210	                                            npix = npix + 1
-# 211	                                        case INT_MEAN:
-# 212	                                            accumulator = accumulator + pixel
-# 213	                                            npix = npix + 1
-# 214	                                        }
-# 215	                                    }
-# 216	                                }
-# 217	                            }
-# 218	                        }
-# 220	                    # If 6 or less pixels were sampled, get the
-# 221	                    # bi-linear interpolated value instead.
-# 222	                    if (npix <= 6) {
-# 223	                        r       = (r1 + r2 + r3 + r4) / 4.
-# 224	                        area    = 2.
-# 225	                        x[1]    = r * cos (phi + teta) + x0
-# 226	                        y[1]    = r * sin (phi + teta) + y0
-# 227	                        i       = x[1]
-# 228	                        j       = y[1]
-# 229	                        fx      = x[1] - real(i)
-# 230	                        fy      = y[1] - real(j)
-# 231	                        accumulator  = el_bilinear (im, sec, a, i, j, fx, fy)
-# 232	                        if (integrmode == INT_MED)
-# 233	                            call mfree (medbuf, TY_REAL)
-# 234	                    } else {
-# 235	                        # Compute mean or median.
-# 236	                        switch (integrmode) {
-# 237	                        case INT_MED:
-# 238	                            call el_qsortr (Memr[medbuf], npix, el_comparer)
-# 239	                            switch (mod (npix,2)) {
-# 240	                            case 0:
-# 241	                                accumulator = (Memr[medbuf + npix/2 - 1] +
-# 242	                                          Memr[medbuf + npix/2]) / 2.
-# 243	                            case 1:
-# 244	                                accumulator = Memr[medbuf + npix/2]
-# 245	                            }
-# 246	                            call mfree (medbuf, TY_REAL)
-# 247	                        case INT_MEAN:
-# 248	                            accumulator = accumulator / float (npix)
-# 249	                        }
-# 250	                    }
-# 251	                } else
-# 252	                    accumulator = INDEFR
-# 253
-
+            elif npix > 6:
+                sample_value = self.compute_sample_value(accumulator, npix)
+                self._store_results(phi, radius, sample_value)
 
     def get_polar_angle_step(self):
         return self._phistep
