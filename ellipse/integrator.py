@@ -167,46 +167,27 @@ class AreaIntegrator(Integrator):
         # to the next sector.
         self._phistep = self._geometry.sector_angular_width
 
-        i1 = int(vertex_x[0] - 1)
-        j1 = int(vertex_y[0] - 1)
-        i2 = int(vertex_x[3] + 1)
-        j2 = int(vertex_y[3] + 1)
+        i1 = int(min(vertex_x))
+        j1 = int(min(vertex_y))
+        i2 = int(max(vertex_x))
+        j2 = int(max(vertex_y))
 
         phi1 = self._geometry.phi1
         phi2 = self._geometry.phi2
-
-
-        print ('@@@@@@     line: 179  -     indices    ', i1, j1, i2, j2)
-
-        # print ('@@@@@@     line: 191  - ',
-        # (i1 in self._i_range) and (j1 in self._j_range) and \
-        # (i2 in self._i_range) and (j2 i0n self._j_range)
-        # )
 
         # ignore data point if the elliptical sector lies
         # partially, ou totally, outside image boundaries
         if (i1 in self._i_range) and (j1 in self._j_range) and \
            (i2 in self._i_range) and (j2 in self._j_range):
 
-            print ('@@@@@@     line: 201  - ')
-
             # Scan sector, compute mean or median intensity.
             sample = 0.
             npix   = 0
             for j in range(j1,j2):
-
-                print ('@@@@@@     line: 198  -    looping in j  ', j)
-
                 for i in range(i1, i2):
-
-                    print ('@@@@@@     line: 202  -    looping in i   ', i)
-
                     # Check if polar coordinates of each pixel
                     # put it inside elliptical sector.
                     rp, phip = self._geometry.to_polar(i, j)
-
-                    print ('@@@@@@     line: 194  -   angle       ', phi1/np.pi*180, phip/np.pi*180, phi2/np.pi*180)
-
                     if phip < phi2 and phip >= phi1:
 
                         aux = (1. - self._geometry.eps) / math.sqrt(((1. - self._geometry.eps) *
@@ -214,18 +195,12 @@ class AreaIntegrator(Integrator):
                         rp1 = self._geometry.sma1 * aux
                         rp2 = self._geometry.sma2 * aux
 
-                        print ('@@@@@@     line: 201  -    radii      ',rp1, rp, rp2)
-
                         if rp < rp2 and rp >= rp1:
                             sample += self._image[j][i]
                             npix += 1
 
-                            print ('@@@@@@     line: 207      npix    - ', npix)
-
             if npix > 0:
                 self._store_results(phi, radius, sample / npix)
-
-            print ('@@@@@@     line: 205  - ', phi/np.pi*180, radius, npix)
 
             # Create buffer for median computation.
 #           if (integrmode == INT_MED)

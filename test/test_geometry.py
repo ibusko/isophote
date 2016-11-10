@@ -79,3 +79,63 @@ class TestGeometry(unittest.TestCase):
         self.assertAlmostEqual(r, 100., 2)
         self.assertAlmostEqual(p, np.pi*2., 4)
 
+    def test_area(self):
+        # circle with center at origin
+        geometry = Geometry(0., 0., 100., 0.0, 0., 0.2, False)
+
+        # sector at 45 deg on circle
+        vertex_x, vertex_y = geometry.initialize_sector_geometry(45./180.*np.pi)
+
+        self.assertAlmostEqual(vertex_x[0], 65.21, 2)
+        self.assertAlmostEqual(vertex_x[1], 79.70, 2)
+        self.assertAlmostEqual(vertex_x[2], 62.03, 2)
+        self.assertAlmostEqual(vertex_x[3], 75.81, 2)
+
+        self.assertAlmostEqual(vertex_y[0], 62.03, 2)
+        self.assertAlmostEqual(vertex_y[1], 75.81, 2)
+        self.assertAlmostEqual(vertex_y[2], 65.21, 2)
+        self.assertAlmostEqual(vertex_y[3], 79.70, 2)
+
+        # sector at 0 deg on circle
+        vertex_x, vertex_y = geometry.initialize_sector_geometry(0)
+
+        self.assertAlmostEqual(vertex_x[0], 89.97, 2)
+        self.assertAlmostEqual(vertex_x[1], 109.96, 2)
+        self.assertAlmostEqual(vertex_x[2], 89.97, 2)
+        self.assertAlmostEqual(vertex_x[3], 109.96, 2)
+
+        self.assertAlmostEqual(vertex_y[0], -2.50, 2)
+        self.assertAlmostEqual(vertex_y[1], -3.06, 2)
+        self.assertAlmostEqual(vertex_y[2], 2.50, 2)
+        self.assertAlmostEqual(vertex_y[3], 3.06, 2)
+
+    def test_area2(self):
+        # circle with center at 100.,100.
+        geometry = Geometry(100., 100., 100., 0.0, 0., 0.2, False)
+
+        # sector at 45 deg on circle
+        vertex_x, vertex_y = geometry.initialize_sector_geometry(45./180.*np.pi)
+
+        self.assertAlmostEqual(vertex_x[0], 165.21, 2)
+        self.assertAlmostEqual(vertex_x[1], 179.70, 2)
+        self.assertAlmostEqual(vertex_x[2], 162.03, 2)
+        self.assertAlmostEqual(vertex_x[3], 175.81, 2)
+
+        self.assertAlmostEqual(vertex_y[0], 162.03, 2)
+        self.assertAlmostEqual(vertex_y[1], 175.81, 2)
+        self.assertAlmostEqual(vertex_y[2], 165.21, 2)
+        self.assertAlmostEqual(vertex_y[3], 179.70, 2)
+
+        # sector at 225 deg on circle
+        vertex_x, vertex_y = geometry.initialize_sector_geometry(225./180.*np.pi)
+
+        self.assertAlmostEqual(vertex_x[0], 34.62, 2)
+        self.assertAlmostEqual(vertex_x[1], 20.09, 2)
+        self.assertAlmostEqual(vertex_x[2], 38.15, 2)
+        self.assertAlmostEqual(vertex_x[3], 24.41, 2)
+
+        self.assertAlmostEqual(vertex_y[0], 38.15, 2)
+        self.assertAlmostEqual(vertex_y[1], 24.41, 2)
+        self.assertAlmostEqual(vertex_y[2], 34.62, 2)
+        self.assertAlmostEqual(vertex_y[3], 20.09, 2)
+
