@@ -10,6 +10,19 @@ import pyfits
 from ellipse.sample import Sample
 
 
+def harmonic_function(phi, y0, a1, b1, a2, b2):
+    return y0 + a1 * np.sin(phi) + b1 * np.cos(phi) + a2 * np.sin(2*phi) + b2 * np.cos(2*phi)
+
+
+def fit_harmonics(phi, sample):
+    a1 = 1.
+    b1 = 1.
+    a2 = 1.
+    b2 = 1.
+    optimize_func = lambda x: x[0] + x[1]*np.sin(phi) + x[2]*np.cos(phi) + x[3]*np.sin(2*phi) + x[4]*np.cos(2*phi) - sample
+    return leastsq(optimize_func, [np.mean(sample), a1, b1, a2, b2])[0]
+
+
 class TestHarmonics(unittest.TestCase):
 
     def test_harmonics_1(self):
@@ -54,20 +67,35 @@ class TestHarmonics(unittest.TestCase):
         b2_0 = 2.
         data = y0_0 + a1_0 * np.sin(E) + b1_0 * np.cos(E) + a2_0 * np.sin(2*E) + b2_0 * np.cos(2*E) + 0.01 * np.random.randn(N)
 
-        y0_1 = 100.
-        a1_1 = 10.
-        b1_1 = 5.
-        a2_1 = 8.
-        b2_1 = 2.
-
-        optimize_func = lambda x: x[0] + x[1]*np.sin(E) + x[2]*np.cos(E) + x[3]*np.sin(2*E) + x[4]*np.cos(2*E) - data
-
-        y0, a1, b1, a2, b2 = leastsq(optimize_func, [y0_1, a1_1, b1_1, a2_1, b2_1])[0]
-
+        y0, a1, b1, a2, b2 = fit_harmonics(E, data)
         data_fit = y0 + a1*np.sin(E) + b1*np.cos(E) + a2*np.sin(2*E) + b2* np.cos(2*E) + 0.01 * np.random.randn(N)
-
         residual = data - data_fit
 
         self.assertAlmostEqual(np.mean(residual), 0.000, 2)
         self.assertAlmostEqual(np.std(residual),  0.015, 2)
+
+    def test_fit_sample(self):
+
+        test_data = pyfits.open("synthetic_image.fits")
+        test_data = test_data[0].data
+
+        sample = Sample(test_data, 40., eps=0.4)
+        s = sample.extract()
+
+        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[1])
+
+        # these results suggest a correction in
+        # ellipticity is necessary (large B2)
+
+        self.assertAlmostEqual(y0, 30.49, 2)
+        self.assertAlmostEqual(a1, -0.0001560, 4)
+        self.assertAlmostEqual(b1, -0.0083370, 4)
+        self.assertAlmostEqual(a2, -0.006610, 4)
+        self.assertAlmostEqual(b2, 7.8641, 4)
+
+        model = harmonic_function(s[0], y0, a1, b1, a2, b2)
+        residual = s[1] - model
+
+        self.assertAlmostEqual(np.mean(residual), 0.0000, 3)
+        self.assertAlmostEqual(np.std(residual),  1.0623, 3)
 
