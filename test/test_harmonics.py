@@ -8,19 +8,7 @@ import unittest
 import pyfits
 
 from ellipse.sample import Sample
-
-
-def harmonic_function(phi, y0, a1, b1, a2, b2):
-    return y0 + a1 * np.sin(phi) + b1 * np.cos(phi) + a2 * np.sin(2*phi) + b2 * np.cos(2*phi)
-
-
-def fit_harmonics(phi, sample):
-    a1 = 1.
-    b1 = 1.
-    a2 = 1.
-    b2 = 1.
-    optimize_func = lambda x: x[0] + x[1]*np.sin(phi) + x[2]*np.cos(phi) + x[3]*np.sin(2*phi) + x[4]*np.cos(2*phi) - sample
-    return leastsq(optimize_func, [np.mean(sample), a1, b1, a2, b2])[0]
+from ellipse.harmonics import fit_harmonics, harmonic_function
 
 
 class TestHarmonics(unittest.TestCase):
