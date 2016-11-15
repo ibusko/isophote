@@ -36,7 +36,7 @@ class Sample(object):
             _x0 = image.shape[0] / 2
             _y0 = image.shape[1] / 2
 
-        self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep,linear_growth)
+        self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep, linear_growth)
 
         # extracted values associated with this sample.
         self.values = None
@@ -104,7 +104,7 @@ class Sample(object):
 
         return result
 
-    def update(self, step=0.1):
+    def update(self, step=0.8):
         ''' Update this Sample instance with the mean intensity and
             local gradient values.
 
@@ -118,10 +118,25 @@ class Sample(object):
 
         # Get sample with same geometry but at a different distance from center.
         gradient_sma = (1. + step) * self.geometry.sma
-        gradient_sample = Sample(self.image, gradient_sma, eps=self.geometry.eps)
+
+        gradient_sample = Sample(self.image, gradient_sma,
+                                 x0=self.geometry.x0, y0=self.geometry.y0,
+                                 astep=self.geometry.astep,
+                                 eps=self.geometry.eps, position_angle=self.geometry.pa,
+                                 linear_growth=self.geometry.linear_growth,
+                                 integrmode=self.integrmode)
+
+        print ('@@@@@@     line: 129  -   building sample for sma  ', self.geometry.sma)
 
         s  = self.extract()
+
+        print ('@@@@@@     line: 133  - ', s[1])
+
+        print ('@@@@@@     line: 133  -   building sample for gradient sma  ', gradient_sma)
+
         sg = gradient_sample.extract()
+
+        print ('@@@@@@     line: 139  - ', sg[1])
 
         self.mean = np.mean(s[1])
         mean_g = np.mean(sg[1])
