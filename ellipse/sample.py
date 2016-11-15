@@ -38,6 +38,11 @@ class Sample(object):
 
         self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep,linear_growth)
 
+        # assorted values associated with this sample.
+        self.values = None
+        self.mean = None
+        self.gradient = None
+
     def extract(self):
         ''' Build sample by scanning elliptical path over image array
 
@@ -46,6 +51,25 @@ class Sample(object):
                 array containing respectively angles, radii, and
                 extracted intensity values.
         '''
+        # the sample values themselves are kept cached to prevent
+        # multiple calls to the integrator code.
+        if self.values is not None:
+            return self.values
+        else:
+            s = self._extract()
+            self.values = s
+            return s
+
+    def _extract(self):
+        # Here the actual sampling takes place. This is called only once
+        # during the life of a Sample instance, because it's an expensive
+        # calculation. This method should not be called from external code.
+        # If one wants to force it to re-run, then do:
+        #
+        #   sample.values = None
+        #
+        # before calling sample.extract()
+
         # individual extracted sample points will be stored in here
         angles = []
         radii = []
@@ -79,4 +103,29 @@ class Sample(object):
         result = np.array([np.array(angles), np.array(radii), np.array(intensities)])
 
         return result
+
+    def update(self, step=0.1):
+        '''
+        Update this Sample instance with the mean intensity and
+        local gradient values.
+
+        Later we will add the mean and gradient errors as well.
+
+        :param step: float
+            by how much to increment/decrement the semi-major axis in
+            order to get a second sample that will enable estimation
+            of the local gradient.
+        '''
+
+        # Get sample with same geometry but at a different distance from center.
+        sma = (1. + step) * self.geometry.sma
+        sample_g = Sample(self.image, sma, eps=self.geometry.eps)
+
+        s  = self.extract()
+        sg = sample_g.extract()
+
+        self.mean = np.mean(s[1])
+        mean_g = np.mean(sg[1])
+
+        self.gradient = (self.mean - mean_g) / self.geometry.sma / step
 
