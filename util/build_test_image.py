@@ -10,7 +10,7 @@ y = ny / 2
 
 image[y, x] += 5000.
 
-image = gaussian_filter(image, (70,100))
+image = gaussian_filter(image, (90,100))
 
 image += np.random.normal(3., 0.02, image.shape)
 

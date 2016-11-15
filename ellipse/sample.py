@@ -104,7 +104,7 @@ class Sample(object):
 
         return result
 
-    def update(self, step=0.8):
+    def update(self, step=0.1):
         ''' Update this Sample instance with the mean intensity and
             local gradient values.
 
@@ -126,20 +126,11 @@ class Sample(object):
                                  linear_growth=self.geometry.linear_growth,
                                  integrmode=self.integrmode)
 
-        print ('@@@@@@     line: 129  -   building sample for sma  ', self.geometry.sma)
-
         s  = self.extract()
-
-        print ('@@@@@@     line: 133  - ', s[1])
-
-        print ('@@@@@@     line: 133  -   building sample for gradient sma  ', gradient_sma)
-
         sg = gradient_sample.extract()
 
-        print ('@@@@@@     line: 139  - ', sg[1])
-
-        self.mean = np.mean(s[1])
-        mean_g = np.mean(sg[1])
+        self.mean = np.mean(s[2])
+        mean_g = np.mean(sg[2])
 
         self.gradient = (mean_g - self.mean) / self.geometry.sma / step
 
