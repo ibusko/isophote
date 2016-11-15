@@ -38,7 +38,7 @@ class Sample(object):
 
         self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep,linear_growth)
 
-        # assorted values associated with this sample.
+        # extracted values associated with this sample.
         self.values = None
         self.mean = None
         self.gradient = None
@@ -105,11 +105,10 @@ class Sample(object):
         return result
 
     def update(self, step=0.1):
-        '''
-        Update this Sample instance with the mean intensity and
-        local gradient values.
+        ''' Update this Sample instance with the mean intensity and
+            local gradient values.
 
-        Later we will add the mean and gradient errors as well.
+            Later we will add the mean and gradient errors as well.
 
         :param step: float
             by how much to increment/decrement the semi-major axis in
@@ -118,14 +117,14 @@ class Sample(object):
         '''
 
         # Get sample with same geometry but at a different distance from center.
-        sma = (1. + step) * self.geometry.sma
-        sample_g = Sample(self.image, sma, eps=self.geometry.eps)
+        gradient_sma = (1. + step) * self.geometry.sma
+        gradient_sample = Sample(self.image, gradient_sma, eps=self.geometry.eps)
 
         s  = self.extract()
-        sg = sample_g.extract()
+        sg = gradient_sample.extract()
 
         self.mean = np.mean(s[1])
         mean_g = np.mean(sg[1])
 
-        self.gradient = (self.mean - mean_g) / self.geometry.sma / step
+        self.gradient = (mean_g - self.mean) / self.geometry.sma / step
 

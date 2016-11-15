@@ -2,8 +2,6 @@ from __future__ import division
 
 import math
 
-import numpy as np
-
 # integration modes
 NEAREST_NEIGHBOR = 'nearest_neighbor'
 BI_LINEAR = 'bi-linear'
@@ -232,7 +230,8 @@ class AreaIntegrator(Integrator):
                 self._bi_linear_integrator._reset()
                 self._bi_linear_integrator.integrate(radius, phi)
                 # because it was reset, current value is the only one stored
-                # internally in the bi-linear integrator instance.
+                # internally in the bi-linear integrator instance. Move it
+                # from the internal integrator to this instance.
                 sample_value = self._bi_linear_integrator._intensities[0]
                 self._store_results(phi, radius, sample_value)
 
@@ -286,6 +285,8 @@ class MedianIntegrator(AreaIntegrator):
         sample.sort()
         return sample[int(npix/2)]
 
+
+# Specific integrator subclasses can be instantiated from here.
 
 integrators = {
     NEAREST_NEIGHBOR: NearestNeighborIntegrator,
