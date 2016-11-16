@@ -5,7 +5,7 @@ from scipy.optimize import leastsq
 
 import unittest
 
-import pyfits
+from util import build_test_data
 
 from ellipse.sample import Sample
 from ellipse.harmonics import fit_harmonics, harmonic_function
@@ -62,28 +62,77 @@ class TestHarmonics(unittest.TestCase):
         self.assertAlmostEqual(np.mean(residual), 0.000, 2)
         self.assertAlmostEqual(np.std(residual),  0.015, 2)
 
-    def test_fit_sample(self):
+    def test_fit_sample_1(self):
 
-        test_data = pyfits.open("synthetic_image.fits")
-        test_data = test_data[0].data
+        # major axis parallel to X image axis
+        test_data = build_test_data.build()
 
         sample = Sample(test_data, 40., eps=0.4)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[1])
+        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
 
-        # these results suggest a correction in
-        # ellipticity is necessary (large B2)
+        self.assertAlmostEqual(y0, 200.443, 3)
+        self.assertAlmostEqual(a1, -0.4135, 4)
+        self.assertAlmostEqual(b1, 0.04291, 4)
+        self.assertAlmostEqual(a2, -0.3080, 4)
+        self.assertAlmostEqual(b2, -1.04676, 4)
 
-        self.assertAlmostEqual(y0, 30.49, 2)
-        self.assertAlmostEqual(a1, -0.0001560, 4)
-        self.assertAlmostEqual(b1, -0.0083370, 4)
-        self.assertAlmostEqual(a2, -0.006610, 4)
-        self.assertAlmostEqual(b2, 7.8641, 4)
-
+        # check that harmonics subtract nicely
         model = harmonic_function(s[0], y0, a1, b1, a2, b2)
-        residual = s[1] - model
+        residual = s[2] - model
 
-        self.assertAlmostEqual(np.mean(residual), 0.0000, 3)
-        self.assertAlmostEqual(np.std(residual),  1.0623, 3)
+        self.assertTrue(np.mean(residual) < 1.E-4)
+        self.assertAlmostEqual(np.std(residual),  2.69, 2)
+
+    def test_fit_sample_2(self):
+
+        # major axis tilted 45 deg wrt X image axis
+        test_data = build_test_data.build(pa=np.pi/4)
+
+        sample = Sample(test_data, 40., eps=0.4)
+        s = sample.extract()
+
+        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+
+        self.assertAlmostEqual(y0, 211.389, 3)
+        self.assertAlmostEqual(a1, -1.2058, 4)
+        self.assertAlmostEqual(b1, -0.2572, 4)
+        # these drive the correction for position angle
+        self.assertAlmostEqual(a2, 50.7749, 4)
+        self.assertAlmostEqual(b2, -50.4895, 4)
+
+    def test_fit_sample_3(self):
+
+        test_data = build_test_data.build()
+
+        # initial guess is rounder than actual image
+        sample = Sample(test_data, 40., eps=0.1)
+        s = sample.extract()
+
+        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+
+        self.assertAlmostEqual(y0, 165.775, 3)
+        self.assertAlmostEqual(a1, 0.04834, 4)
+        self.assertAlmostEqual(b1, -0.1988, 4)
+        self.assertAlmostEqual(a2, -0.02039, 4)
+        # this drives the correction for ellipticity
+        self.assertAlmostEqual(b2, 26.3894, 4)
+
+    def test_fit_sample_4(self):
+
+        test_data = build_test_data.build()
+
+        # initial guess for center is offset
+        sample = Sample(test_data, x0=220., y0=210., sma=40., eps=0.1)
+        s = sample.extract()
+
+        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+
+        self.assertAlmostEqual(y0, 142.0662, 3)
+        self.assertAlmostEqual(a1, 53.3109, 4)
+        self.assertAlmostEqual(b1, 22.5605, 4)
+        self.assertAlmostEqual(a2, 26.6990, 4)
+        self.assertAlmostEqual(b2, -20.8364, 4)
+
 

@@ -3,18 +3,21 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import unittest
 
 import numpy as np
-import pyfits
+from util import build_test_data
 
 from ellipse.sample import Sample
 
 from ellipse.integrator import NEAREST_NEIGHBOR, BI_LINEAR, MEAN, MEDIAN
 
+test_data = None
 
 class TestIntegrator(unittest.TestCase):
 
     def _init_test(self, integrmode=BI_LINEAR):
-        test_data = pyfits.open("synthetic_image.fits")
-        test_data = test_data[0].data
+
+        global test_data
+        if test_data is None:
+            test_data = build_test_data.build()
 
         sample = Sample(test_data, 40., eps=0.4, integrmode=integrmode)
         s = sample.extract()
@@ -31,8 +34,8 @@ class TestIntegrator(unittest.TestCase):
 
         self.assertEqual(len(s[0]), 191)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 0.1717, 3)
-        self.assertAlmostEqual(np.std(s[2]),  0.0022, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.313, 3)
+        self.assertAlmostEqual(np.std(s[2]),  2.815, 3)
 
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
@@ -44,8 +47,8 @@ class TestIntegrator(unittest.TestCase):
 
         self.assertEqual(len(s[0]), 96)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 0.1717,  3)
-        self.assertAlmostEqual(np.std(s[2]),  0.00097, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.562,  3)
+        self.assertAlmostEqual(np.std(s[2]),  3.840, 3)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
         self.assertAlmostEqual(np.min(s[1]), 24.001, 2)
@@ -56,8 +59,8 @@ class TestIntegrator(unittest.TestCase):
 
         self.assertEqual(len(s[0]), 38)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 0.1716,  3)
-        self.assertAlmostEqual(np.std(s[2]),  0.001593, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.056,  3)
+        self.assertAlmostEqual(np.std(s[2]),  2.145, 3)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 39.95, 2)
         self.assertAlmostEqual(np.min(s[1]), 24.03, 2)
@@ -68,8 +71,8 @@ class TestIntegrator(unittest.TestCase):
 
         self.assertEqual(len(s[0]), 38)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 0.1716,  3)
-        self.assertAlmostEqual(np.std(s[2]),  0.001593, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.456,  3)
+        self.assertAlmostEqual(np.std(s[2]),  2.843, 3)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 39.95, 2)
         self.assertAlmostEqual(np.min(s[1]), 24.03, 2)
