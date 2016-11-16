@@ -10,25 +10,22 @@ from ellipse.integrator import NEAREST_NEIGHBOR
 
 class TestEllipse(unittest.TestCase):
 
-    def _get_sample(self, eps=0.4):
+    def test_gradient(self):
 
         test_data = build_test_data.build()
 
-        sample = Sample(test_data, 40., eps=eps, integrmode=NEAREST_NEIGHBOR)
+        sample = Sample(test_data, 40., integrmode=NEAREST_NEIGHBOR)
         sample.update()
 
-        return sample
-
-    def test_gradient(self):
-
-        sample = self._get_sample()
-
-        self.assertAlmostEqual(sample.mean, 200.562,  3)
-        self.assertAlmostEqual(sample.gradient, -4.3865,  3)
+        self.assertAlmostEqual(sample.mean, 200.434,  3)
+        self.assertAlmostEqual(sample.gradient, -4.318,  3)
 
     def test_fitting(self):
 
-        sample = self._get_sample()
+        test_data = build_test_data.build()
+
+        sample = Sample(test_data, 40., integrmode=NEAREST_NEIGHBOR)
+        sample.update()
         s = sample.extract()
 
         y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])

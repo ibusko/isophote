@@ -67,23 +67,23 @@ class TestHarmonics(unittest.TestCase):
         # major axis parallel to X image axis
         test_data = build_test_data.build()
 
-        sample = Sample(test_data, 40., eps=0.4)
+        sample = Sample(test_data, 40.)
         s = sample.extract()
 
         y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 200.443, 3)
-        self.assertAlmostEqual(a1, -0.4135, 4)
-        self.assertAlmostEqual(b1, 0.04291, 4)
-        self.assertAlmostEqual(a2, -0.3080, 4)
-        self.assertAlmostEqual(b2, -1.04676, 4)
+        self.assertAlmostEqual(y0, 200.153, 3)
+        self.assertAlmostEqual(a1, 0.03632, 4)
+        self.assertAlmostEqual(b1, 0.07501, 4)
+        self.assertAlmostEqual(a2, 0.09122, 4)
+        self.assertAlmostEqual(b2, 0.2617, 4)
 
         # check that harmonics subtract nicely
         model = harmonic_function(s[0], y0, a1, b1, a2, b2)
         residual = s[2] - model
 
         self.assertTrue(np.mean(residual) < 1.E-4)
-        self.assertAlmostEqual(np.std(residual),  2.69, 2)
+        self.assertAlmostEqual(np.std(residual),  2.06, 2)
 
     def test_fit_sample_2(self):
 
@@ -95,12 +95,12 @@ class TestHarmonics(unittest.TestCase):
 
         y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 211.389, 3)
-        self.assertAlmostEqual(a1, -1.2058, 4)
-        self.assertAlmostEqual(b1, -0.2572, 4)
+        self.assertAlmostEqual(y0, 246.354, 3)
+        self.assertAlmostEqual(a1, -1.08690, 4)
+        self.assertAlmostEqual(b1, -0.1685, 3)
         # these drive the correction for position angle
-        self.assertAlmostEqual(a2, 50.7749, 4)
-        self.assertAlmostEqual(b2, -50.4895, 4)
+        self.assertAlmostEqual(a2, 28.4540, 4)
+        self.assertAlmostEqual(b2, -65.2513, 4)
 
     def test_fit_sample_3(self):
 
@@ -112,27 +112,27 @@ class TestHarmonics(unittest.TestCase):
 
         y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 165.775, 3)
-        self.assertAlmostEqual(a1, 0.04834, 4)
-        self.assertAlmostEqual(b1, -0.1988, 4)
-        self.assertAlmostEqual(a2, -0.02039, 4)
+        self.assertAlmostEqual(y0, 189.273, 3)
+        self.assertAlmostEqual(a1, 0.1081, 4)
+        self.assertAlmostEqual(b1, -0.1407, 4)
+        self.assertAlmostEqual(a2, 0.04396, 4)
         # this drives the correction for ellipticity
-        self.assertAlmostEqual(b2, 26.3894, 4)
+        self.assertAlmostEqual(b2, 9.8599, 4)
 
     def test_fit_sample_4(self):
 
         test_data = build_test_data.build()
 
         # initial guess for center is offset
-        sample = Sample(test_data, x0=220., y0=210., sma=40., eps=0.1)
+        sample = Sample(test_data, x0=220., y0=210., sma=40.)
         s = sample.extract()
 
         y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 142.0662, 3)
-        self.assertAlmostEqual(a1, 53.3109, 4)
-        self.assertAlmostEqual(b1, 22.5605, 4)
-        self.assertAlmostEqual(a2, 26.6990, 4)
-        self.assertAlmostEqual(b2, -20.8364, 4)
+        self.assertAlmostEqual(y0, 152.869, 3)
+        self.assertAlmostEqual(a1, 55.3241, 4)
+        self.assertAlmostEqual(b1, 33.5510, 4)
+        self.assertAlmostEqual(a2, 33.0182, 4)
+        self.assertAlmostEqual(b2, -13.8363, 4)
 
 

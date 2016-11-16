@@ -5,7 +5,7 @@ import numpy as np
 from ellipse.geometry import Geometry
 
 
-def build(nx=512, ny=512, background=100., noise=1.E-6, i0=100., re=40., eps=0.4, pa=0.):
+def build(nx=512, ny=512, background=100., noise=1.E-6, i0=100., sma=40., eps=0.2, pa=0.):
     '''
     Builds artificial image for testing purposes
 
@@ -16,15 +16,15 @@ def build(nx=512, ny=512, background=100., noise=1.E-6, i0=100., re=40., eps=0.4
     :param background: float
         constant background level to be add to all pixels in the image
     :param noise: float
-        variance of the Gaussian noise to be added to all pixels in the image
+        standard deviation of the Gaussian noise to be added to all pixels in the image
     :param i0: float
         surface brightness over reference elliptical isophote
-    :param re: float
+    :param sma: float
         semi-major axis length of reference elliptical isophote.
     :param eps: float
         ellipticity of reference isophote
     :param pa: float
-        semi-major axis length of reference isophote
+        position angle of reference isophote
     :return: 2-d numpy array
         resulting image
     '''
@@ -33,7 +33,7 @@ def build(nx=512, ny=512, background=100., noise=1.E-6, i0=100., re=40., eps=0.4
     x1 = nx/2
     y1 = ny/2
 
-    g = Geometry(x1, y1, re, eps, pa, 0.1, False)
+    g = Geometry(x1, y1, sma, eps, pa, 0.1, False)
 
     for j in range(ny):
         for i in range(nx):

@@ -19,7 +19,7 @@ class TestIntegrator(unittest.TestCase):
         if test_data is None:
             test_data = build_test_data.build()
 
-        sample = Sample(test_data, 40., eps=0.4, integrmode=integrmode)
+        sample = Sample(test_data, 40., integrmode=integrmode)
         s = sample.extract()
 
         self.assertEqual(len(s), 3)
@@ -32,48 +32,48 @@ class TestIntegrator(unittest.TestCase):
 
         s = self._init_test()
 
-        self.assertEqual(len(s[0]), 191)
+        self.assertEqual(len(s[0]), 223)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 200.313, 3)
-        self.assertAlmostEqual(np.std(s[2]),  2.815, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.166, 3)
+        self.assertAlmostEqual(np.std(s[2]),  2.073, 3)
 
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
-        self.assertAlmostEqual(np.min(s[1]), 24.0, 2)
+        self.assertAlmostEqual(np.min(s[1]), 32.0, 2)
 
     def test_nearest_neighbor(self):
 
         s = self._init_test(integrmode=NEAREST_NEIGHBOR)
 
-        self.assertEqual(len(s[0]), 96)
+        self.assertEqual(len(s[0]), 112)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 200.562,  3)
-        self.assertAlmostEqual(np.std(s[2]),  3.840, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.434,  3)
+        self.assertAlmostEqual(np.std(s[2]),  3.132, 3)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
-        self.assertAlmostEqual(np.min(s[1]), 24.001, 2)
+        self.assertAlmostEqual(np.min(s[1]), 32.0, 2)
 
     def test_mean(self):
 
         s = self._init_test(integrmode=MEAN)
 
-        self.assertEqual(len(s[0]), 38)
+        self.assertEqual(len(s[0]), 37)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 200.056,  3)
-        self.assertAlmostEqual(np.std(s[2]),  2.145, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.575,  3)
+        self.assertAlmostEqual(np.std(s[2]),  1.339, 3)
         # radii
-        self.assertAlmostEqual(np.max(s[1]), 39.95, 2)
-        self.assertAlmostEqual(np.min(s[1]), 24.03, 2)
+        self.assertAlmostEqual(np.max(s[1]), 39.98, 2)
+        self.assertAlmostEqual(np.min(s[1]), 32.028, 2)
 
     def test_median(self):
 
         s = self._init_test(integrmode=MEDIAN)
 
-        self.assertEqual(len(s[0]), 38)
+        self.assertEqual(len(s[0]), 37)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 200.456,  3)
-        self.assertAlmostEqual(np.std(s[2]),  2.843, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.730,  3)
+        self.assertAlmostEqual(np.std(s[2]),  1.581, 3)
         # radii
-        self.assertAlmostEqual(np.max(s[1]), 39.95, 2)
-        self.assertAlmostEqual(np.min(s[1]), 24.03, 2)
+        self.assertAlmostEqual(np.max(s[1]), 39.98, 2)
+        self.assertAlmostEqual(np.min(s[1]), 32.028, 2)
 
