@@ -33,7 +33,7 @@ class Fitter(object):
             # check if converged
             model = harmonic_function(s[0], coeffs[0], coeffs[1:])
             residual = s[2] - model
-            # print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic))
+            print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic))
             if (crit * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
                 break
 
@@ -50,6 +50,28 @@ class ParameterCorrector(object):
 
     def correct(self, sample, harmonic):
         raise NotImplementedError
+
+
+class AngleCorrector(ParameterCorrector):
+
+    def correct(self, sample, harmonic):
+
+        eps = sample.geometry.eps
+        sma = sample.geometry.sma
+        gradient = sample.gradient
+
+        correction = harmonic * 2. * (1. - eps) /  sma / gradient / ((1. - eps)**2 - 1.)
+
+        new_pa = sample.geometry.pa + correction
+
+        return Sample(sample.image, sample.geometry.sma,
+                      x0 = sample.geometry.x0,
+                      y0 = sample.geometry.y0,
+                      astep = sample.geometry.astep,
+                      eps = sample.geometry.pa,
+                      position_angle = new_pa,
+                      linear_growth = sample.geometry.linear_growth,
+                      integrmode = sample.integrmode)
 
 
 class EllipticityCorrector(ParameterCorrector):
@@ -74,6 +96,6 @@ class EllipticityCorrector(ParameterCorrector):
 
 correctors = [EllipticityCorrector(),
               EllipticityCorrector(),
-              EllipticityCorrector(),
+              AngleCorrector(),
               EllipticityCorrector()
 ]

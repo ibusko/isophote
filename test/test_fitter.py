@@ -2,8 +2,9 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import unittest
 
-from util import build_test_data
+import numpy as np
 
+from util import build_test_data
 from ellipse.harmonics import fit_harmonics
 from ellipse.sample import Sample
 from ellipse.fitter import Fitter
@@ -42,8 +43,7 @@ class TestEllipse(unittest.TestCase):
         # got closer to test data (eps=0.2)
         self.assertAlmostEqual(new_eps, 0.19, 2)
 
-    def test_fitting(self):
-        # tests the Fitter class
+    def test_fitting_eps(self):
 
         test_data = build_test_data.build()
 
@@ -54,4 +54,17 @@ class TestEllipse(unittest.TestCase):
         sample = fitter.fit()
 
         self.assertIsInstance(sample, Sample)
+        self.assertAlmostEqual(sample.geometry.eps, 0.20, 2)
+
+    def test_fitting_pa(self):
+
+        test_data = build_test_data.build(pa=np.pi/4, noise=1.)
+
+        # initial guess is off in the eps parameter
+        sample = Sample(test_data, 40)
+        fitter = Fitter(sample)
+
+        sample = fitter.fit()
+
+        self.assertAlmostEqual(sample.geometry.eps, 0.20, 2)
 
