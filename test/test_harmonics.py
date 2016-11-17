@@ -79,7 +79,7 @@ class TestHarmonics(unittest.TestCase):
         self.assertAlmostEqual(b2, 0.2617, 4)
 
         # check that harmonics subtract nicely
-        model = harmonic_function(s[0], y0, a1, b1, a2, b2)
+        model = harmonic_function(s[0], y0, np.array([a1, b1, a2, b2]))
         residual = s[2] - model
 
         self.assertTrue(np.mean(residual) < 1.E-4)

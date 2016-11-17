@@ -3,8 +3,10 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import unittest
 
 from util import build_test_data
-from ellipse.sample import Sample
+
 from ellipse.harmonics import fit_harmonics
+from ellipse.sample import Sample
+from ellipse.fitter import Fitter
 
 
 class TestEllipse(unittest.TestCase):
@@ -19,7 +21,9 @@ class TestEllipse(unittest.TestCase):
         self.assertAlmostEqual(sample.mean, 200.166,  3)
         self.assertAlmostEqual(sample.gradient, -4.178,  3)
 
-    def test_fitting(self):
+    def test_fitting_raw(self):
+        # this test performs a raw (no Fitter), 1-step
+        # correction in one single ellipse coefficient.
 
         test_data = build_test_data.build()
 
@@ -37,3 +41,17 @@ class TestEllipse(unittest.TestCase):
 
         # got closer to test data (eps=0.2)
         self.assertAlmostEqual(new_eps, 0.19, 2)
+
+    def test_fitting(self):
+        # tests the Fitter class
+
+        test_data = build_test_data.build()
+
+        # initial guess is off in the eps parameter
+        sample = Sample(test_data, 40., eps=0.4)
+        fitter = Fitter(sample)
+
+        sample = fitter.fit()
+
+        self.assertIsInstance(sample, Sample)
+

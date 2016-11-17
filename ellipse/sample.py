@@ -74,6 +74,7 @@ class Sample(object):
         angles = []
         radii = []
         intensities = []
+        sector_areas = []
 
         # build integrator
         integrator = integrators[self.integrmode](self.image, self.geometry, angles, radii, intensities)
@@ -88,16 +89,18 @@ class Sample(object):
 
             integrator.integrate(self.radius, self.phi)
 
+            # store sector area locally
+            sector_areas.append(integrator.get_sector_area())
+
             # update angle and radius to be used to define
             # next polar vector along the elliptical path
             phistep_ = integrator.get_polar_angle_step()
             self.phi += min (phistep_, 0.5)
             self.radius = self.geometry.radius(self.phi)
 
-        # average sector area is probably calculated after the integrator had time to
-        # step over the entire elliptical path. But this remains to be seen. It's not
-        # needed for now anyhow.
-        self._sector_area = integrator.get_sector_area()
+        # average sector area is calculated after the integrator had
+        # the opportunity  to step over the entire elliptical path.
+        self.sector_area = np.mean(np.array(sector_areas))
 
         # pack results in 2-d array
         result = np.array([np.array(angles), np.array(radii), np.array(intensities)])

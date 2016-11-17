@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import leastsq
 
 
-def harmonic_function(phi, y0, a1, b1, a2, b2):
+def harmonic_function(phi, y0, c):
     '''
     Compute harmonic function.
 
@@ -16,18 +16,12 @@ def harmonic_function(phi, y0, a1, b1, a2, b2):
 
     :param y0: float
         mean intensity
-    :param a1: float
-        first harmonic coefficient
-    :param b1: float
-        2nd harmonic coefficient
-    :param a2: float
-        3rd harmonic coefficient
-    :param b2: float
-        4th harmonic coefficient
+    :param y0: np array of shape (4)
+        containing the four harmonic coefficients
     :return: float or np.array
         function value(s) at the given input angle(s)
     '''
-    return y0 + a1 * np.sin(phi) + b1 * np.cos(phi) + a2 * np.sin(2*phi) + b2 * np.cos(2*phi)
+    return y0 + c[0] * np.sin(phi) + c[1] * np.cos(phi) + c[2] * np.sin(2*phi) + c[3] * np.cos(2*phi)
 
 
 def fit_harmonics(phi, sample):

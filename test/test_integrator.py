@@ -19,8 +19,8 @@ class TestIntegrator(unittest.TestCase):
         if test_data is None:
             test_data = build_test_data.build()
 
-        sample = Sample(test_data, 40., integrmode=integrmode)
-        s = sample.extract()
+        self.sample = Sample(test_data, 40., integrmode=integrmode)
+        s = self.sample.extract()
 
         self.assertEqual(len(s), 3)
         self.assertEqual(len(s[0]), len(s[1]))
@@ -64,6 +64,8 @@ class TestIntegrator(unittest.TestCase):
         # radii
         self.assertAlmostEqual(np.max(s[1]), 39.98, 2)
         self.assertAlmostEqual(np.min(s[1]), 32.028, 2)
+
+        self.assertAlmostEqual(self.sample.sector_area, 21.4, 1)
 
     def test_median(self):
 
