@@ -23,17 +23,17 @@ class TestEllipse(unittest.TestCase):
 
         test_data = build_test_data.build()
 
-        # purposedly pick a first guess that is off in one of
-        # the parameters. Ellipticity will affect b2.
+        # pick first guess ellipse that is off in just
+        # one of the parameters (eps).
         sample = Sample(test_data, 40., eps=0.3)
+        sample.update()
         s = sample.extract()
 
         y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
 
-        print ('@@@@@@     line: 39  -  y0 ', y0)
-        print ('@@@@@@     line: 38  -  a1 ', a1)
-        print ('@@@@@@     line: 38  -  b1',  b1)
-        print ('@@@@@@     line: 38  -  a2 ', a2)
-        print ('@@@@@@     line: 38  -  b2 ', b2)
+        # when eps is off, b2 is the largest (in absolute value).
+        correction = b2 * 2. * (1. - sample.geometry.eps) / sample.geometry.sma / sample.gradient
+        new_eps = sample.geometry.eps - correction
 
-
+        # got closer to test data (eps=0.2)
+        self.assertAlmostEqual(new_eps, 0.19, 2)
