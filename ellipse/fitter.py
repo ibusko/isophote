@@ -16,6 +16,7 @@ class Fitter(object):
     def fit(self, crit=0.05, conver=0.05, minit=10, maxit=50):
 
         sample = self._sample
+        sample.iter = None
 
         for iter in range(maxit):
 
@@ -53,7 +54,7 @@ class ParameterCorrector(object):
         raise NotImplementedError
 
 
-class PositionCorrector_1(ParameterCorrector):
+class PositionCorrector_0(ParameterCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -74,7 +75,7 @@ class PositionCorrector_1(ParameterCorrector):
                       integrmode = sample.integrmode)
 
 
-class PositionCorrector_2(ParameterCorrector):
+class PositionCorrector_1(ParameterCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -137,8 +138,8 @@ class EllipticityCorrector(ParameterCorrector):
 
 # instances of corrector code live here:
 
-correctors = [PositionCorrector_1(),
-              PositionCorrector_2(),
+correctors = [PositionCorrector_0(),
+              PositionCorrector_1(),
               AngleCorrector(),
               EllipticityCorrector()
 ]

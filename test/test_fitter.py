@@ -70,7 +70,7 @@ class TestEllipse(unittest.TestCase):
         self.assertGreaterEqual(sample.geometry.pa, np.pi/4 - 0.05)
         self.assertLessEqual(sample.geometry.pa, np.pi/4 + 0.05)
 
-    def test_fitting_x0(self):
+    def test_fitting_xy(self):
 
         test_data = build_test_data.build(x0=245, y0=245)
 
