@@ -1,25 +1,23 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import math
 import numpy as np
 
-from ellipse.sample import Sample
+from ellipse.geometry import normalize_angle
 from ellipse.harmonics import fit_harmonics, harmonic_function
+from ellipse.sample import Sample
 
 
 class Fitter(object):
 
-    def __init__(self, sample, conver=0.05, minit=10, maxit=50):
+    def __init__(self, sample):
         self._sample = sample
 
-        self._conver = conver
-        self._minit = minit
-        self._maxit = maxit
-
-    def fit(self, crit=0.05):
+    def fit(self, crit=0.05, conver=0.05, minit=10, maxit=50):
 
         sample = self._sample
 
-        for iter in range(self._maxit):
+        for iter in range(maxit):
 
             sample.update()
             s = sample.extract()
@@ -33,7 +31,8 @@ class Fitter(object):
             # check if converged
             model = harmonic_function(s[0], coeffs[0], coeffs[1:])
             residual = s[2] - model
-            print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic))
+            print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic),
+                   largest_harmonic_index, sample.geometry.x0)
             if (crit * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
                 break
 
@@ -43,6 +42,8 @@ class Fitter(object):
             # generate new Sample instance with corrected parameter
             sample = corrector.correct(sample, largest_harmonic)
 
+        sample.iter = iter
+
         return sample
 
 
@@ -50,6 +51,48 @@ class ParameterCorrector(object):
 
     def correct(self, sample, harmonic):
         raise NotImplementedError
+
+
+class PositionCorrector_1(ParameterCorrector):
+
+    def correct(self, sample, harmonic):
+
+        aux = -harmonic * (1. - sample.geometry.eps) / sample.gradient
+
+        dx = -aux * math.sin(sample.geometry.pa)
+        dy =  aux * math.cos(sample.geometry.pa)
+        new_x0 = sample.geometry.x0 + dx
+        new_y0 = sample.geometry.y0 + dy
+
+        return Sample(sample.image, sample.geometry.sma,
+                      x0 = new_x0,
+                      y0 = new_y0,
+                      astep = sample.geometry.astep,
+                      eps = sample.geometry.eps,
+                      position_angle = sample.geometry.pa,
+                      linear_growth = sample.geometry.linear_growth,
+                      integrmode = sample.integrmode)
+
+
+class PositionCorrector_2(ParameterCorrector):
+
+    def correct(self, sample, harmonic):
+
+        aux = -harmonic / sample.gradient
+
+        dx = aux * math.cos(sample.geometry.pa)
+        dy = aux * math.sin(sample.geometry.pa)
+        new_x0 = sample.geometry.x0 + dx
+        new_y0 = sample.geometry.y0 + dy
+
+        return Sample(sample.image, sample.geometry.sma,
+                      x0 = new_x0,
+                      y0 = new_y0,
+                      astep = sample.geometry.astep,
+                      eps = sample.geometry.eps,
+                      position_angle = sample.geometry.pa,
+                      linear_growth = sample.geometry.linear_growth,
+                      integrmode = sample.integrmode)
 
 
 class AngleCorrector(ParameterCorrector):
@@ -62,13 +105,13 @@ class AngleCorrector(ParameterCorrector):
 
         correction = harmonic * 2. * (1. - eps) /  sma / gradient / ((1. - eps)**2 - 1.)
 
-        new_pa = sample.geometry.pa + correction
+        new_pa = normalize_angle(sample.geometry.pa + correction)
 
         return Sample(sample.image, sample.geometry.sma,
                       x0 = sample.geometry.x0,
                       y0 = sample.geometry.y0,
                       astep = sample.geometry.astep,
-                      eps = sample.geometry.pa,
+                      eps = sample.geometry.eps,
                       position_angle = new_pa,
                       linear_growth = sample.geometry.linear_growth,
                       integrmode = sample.integrmode)
@@ -94,8 +137,10 @@ class EllipticityCorrector(ParameterCorrector):
 
 # instances of corrector code live here:
 
-correctors = [EllipticityCorrector(),
-              EllipticityCorrector(),
+correctors = [PositionCorrector_1(),
+              PositionCorrector_2(),
               AngleCorrector(),
               EllipticityCorrector()
 ]
+
+

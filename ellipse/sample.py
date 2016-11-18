@@ -43,6 +43,10 @@ class Sample(object):
         self.mean = None
         self.gradient = None
 
+        # number of iterations used to fit this sample. If no
+        # fit yet took place, it should be left as None.
+        self.iter = None
+
     def extract(self):
         ''' Build sample by scanning elliptical path over image array
 

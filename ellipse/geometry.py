@@ -9,6 +9,28 @@ PHI_MAX = 0.2
 PHI_MIN = 0.05
 
 
+def normalize_angle(angle):
+    '''
+    Restore angle to valid range (0 - PI).
+
+    :param angle: float
+         the angle
+    :return:  float
+         the input angle expressed in the range (0 - PI)
+    '''
+    while angle > np.pi*2:
+        angle -= np.pi*2
+    if angle > np.pi:
+         angle -=  np.pi
+    while angle < -np.pi*2:
+        angle += np.pi
+    if angle < -np.pi:
+        angle +=  np.pi
+    if angle < 0.:
+        angle +=  np.pi
+    return angle
+
+
 # utility function used in the computation of elliptical sector areas.
 def _area(sma, eps, phi, r):
     aux  = r * math.cos(phi) / sma
@@ -207,3 +229,5 @@ class Geometry(object):
             angle = angle + 2*np.pi
 
         return radius, angle
+
+

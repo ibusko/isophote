@@ -5,7 +5,7 @@ import numpy as np
 from ellipse.geometry import Geometry
 
 
-def build(nx=512, ny=512, background=100., noise=1.E-6, i0=100., sma=40., eps=0.2, pa=0.):
+def build(nx=512, ny=512, x0=None, y0=None, background=100., noise=1.E-6, i0=100., sma=40., eps=0.2, pa=0.):
     '''
     Builds artificial image for testing purposes
 
@@ -13,6 +13,10 @@ def build(nx=512, ny=512, background=100., noise=1.E-6, i0=100., sma=40., eps=0.
         image size
     :param ny: int
         image size
+    :param x0: int
+        position of center. If None, default to image center.
+    :param y0: int
+        position of center. If None, default to image center.
     :param background: float
         constant background level to be add to all pixels in the image
     :param noise: float
@@ -30,8 +34,11 @@ def build(nx=512, ny=512, background=100., noise=1.E-6, i0=100., sma=40., eps=0.
     '''
     image = np.zeros((ny, nx)) + background
 
-    x1 = nx/2
-    y1 = ny/2
+    x1 = x0
+    y1 = y0
+    if not x0 or not y0:
+        x1 = nx/2
+        y1 = ny/2
 
     g = Geometry(x1, y1, sma, eps, pa, 0.1, False)
 
