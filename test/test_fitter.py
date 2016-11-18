@@ -43,44 +43,44 @@ class TestEllipse(unittest.TestCase):
         # got closer to test data (eps=0.2)
         self.assertAlmostEqual(new_eps, 0.19, 2)
 
-    # def test_fitting_eps(self):
-    #
-    #     test_data = build_test_data.build()
-    #
-    #     # initial guess is off in the eps parameter
-    #     sample = Sample(test_data, 40., eps=0.4)
-    #     fitter = Fitter(sample)
-    #
-    #     sample = fitter.fit()
-    #
-    #     self.assertIsInstance(sample, Sample)
-    #     self.assertGreaterEqual(sample.geometry.eps, 0.19)
-    #     self.assertLessEqual(sample.geometry.eps, 0.21)
-    #
-    # def test_fitting_pa(self):
-    #
-    #     test_data = build_test_data.build(pa=np.pi/4, noise=0.01)
-    #
-    #     # initial guess is off in the pa parameter
-    #     sample = Sample(test_data, 40)
-    #     fitter = Fitter(sample)
-    #
-    #     sample = fitter.fit()
-    #
-    #     self.assertGreaterEqual(sample.geometry.pa, np.pi/4 - 0.05)
-    #     self.assertLessEqual(sample.geometry.pa, np.pi/4 + 0.05)
+    def test_fitting_eps(self):
 
-    def test_fitting_x0(self):
+        test_data = build_test_data.build()
 
-        test_data = build_test_data.build(x0=200, y0=256)
+        # initial guess is off in the eps parameter
+        sample = Sample(test_data, 40., eps=0.4)
+        fitter = Fitter(sample)
 
-        # initial guess is off in the x0 parameter
+        sample = fitter.fit()
+
+        self.assertIsInstance(sample, Sample)
+        self.assertGreaterEqual(sample.geometry.eps, 0.19)
+        self.assertLessEqual(sample.geometry.eps, 0.21)
+
+    def test_fitting_pa(self):
+
+        test_data = build_test_data.build(pa=np.pi/4, noise=0.01)
+
+        # initial guess is off in the pa parameter
         sample = Sample(test_data, 40)
         fitter = Fitter(sample)
 
         sample = fitter.fit()
 
-        self.assertAlmostEqual(sample.geometry.x0, 200, 2)
+        self.assertGreaterEqual(sample.geometry.pa, np.pi/4 - 0.05)
+        self.assertLessEqual(sample.geometry.pa, np.pi/4 + 0.05)
 
-        self.assertGreaterEqual(sample.geometry.x0, 200 - 2)
-        self.assertLessEqual(sample.geometry.x0, 200 + 2)
+    def test_fitting_x0(self):
+
+        test_data = build_test_data.build(x0=245, y0=245)
+
+        # initial guess is off in the x0 and y0 parameters
+        sample = Sample(test_data, 40)
+        fitter = Fitter(sample)
+
+        sample = fitter.fit()
+
+        self.assertGreaterEqual(sample.geometry.x0, 245 - 1)
+        self.assertLessEqual(sample.geometry.x0, 245 + 1)
+        self.assertGreaterEqual(sample.geometry.y0, 245 - 1)
+        self.assertLessEqual(sample.geometry.y0, 245 + 1)

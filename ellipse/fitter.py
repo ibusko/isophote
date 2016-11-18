@@ -31,8 +31,8 @@ class Fitter(object):
             # check if converged
             model = harmonic_function(s[0], coeffs[0], coeffs[1:])
             residual = s[2] - model
-            print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic),
-                   largest_harmonic_index, sample.geometry.x0)
+            # print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic),
+            #        largest_harmonic_index, sample.geometry.x0)
             if (crit * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
                 break
 
