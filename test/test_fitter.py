@@ -84,3 +84,22 @@ class TestEllipse(unittest.TestCase):
         self.assertLessEqual(sample.geometry.x0, 245 + 1)
         self.assertGreaterEqual(sample.geometry.y0, 245 - 1)
         self.assertLessEqual(sample.geometry.y0, 245 + 1)
+
+    def test_fitting_all(self):
+
+        test_data = build_test_data.build(x0=245, y0=245, eps=0.4, pa=np.pi/4)
+
+        # initial guess is off in all parameters
+        sample = Sample(test_data, 40)
+        fitter = Fitter(sample)
+
+        sample = fitter.fit()
+
+        self.assertGreaterEqual(sample.geometry.x0, 245 - 1)
+        self.assertLessEqual(sample.geometry.x0, 245 + 1)
+        self.assertGreaterEqual(sample.geometry.y0, 245 - 1)
+        self.assertLessEqual(sample.geometry.y0, 245 + 1)
+        self.assertGreaterEqual(sample.geometry.eps, 0.39)
+        self.assertLessEqual(sample.geometry.eps, 0.41)
+        self.assertGreaterEqual(sample.geometry.pa, np.pi/4 - 0.05)
+        self.assertLessEqual(sample.geometry.pa, np.pi/4 + 0.05)
