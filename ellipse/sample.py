@@ -47,6 +47,9 @@ class Sample(object):
         # fit yet took place, it should be left as None.
         self.iter = None
 
+        # validity flag.
+        self.valid = False
+
     def extract(self):
         ''' Build sample by scanning elliptical path over image array
 

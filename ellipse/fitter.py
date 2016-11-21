@@ -16,7 +16,11 @@ class Fitter(object):
     def fit(self, crit=0.05, conver=0.05, minit=10, maxit=50):
 
         sample = self._sample
+
+        # make sure sample status indicates
+        # that no valid fit was gotten yet.
         sample.iter = None
+        sample.valid = False
 
         for iter in range(maxit):
 
@@ -44,6 +48,7 @@ class Fitter(object):
             sample = corrector.correct(sample, largest_harmonic)
 
         sample.iter = iter
+        sample.valid = True
 
         return sample
 
