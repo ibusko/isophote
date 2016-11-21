@@ -25,9 +25,18 @@ class Fitter(object):
         for iter in range(maxit):
 
             sample.update()
+            # iter is always reported in the Sample instance,
+            # regardless of the fit status.
+            sample.iter = iter
+
             s = sample.extract()
 
-            coeffs = fit_harmonics(s[0], s[2])
+            try:
+                coeffs = fit_harmonics(s[0], s[2])
+            except RuntimeError as e:
+                # returns prematurely
+                print(e)
+                return sample
 
             # largest harmonic in absolute value drives the correction.
             largest_harmonic_index = np.argmax(np.abs(coeffs[1:]))
@@ -47,7 +56,7 @@ class Fitter(object):
             # generate new Sample instance with corrected parameter
             sample = corrector.correct(sample, largest_harmonic)
 
-        sample.iter = iter
+        # got a valid solution.
         sample.valid = True
 
         return sample

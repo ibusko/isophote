@@ -40,6 +40,12 @@ def fit_harmonics(phi, sample):
     a2 = 1.
     b2 = 1.
     optimize_func = lambda x: x[0] + x[1]*np.sin(phi) + x[2]*np.cos(phi) + x[3]*np.sin(2*phi) + x[4]*np.cos(2*phi) - sample
-    return leastsq(optimize_func, [np.mean(sample), a1, b1, a2, b2])[0]
+
+    solution = leastsq(optimize_func, [np.mean(sample), a1, b1, a2, b2])
+
+    if solution[1] > 4:
+        raise RuntimeError("Error in least squares fit: " + solution[5])
+
+    return solution[0]
 
 
