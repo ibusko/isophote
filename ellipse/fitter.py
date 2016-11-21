@@ -54,7 +54,21 @@ class ParameterCorrector(object):
         raise NotImplementedError
 
 
-class PositionCorrector_0(ParameterCorrector):
+class PositionCorrector(ParameterCorrector):
+
+    def finalize_correction(self, dx, dy, sample):
+        new_x0 = sample.geometry.x0 + dx
+        new_y0 = sample.geometry.y0 + dy
+        return Sample(sample.image, sample.geometry.sma,
+                      x0=new_x0,
+                      y0=new_y0,
+                      astep=sample.geometry.astep,
+                      eps=sample.geometry.eps,
+                      position_angle=sample.geometry.pa,
+                      linear_growth=sample.geometry.linear_growth,
+                      integrmode=sample.integrmode)
+
+class PositionCorrector_0(PositionCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -62,20 +76,11 @@ class PositionCorrector_0(ParameterCorrector):
 
         dx = -aux * math.sin(sample.geometry.pa)
         dy =  aux * math.cos(sample.geometry.pa)
-        new_x0 = sample.geometry.x0 + dx
-        new_y0 = sample.geometry.y0 + dy
 
-        return Sample(sample.image, sample.geometry.sma,
-                      x0 = new_x0,
-                      y0 = new_y0,
-                      astep = sample.geometry.astep,
-                      eps = sample.geometry.eps,
-                      position_angle = sample.geometry.pa,
-                      linear_growth = sample.geometry.linear_growth,
-                      integrmode = sample.integrmode)
+        return self.finalize_correction(dx, dy, sample)
 
 
-class PositionCorrector_1(ParameterCorrector):
+class PositionCorrector_1(PositionCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -83,17 +88,8 @@ class PositionCorrector_1(ParameterCorrector):
 
         dx = aux * math.cos(sample.geometry.pa)
         dy = aux * math.sin(sample.geometry.pa)
-        new_x0 = sample.geometry.x0 + dx
-        new_y0 = sample.geometry.y0 + dy
 
-        return Sample(sample.image, sample.geometry.sma,
-                      x0 = new_x0,
-                      y0 = new_y0,
-                      astep = sample.geometry.astep,
-                      eps = sample.geometry.eps,
-                      position_angle = sample.geometry.pa,
-                      linear_growth = sample.geometry.linear_growth,
-                      integrmode = sample.integrmode)
+        return self.finalize_correction(dx, dy, sample)
 
 
 class AngleCorrector(ParameterCorrector):
@@ -122,7 +118,11 @@ class EllipticityCorrector(ParameterCorrector):
 
     def correct(self, sample, harmonic):
 
-        correction = harmonic * 2. * (1. - sample.geometry.eps) / sample.geometry.sma / sample.gradient
+        eps = sample.geometry.eps
+        sma = sample.geometry.sma
+        gradient = sample.gradient
+
+        correction = harmonic * 2. * (1. - eps) / sma / gradient
 
         new_eps = sample.geometry.eps - correction
 
