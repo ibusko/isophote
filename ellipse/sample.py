@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 
 from ellipse.geometry import Geometry
-from ellipse.integrator import integrators, BI_LINEAR, NEAREST_NEIGHBOR
+from ellipse.integrator import integrators, BI_LINEAR
 
 
 class Sample(object):
@@ -23,10 +23,9 @@ class Sample(object):
         # minimizing the number of attributes in 'self'.
 
         # initialize ellipse scanning
-        self.npoint = 0
-        self.s      = 0.0
-        self.s2     = 0.0
-        self.aarea  = 0.0
+        # self.s      = 0.0
+        # self.s2     = 0.0
+        # self.aarea  = 0.0
 
         # if no center was specified, assume it's roughly
         # coincident with the image center
