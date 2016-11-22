@@ -10,7 +10,7 @@ from ellipse.sample import Sample
 from ellipse.fitter import Fitter
 
 
-class TestEllipse(unittest.TestCase):
+class TestFitter(unittest.TestCase):
 
     def test_gradient(self):
 
@@ -95,10 +95,10 @@ class TestEllipse(unittest.TestCase):
 
         sample = fitter.fit()
 
-        self.assertGreaterEqual(sample.geometry.x0, 245 - 1)
-        self.assertLessEqual(sample.geometry.x0, 245 + 1)
-        self.assertGreaterEqual(sample.geometry.y0, 245 - 1)
-        self.assertLessEqual(sample.geometry.y0, 245 + 1)
+        self.assertGreaterEqual(sample.geometry.x0, 245 - 1.5)
+        self.assertLessEqual(sample.geometry.x0, 245 + 1.5)
+        self.assertGreaterEqual(sample.geometry.y0, 245 - 1.5)
+        self.assertLessEqual(sample.geometry.y0, 245 + 1.5)
         self.assertGreaterEqual(sample.geometry.eps, 0.39)
         self.assertLessEqual(sample.geometry.eps, 0.41)
         self.assertGreaterEqual(sample.geometry.pa, np.pi/4 - 0.05)

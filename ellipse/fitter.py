@@ -24,17 +24,21 @@ class Fitter(object):
 
         for iter in range(maxit):
 
+            # Force the sample to compute its gradient and associated values.
             sample.update()
+
             # iter is always reported in the Sample instance,
-            # regardless of the fit status.
+            # regardless of the validity status.
             sample.iter = iter
 
             s = sample.extract()
 
+            # Fit harmonic coefficients. Failure in fitting is
+            # a fatal error; terminate immediately with sample
+            # marked as invalid.
             try:
                 coeffs = fit_harmonics(s[0], s[2])
             except RuntimeError as e:
-                # returns prematurely
                 print(e)
                 return sample
 
@@ -48,7 +52,9 @@ class Fitter(object):
             # print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic),
             #        largest_harmonic_index, sample.geometry.x0)
             if (crit * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
-                break
+                # got a valid solution.
+                sample.valid = True
+                return sample
 
             # pick appropriate corrector code.
             corrector = correctors[largest_harmonic_index]
@@ -56,7 +62,9 @@ class Fitter(object):
             # generate new Sample instance with corrected parameter
             sample = corrector.correct(sample, largest_harmonic)
 
-        # got a valid solution.
+        # even when running out of iterations, we consider the sample as
+        # valid. Not sure if this is 100% correct. We'll see as we proceed
+        # with adding more termination criteria.
         sample.valid = True
 
         return sample

@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 
 from ellipse.geometry import Geometry
-from ellipse.integrator import integrators, BI_LINEAR
+from ellipse.integrator import integrators, BI_LINEAR, NEAREST_NEIGHBOR
 
 
 class Sample(object):
@@ -47,7 +47,7 @@ class Sample(object):
         # fit yet took place, it should be left as None.
         self.iter = None
 
-        # validity flag.
+        # was the sample successfully fitted to the image?
         self.valid = False
 
     def extract(self):
@@ -125,8 +125,37 @@ class Sample(object):
             order to get a second sample that will enable estimation
             of the local gradient.
         '''
+        # Update the mean value first, using extraction from main sample.
+        s = self.extract()
+        self.mean = np.mean(s[2])
 
-        # Get sample with same geometry but at a different distance from center.
+        # Get sample with same geometry but at a different distance from
+        # center. Estimate gradient from there.
+        gradient = self._get_gradient(step)
+
+        # Check for meaningful gradient. If no meaningful gradient, try
+        # another sample, this time using larger radius. Meaningful
+        # gradient means something  shallower, but still close to within
+        # a factor 3 from previous gradient estimate. If no previous
+        # estimate is available, guess it.
+        previous_gradient = self.gradient
+        if not previous_gradient:
+            previous_gradient = -0.05 # good enough, based on usage
+
+        if gradient >= (previous_gradient / 3.):   # gradient is negative!
+            gradient = self._get_gradient(2 * step)
+
+        # If still no meaningful gradient can be measured, try with previous
+        # one, slightly shallower. A factor 0.8 is not too far from what is
+        # expected from geometrical sampling steps of 10-20% and a
+        # deVaucouleurs law or an exponential disk (at least at its inner parts,
+        # r <~ 5 req). Gradient error is meaningless in this case.
+        if gradient >= (previous_gradient / 3.):
+            gradient *= 0.8
+
+        self.gradient = gradient
+
+    def _get_gradient(self, step):
         gradient_sma = (1. + step) * self.geometry.sma
 
         gradient_sample = Sample(self.image, gradient_sma,
@@ -136,11 +165,9 @@ class Sample(object):
                                  linear_growth=self.geometry.linear_growth,
                                  integrmode=self.integrmode)
 
-        s  = self.extract()
         sg = gradient_sample.extract()
-
-        self.mean = np.mean(s[2])
         mean_g = np.mean(sg[2])
+        gradient = (mean_g - self.mean) / self.geometry.sma / step
 
-        self.gradient = (mean_g - self.mean) / self.geometry.sma / step
+        return gradient
 
