@@ -13,7 +13,7 @@ class Fitter(object):
     def __init__(self, sample):
         self._sample = sample
 
-    def fit(self, crit=0.05, conver=0.05, minit=10, maxit=50):
+    def fit(self, conver=0.05, minit=10, maxit=50):
 
         sample = self._sample
 
@@ -51,10 +51,12 @@ class Fitter(object):
             residual = s[2] - model
             # print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic),
             #        largest_harmonic_index, sample.geometry.x0)
-            if (crit * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
-                # got a valid solution.
-                sample.valid = True
-                return sample
+            if (conver * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
+                # Got a valid solution. But before returning, ensure
+                # that a minimum of iterations has run.
+                if iter >= minit:
+                    sample.valid = True
+                    return sample
 
             # pick appropriate corrector code.
             corrector = correctors[largest_harmonic_index]
