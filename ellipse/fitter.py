@@ -5,7 +5,8 @@ import numpy as np
 
 from ellipse.geometry import normalize_angle
 from ellipse.harmonics import fit_harmonics, harmonic_function
-from ellipse.sample import Sample
+from ellipse.sample import Sample, sample_copy
+from ellipse.isophote import Isophote
 
 
 class Fitter(object):
@@ -16,8 +17,6 @@ class Fitter(object):
     def fit(self, conver=0.05, minit=10, maxit=50):
 
         sample = self._sample
-
-        values = None
 
         for iter in range(maxit):
 
@@ -38,8 +37,8 @@ class Fitter(object):
                 coeffs = fit_harmonics(values[0], values[2])
             except RuntimeError as e:
                 print(e)
-                self._update_sample(sample, values, iter+1, False)
-                return sample
+                sample_copy(self._sample, sample)
+                return Isophote(sample, iter+1, False)
 
             # largest harmonic in absolute value drives the correction.
             largest_harmonic_index = np.argmax(np.abs(coeffs[1:]))
@@ -54,8 +53,13 @@ class Fitter(object):
                 # Got a valid solution. But before returning, ensure
                 # that a minimum of iterations has run.
                 if iter >= minit:
-                    self._update_sample(sample, values, sample.mean, sample.gradient, iter+1, True)
-                    return sample
+                    # This copy of one sample into another is required because we build
+                    # a new instance of Sample at every single iteration step. Modifying
+                    # the same Sample every time instead proved to result in more
+                    # convoluted code with worse encapsulation, and hard-to-understand
+                    # logic related to the caching used in sample extraction.
+                    sample_copy(self._sample, sample)
+                    return Isophote(sample, iter+1, True)
 
             # pick appropriate corrector code.
             corrector = correctors[largest_harmonic_index]
@@ -68,31 +72,20 @@ class Fitter(object):
             # extraction process used by Sample code. To minimize the number of
             # calls to the area integrators, we pay a (hopefully smaller) price here,
             # by having multiple calls to the Sample constructor.
-            #TODO
-            # which begs the question: should we then return an object of a different
-            # class? Such as an Isophote class, which will allow better segregation of
-            # attributes associated with a sample (mean, gradient, values, etc) from
-            # attributes associated with the actual fitting (iter, valid flag, etc)
             sample = corrector.correct(sample, largest_harmonic)
 
-        # even when running out of iterations, we consider the sample as
+        # even when running out of iterations, we consider the isophote as
         # valid. Not sure if this is 100% correct. We'll see as we proceed
         # with adding more termination criteria.
-        self._update_sample(sample, values, self._sample.mean, self._sample.gradient, maxit, True)
 
-        return sample
+        # This copy of one sample into another is required because we build
+        # a new instance of Sample at every single iteration step. Modifying
+        # the same Sample every time instead proved to result in more
+        # convoluted code with worse encapsulation, and hard-to-understand
+        # logic related to the caching used in sample extraction.
+        sample_copy(self._sample, sample)
 
-    def _update_sample(self, sample, values, mean, gradient, iter, valid):
-        # this is required because we build a new instance of Sample at
-        # every single iteration step. Modifying an existing Sample instead
-        # proved to result in more convoluted code with worse encapsulation,
-        # and hard-to-understand logic related to the caching used in sample
-        # extraction.
-        sample.iter = iter
-        sample.valid = valid
-        sample.values = values
-        sample.mean = mean
-        sample.gradient = gradient
+        return Isophote(sample, maxit, True)
 
 
 class ParameterCorrector(object):

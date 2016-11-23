@@ -6,6 +6,25 @@ from ellipse.geometry import Geometry
 from ellipse.integrator import integrators, BI_LINEAR
 
 
+def sample_copy(sample1, sample2):
+    '''
+    Copy attributes from a Sample instance into another.
+
+    All but the .geometry attributes are copied.
+
+    :param sample1: Sample instance
+         origin
+    :param sample2: Sample instance
+         destination
+    '''
+    sample2.image       = sample1.image
+    sample2.integrmode  = sample1.integrmode
+    sample2.sector_area = sample1.sector_area
+    sample2.values      = sample1.values
+    sample2.mean        = sample1.mean
+    sample2.gradient    = sample1.gradient
+
+
 class Sample(object):
 
     def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
@@ -41,13 +60,7 @@ class Sample(object):
         self.values = None
         self.mean = None
         self.gradient = None
-
-        # number of iterations used to fit this sample. If no
-        # fit yet took place, it should be left as None.
-        self.iter = None
-
-        # was the sample successfully fitted to the image?
-        self.valid = False
+        self.sector_area = None
 
     def extract(self):
         ''' Build sample by scanning elliptical path over image array

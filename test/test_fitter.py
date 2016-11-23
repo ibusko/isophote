@@ -7,6 +7,7 @@ import numpy as np
 from util import build_test_data
 from ellipse.harmonics import fit_harmonics
 from ellipse.sample import Sample
+from ellipse.isophote import Isophote
 from ellipse.fitter import Fitter
 
 
@@ -51,11 +52,12 @@ class TestFitter(unittest.TestCase):
         sample = Sample(test_data, 40., eps=0.4)
         fitter = Fitter(sample)
 
-        sample = fitter.fit()
+        isophote = fitter.fit()
 
-        self.assertIsInstance(sample, Sample)
-        self.assertGreaterEqual(sample.geometry.eps, 0.19)
-        self.assertLessEqual(sample.geometry.eps, 0.21)
+        self.assertIsInstance(isophote, Isophote)
+        g = isophote.sample.geometry
+        self.assertGreaterEqual(g.eps, 0.19)
+        self.assertLessEqual(g.eps, 0.21)
 
     def test_fitting_pa(self):
 
@@ -65,10 +67,11 @@ class TestFitter(unittest.TestCase):
         sample = Sample(test_data, 40)
         fitter = Fitter(sample)
 
-        sample = fitter.fit()
+        isophote = fitter.fit()
 
-        self.assertGreaterEqual(sample.geometry.pa, np.pi/4 - 0.05)
-        self.assertLessEqual(sample.geometry.pa, np.pi/4 + 0.05)
+        g = isophote.sample.geometry
+        self.assertGreaterEqual(g.pa, np.pi/4 - 0.05)
+        self.assertLessEqual(g.pa, np.pi/4 + 0.05)
 
     def test_fitting_xy(self):
 
@@ -78,12 +81,13 @@ class TestFitter(unittest.TestCase):
         sample = Sample(test_data, 40)
         fitter = Fitter(sample)
 
-        sample = fitter.fit()
+        isophote = fitter.fit()
 
-        self.assertGreaterEqual(sample.geometry.x0, 245 - 1)
-        self.assertLessEqual(sample.geometry.x0, 245 + 1)
-        self.assertGreaterEqual(sample.geometry.y0, 245 - 1)
-        self.assertLessEqual(sample.geometry.y0, 245 + 1)
+        g = isophote.sample.geometry
+        self.assertGreaterEqual(g.x0, 245 - 1)
+        self.assertLessEqual(g.x0, 245 + 1)
+        self.assertGreaterEqual(g.y0, 245 - 1)
+        self.assertLessEqual(g.y0, 245 + 1)
 
     def test_fitting_all(self):
 
@@ -93,13 +97,14 @@ class TestFitter(unittest.TestCase):
         sample = Sample(test_data, 40)
         fitter = Fitter(sample)
 
-        sample = fitter.fit()
+        isophote = fitter.fit(conver=0.5)
 
-        self.assertGreaterEqual(sample.geometry.x0, 245 - 1.5)
-        self.assertLessEqual(sample.geometry.x0, 245 + 1.5)
-        self.assertGreaterEqual(sample.geometry.y0, 245 - 1.5)
-        self.assertLessEqual(sample.geometry.y0, 245 + 1.5)
-        self.assertGreaterEqual(sample.geometry.eps, 0.39)
-        self.assertLessEqual(sample.geometry.eps, 0.41)
-        self.assertGreaterEqual(sample.geometry.pa, np.pi/4 - 0.05)
-        self.assertLessEqual(sample.geometry.pa, np.pi/4 + 0.05)
+        g = isophote.sample.geometry
+        self.assertGreaterEqual(g.x0, 245 - 1.5)
+        self.assertLessEqual(g.x0, 245 + 1.5)
+        self.assertGreaterEqual(g.y0, 245 - 1.5)
+        self.assertLessEqual(g.y0, 245 + 1.5)
+        self.assertGreaterEqual(g.eps, 0.39)
+        self.assertLessEqual(g.eps, 0.41)
+        self.assertGreaterEqual(g.pa, np.pi/4 - 0.05)
+        self.assertLessEqual(g.pa, np.pi/4 + 0.05)
