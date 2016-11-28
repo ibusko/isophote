@@ -10,12 +10,45 @@ from ellipse.isophote import Isophote
 
 
 class Fitter(object):
+    '''
+    The main fitter class.
 
+    '''
     def __init__(self, sample):
+        '''
+        Create a Fitter instance for a given Sample instance.
+
+        :param sample: instance of Sample
+            the sample to be fitted
+        '''
         self._sample = sample
 
-    def fit(self, conver=0.05, minit=10, maxit=50):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5):
+        '''
+        Perform the actual fit, returning an Isophote instance:
 
+            fitter = Fitter(sample)
+            isophote = fitter.fit()
+
+
+        :param conver: float
+            main convergency criterion. Largest harmonic amplitude
+            must be smaller than 'conver' times the fit rms.
+        :param minit: int
+            minimum number of iterations to perform
+        :param maxit: int
+            maximum number of iterations to perform
+        :param fflag: float
+            acceptable fraction of flagged data points in sample.
+            If the actual number of valid data points is smaller
+            than this, stop iterating and return current Isophote.
+            For now, flagged data points are points that lie outside
+            the image frame. In the future, it may include masked
+            pixels as well.
+        :return: instance of Isophote
+            isophote with the fitted sample plus additional fit status
+            information
+        '''
         sample = self._sample
 
         for iter in range(maxit):
@@ -38,7 +71,7 @@ class Fitter(object):
             except RuntimeError as e:
                 print(e)
                 sample_copy(self._sample, sample)
-                return Isophote(sample, iter+1, False)
+                return Isophote(sample, iter+1, False, 3)
 
             # largest harmonic in absolute value drives the correction.
             largest_harmonic_index = np.argmax(np.abs(coeffs[1:]))
@@ -47,8 +80,7 @@ class Fitter(object):
             # check if converged
             model = harmonic_function(values[0], coeffs[0], coeffs[1:])
             residual = values[2] - model
-            # print ('@@@@@@     line: 40  - ', iter, np.std(residual), np.abs(largest_harmonic),
-            #        largest_harmonic_index, sample.geometry.x0)
+
             if (conver * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
                 # Got a valid solution. But before returning, ensure
                 # that a minimum of iterations has run.
@@ -59,13 +91,19 @@ class Fitter(object):
                     # convoluted code with worse encapsulation, and hard-to-understand
                     # logic related to the caching used in sample extraction.
                     sample_copy(self._sample, sample)
-                    return Isophote(sample, iter+1, True)
+                    return Isophote(sample, iter+1, True, 0)
+
+            # it may not have converged yet, but the sample contains too
+            # many invalid data points: return.
+            if sample.actual_points < (sample.total_points * (1. - fflag)):
+                sample_copy(self._sample, sample)
+                return Isophote(sample, iter+1, True, 1)
 
             # pick appropriate corrector code.
-            corrector = correctors[largest_harmonic_index]
+            corrector = _correctors[largest_harmonic_index]
 
             # generate *NEW* Sample instance with corrected parameter. Note that
-            # this instance is still empty of other information besides its geometry.
+            # this instance is still devoid of other information besides its geometry.
             # It needs to be explicitly updated in case we need to return it as the
             # result of the fit operation.
             # We have to build a new Sample instance every time because of the lazy
@@ -76,25 +114,19 @@ class Fitter(object):
 
         # even when running out of iterations, we consider the isophote as
         # valid. Not sure if this is 100% correct. We'll see as we proceed
-        # with adding more termination criteria.
-
-        # This copy of one sample into another is required because we build
-        # a new instance of Sample at every single iteration step. Modifying
-        # the same Sample every time instead proved to result in more
-        # convoluted code with worse encapsulation, and hard-to-understand
-        # logic related to the caching used in sample extraction.
+        # with adding more termination criteria. Copy sample info before
+        # returning!
         sample_copy(self._sample, sample)
+        return Isophote(sample, maxit, True, 2)
 
-        return Isophote(sample, maxit, True)
 
-
-class ParameterCorrector(object):
+class _ParameterCorrector(object):
 
     def correct(self, sample, harmonic):
         raise NotImplementedError
 
 
-class PositionCorrector(ParameterCorrector):
+class _PositionCorrector(_ParameterCorrector):
 
     def finalize_correction(self, dx, dy, sample):
         new_x0 = sample.geometry.x0 + dx
@@ -109,7 +141,7 @@ class PositionCorrector(ParameterCorrector):
                       linear_growth=sample.geometry.linear_growth,
                       integrmode=sample.integrmode)
 
-class PositionCorrector_0(PositionCorrector):
+class _PositionCorrector_0(_PositionCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -121,7 +153,7 @@ class PositionCorrector_0(PositionCorrector):
         return self.finalize_correction(dx, dy, sample)
 
 
-class PositionCorrector_1(PositionCorrector):
+class _PositionCorrector_1(_PositionCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -133,7 +165,7 @@ class PositionCorrector_1(PositionCorrector):
         return self.finalize_correction(dx, dy, sample)
 
 
-class AngleCorrector(ParameterCorrector):
+class _AngleCorrector(_ParameterCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -155,7 +187,7 @@ class AngleCorrector(ParameterCorrector):
                       integrmode = sample.integrmode)
 
 
-class EllipticityCorrector(ParameterCorrector):
+class _EllipticityCorrector(_ParameterCorrector):
 
     def correct(self, sample, harmonic):
 
@@ -179,10 +211,10 @@ class EllipticityCorrector(ParameterCorrector):
 
 # instances of corrector code live here:
 
-correctors = [PositionCorrector_0(),
-              PositionCorrector_1(),
-              AngleCorrector(),
-              EllipticityCorrector()
+_correctors = [_PositionCorrector_0(),
+               _PositionCorrector_1(),
+               _AngleCorrector(),
+               _EllipticityCorrector()
 ]
 
 

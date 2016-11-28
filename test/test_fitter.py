@@ -97,7 +97,13 @@ class TestFitter(unittest.TestCase):
         sample = Sample(test_data, 40)
         fitter = Fitter(sample)
 
+        # tight fit: exceed max iterations
+        isophote = fitter.fit(conver=0.001)
+        self.assertEqual(isophote.stop_code, 2)
+
+        # loose fit: converge OK
         isophote = fitter.fit(conver=0.5)
+        self.assertEqual(isophote.stop_code, 0)
 
         g = isophote.sample.geometry
         self.assertGreaterEqual(g.x0, 245 - 1.5)      # position within 1.5 pixel
