@@ -1,14 +1,18 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import numpy as np
+
 
 class Isophote:
 
     def __init__(self, sample, iter, valid, stop_code):
         '''
-        For now, this is just a container that helps in segregating information
-        directly related to the sample (sampled intensities along an elliptical
-        path on the image), from isophote-specific information.
+        Container that helps in segregating information directly related to
+        the sample (sampled intensities along an elliptical path on the image),
+        from isophote-specific information.
 
+        Parameters:
+        ----------
         :param sample: instance of Sample
             the sample information
         :param iter: int
@@ -30,9 +34,28 @@ class Isophote:
                 -1 - NOT IMPLEMENTED:
                      isophote was saved before completion of fit (by a cursor
                      command in interactive mode).
+
+        Attributes:
+        -----------
+        :param intens: float
+            mean intensity value along the elliptical path
+        :param rms: float
+            root-mean-sq of intensity values along the elliptical path
+        :param int_err: float
+            error of the mean (rms / sqrt(# data points)))
+        :param pix_var: float
+            estimate of pixel variance (rms * sqrt(average sector integration area))
+        :param grad: float
+            local radial intensity gradient
         '''
         self.sample = sample
         self.iter = iter
         self.valid = valid
         self.stop_code = stop_code
 
+        self.intens = sample.mean
+
+        self.rms = np.std(sample.values[2])
+        self.int_err = self.rms / np.sqrt(sample.actual_points)
+        self.pix_var = self.rms * np.sqrt(sample.sector_area)
+        self.grad = sample.gradient
