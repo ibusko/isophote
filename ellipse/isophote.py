@@ -59,3 +59,48 @@ class Isophote:
         self.int_err = self.rms / np.sqrt(sample.actual_points)
         self.pix_var = self.rms * np.sqrt(sample.sector_area)
         self.grad = sample.gradient
+
+        self.tflux_e, self.tflux_c = self._compute_fluxes()
+
+    def _compute_fluxes(self):
+        # Compute integrated flux inside ellipse, as well as inside
+        # circle defined by semi-major axis. Pixels in a square section
+        # enclosing circle are scanned; the distance of each pixel to
+        # the isophote center is compared both with the semi-major axis
+        # length and with the length of the ellipse radius vector, and
+        # integrals are updated if the pixel distance is smaller.
+
+        # Compute limits of square array that encloses circle.
+        sma = self.sample.geometry.sma
+        x0 = self.sample.geometry.x0
+        y0 = self.sample.geometry.y0
+        xsize = self.sample.image.shape[1]
+        ysize = self.sample.image.shape[0]
+
+        imin = max(0, int(x0 - sma - 0.5) - 1)
+        jmin = max(0, int(y0 - sma - 0.5) - 1)
+        imax = min(xsize, int(x0 + sma + 0.5) + 1)
+        jmax = min(ysize, int(y0 + sma + 0.5) + 1)
+
+        # Integrate
+        tflux_e = 0.
+        tflux_c = 0.
+        for j in range(jmin, jmax):
+            for i in range(imin, imax):
+
+                # radius of the circle and ellipse associated
+                # with the given pixel.
+                radius, angle = self.sample.geometry.to_polar(i, j)
+                radius_e = self.sample.geometry.radius(angle)
+
+                # pixel is inside circle with diameter given by sma
+                if radius <= sma:
+                    tflux_c += self.sample.image[j][i]
+
+                # pixel is inside ellipse
+                if radius <= radius_e:
+                    tflux_e += self.sample.image[j][i]
+
+        return tflux_e, tflux_c
+
+
