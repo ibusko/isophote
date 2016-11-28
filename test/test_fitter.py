@@ -114,26 +114,3 @@ class TestFitter(unittest.TestCase):
         self.assertLessEqual(g.eps,    0.4 + 0.01)
         self.assertGreaterEqual(g.pa, np.pi/4 - 0.05) # pa within 5 deg
         self.assertLessEqual(g.pa,    np.pi/4 + 0.05)
-
-    def test_exact_fit(self):
-
-        # low noise image, fitted perfectly by sample.
-        test_data = build_test_data.build()
-        sample = Sample(test_data, 40)
-        fitter = Fitter(sample)
-        isophote = fitter.fit()
-
-        # fitted values
-        self.assertAlmostEqual(isophote.intens, 200.1659, 4)
-        self.assertAlmostEqual(isophote.rms, 2.073, 3)
-        self.assertAlmostEqual(isophote.int_err, 0.139, 3)
-        self.assertAlmostEqual(isophote.pix_var, 2.932, 3)
-        self.assertAlmostEqual(isophote.grad, -4.178, 3)
-
-        # integrals
-        self.assertLessEqual(isophote.tflux_e,    1.85E6, 2)
-        self.assertGreaterEqual(isophote.tflux_e, 1.82E6, 2)
-        self.assertLessEqual(isophote.tflux_c,    2.025E6, 2)
-        self.assertGreaterEqual(isophote.tflux_c, 2.022E6, 2)
-
-
