@@ -31,7 +31,63 @@ class Sample(object):
 
     def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
                  linear_growth=False, integrmode=BI_LINEAR):
+        '''
+        A Sample instance describes an elliptical path over the image, over which
+        intensities can be extracted using a selection of integration algorithms.
+        The Sample instance contains a 'geometry' attribute that describes its geometry.
 
+        Parameters
+        ----------
+        :param image: numpy 2-d array
+            pixels
+        :param sma: float
+            the semi-major axis length in pixels
+        :param x0: float
+            the X coordinate of the ellipse center
+        :param y0: foat
+            the Y coordinate of the ellipse center
+        :param astep: float
+            step value for growing/shrinking the semi-
+            major axis. It can be expressed either in
+            pixels (when 'linear_growth'=True) or in
+            relative value (when 'linear_growth=False')
+        :param eps: ellipticity
+             ellipticity
+        :param pa: float
+             position angle of ellipse in relation
+             to the +X axis of the image array.
+        :param linear_growth: boolean
+            semi-major axis growing/shrinking mode
+        :param integrmode: string
+            algorithm used for area integration
+
+        Attributes
+        ----------
+        :param geometry: Geometry instance
+            the geometry that describes the ellipse
+        :param values: 2-d numpy array
+            sampled values as a 2-d numpy array
+            with the following structure:
+            values[0] = 1-d array with angles
+            values[1] = 1-d array with radii
+            values[2] = 1-d array with intensity
+        :param mean: float
+            the mean intensity along the elliptical path
+        :param gradient: float
+            the local radial intensity gradient
+        :param sector_area: float
+            the average area of the sectors along the
+            elliptical path where the sample values
+            were integrated from.
+        :param total_points: int
+            the total number of sample values that would
+            cover the entire elliptical path
+        :param actual_points: int
+            the actual number of sample values that were
+            taken from the image. It can smaller than
+            total_points when the ellipse encompasses
+            regions outside the image.
+        '''
         self.image = image
         self.integrmode = integrmode
 
@@ -111,16 +167,16 @@ class Sample(object):
         integrator = integrators[self.integrmode](self.image, self.geometry, angles, radii, intensities)
 
         # initialize walk along elliptical path
-        self.radius = self.geometry.initial_polar_radius
-        self.phi = self.geometry.initial_polar_angle
+        radius = self.geometry.initial_polar_radius
+        phi = self.geometry.initial_polar_angle
 
         # walk along elliptical path, integrating at specified
         # places defined by polar vector.
-        while (self.phi < np.pi*2.):
+        while (phi < np.pi*2.):
 
             # do the integration at phi-radius position, and append
             # results to the angles, radii, and intensities lists.
-            integrator.integrate(self.radius, self.phi)
+            integrator.integrate(radius, phi)
 
             # store sector area locally
             sector_areas.append(integrator.get_sector_area())
@@ -131,8 +187,8 @@ class Sample(object):
             # update angle and radius to be used to define
             # next polar vector along the elliptical path
             phistep_ = integrator.get_polar_angle_step()
-            self.phi += min (phistep_, 0.5)
-            self.radius = self.geometry.radius(self.phi)
+            phi += min (phistep_, 0.5)
+            radius = self.geometry.radius(phi)
 
         # average sector area is calculated after the integrator had
         # the opportunity  to step over the entire elliptical path.
