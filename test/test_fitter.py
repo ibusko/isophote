@@ -100,11 +100,11 @@ class TestFitter(unittest.TestCase):
         isophote = fitter.fit(conver=0.5)
 
         g = isophote.sample.geometry
-        self.assertGreaterEqual(g.x0, 245 - 1.5)
+        self.assertGreaterEqual(g.x0, 245 - 1.5)      # position within 1.5 pixel
         self.assertLessEqual(g.x0, 245 + 1.5)
         self.assertGreaterEqual(g.y0, 245 - 1.5)
         self.assertLessEqual(g.y0, 245 + 1.5)
-        self.assertGreaterEqual(g.eps, 0.39)
+        self.assertGreaterEqual(g.eps, 0.39)          # eps within 0.01
         self.assertLessEqual(g.eps, 0.41)
-        self.assertGreaterEqual(g.pa, np.pi/4 - 0.05)
+        self.assertGreaterEqual(g.pa, np.pi/4 - 0.05) # pa within 5 deg
         self.assertLessEqual(g.pa, np.pi/4 + 0.05)

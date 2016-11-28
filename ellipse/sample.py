@@ -62,6 +62,12 @@ class Sample(object):
         self.gradient = None
         self.sector_area = None
 
+        # total_points reports the total number of pairs angle-radius that
+        # were attempted. actual_points reports the actual number of sampled
+        # pairs angle-radius that resulted in valid values.
+        self.total_points = 0
+        self.actual_points = 0
+
     def extract(self):
         ''' Build sample by scanning elliptical path over image array
 
@@ -95,6 +101,10 @@ class Sample(object):
         intensities = []
         sector_areas = []
 
+        # reset counters
+        self.total_points = 0
+        self.actual_points = 0
+
         # build integrator
         integrator = integrators[self.integrmode](self.image, self.geometry, angles, radii, intensities)
 
@@ -106,10 +116,15 @@ class Sample(object):
         # places defined by polar vector.
         while (self.phi < np.pi*2.):
 
+            # do the integration at phi-radius position, and append
+            # results to the angles, radii, and intensities lists.
             integrator.integrate(self.radius, self.phi)
 
             # store sector area locally
             sector_areas.append(integrator.get_sector_area())
+
+            # update total number of points
+            self.total_points += 1
 
             # update angle and radius to be used to define
             # next polar vector along the elliptical path
@@ -120,6 +135,9 @@ class Sample(object):
         # average sector area is calculated after the integrator had
         # the opportunity  to step over the entire elliptical path.
         self.sector_area = np.mean(np.array(sector_areas))
+
+        # actual number of sampled points
+        self.actual_points = len(angles)
 
         # pack results in 2-d array
         result = np.array([np.array(angles), np.array(radii), np.array(intensities)])
