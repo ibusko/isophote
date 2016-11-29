@@ -13,15 +13,14 @@ def harmonic_function(phi, y0, c):
         starting coincident with the position angle. That is, the
         angles are defined from the semi-major axis that lies in
         the +X quadrant.
-
     :param y0: float
         mean intensity
-    :param y0: np array of shape (4)
+    :param c: np array of shape (4)
         containing the four harmonic coefficients
     :return: float or np.array
         function value(s) at the given input angle(s)
     '''
-    return y0 + c[0] * np.sin(phi) + c[1] * np.cos(phi) + c[2] * np.sin(2*phi) + c[3] * np.cos(2*phi)
+    return y0 + c[0]*np.sin(phi) + c[1]*np.cos(phi) + c[2]*np.sin(2*phi) + c[3]*np.cos(2*phi)
 
 
 def fit_harmonics(phi, sample):
@@ -31,15 +30,13 @@ def fit_harmonics(phi, sample):
     :param phi: np.array
         angles defined in the same way as in harmonic_function
     :param sample: np.array
-        intensities samples along the elliptical path, at the angles defined in parameter 'phi'
+        intensities measured along the elliptical path, at the angles defined in parameter 'phi'
     :return: 5 float values
         fitted values for y0, a1, b1, a2, b2
     '''
-    a1 = 1.
-    b1 = 1.
-    a2 = 1.
-    b2 = 1.
-    optimize_func = lambda x: x[0] + x[1]*np.sin(phi) + x[2]*np.cos(phi) + x[3]*np.sin(2*phi) + x[4]*np.cos(2*phi) - sample
+    a1 = b1 = a2 = b2 = 1.
+
+    optimize_func = lambda x: harmonic_function(phi, x[0], np.array([x[1], x[2], x[3], x[4]])) - sample
 
     solution = leastsq(optimize_func, [np.mean(sample), a1, b1, a2, b2])
 
