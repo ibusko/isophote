@@ -5,7 +5,7 @@ import numpy as np
 
 class Isophote:
 
-    def __init__(self, sample, iter, valid, stop_code):
+    def __init__(self, sample, niter, valid, stop_code):
         '''
         Container that helps in segregating information directly related to
         the sample (sampled intensities along an elliptical path on the image),
@@ -15,7 +15,7 @@ class Isophote:
         ----------
         :param sample: instance of Sample
             the sample information
-        :param iter: int
+        :param niter: int
             number of iterations used to fit the isophote
         :param valid: boolean
             status of the fitting operation
@@ -47,9 +47,23 @@ class Isophote:
             estimate of pixel variance (rms * sqrt(average sector integration area))
         :param grad: float
             local radial intensity gradient
+        :param grad_error: float
+            measurement error of local radial intensity gradient
+        :param grad_r_error: float
+            relative error of local radial intensity gradient
+        :param npix_e: int
+            total number of valid pixels inside ellipse
+        :param npix_c: int
+            total number of valid pixels inside circle
+        :param sarea: float
+            average sector area on isophote (pixel)
+        :param ndata: int
+            number of valid data points on isophote
+        :param nflag: int
+            number of flagged data points on isophote
         '''
         self.sample = sample
-        self.iter = iter
+        self.niter = niter
         self.valid = valid
         self.stop_code = stop_code
 
@@ -59,8 +73,13 @@ class Isophote:
         self.int_err = self.rms / np.sqrt(sample.actual_points)
         self.pix_var = self.rms * np.sqrt(sample.sector_area)
         self.grad = sample.gradient
+        self.grad_error = sample.gradient_error
+        self.grad_r_error = sample.gradient_relative_error
+        self.sarea = sample.sector_area
+        self.ndata = sample.actual_points
+        self.nflag = sample.total_points - sample.actual_points
 
-        self.tflux_e, self.tflux_c = self._compute_fluxes()
+        self.tflux_e, self.tflux_c, self.npix_e, self.npix_c = self._compute_fluxes()
 
     def _compute_fluxes(self):
         # Compute integrated flux inside ellipse, as well as inside
@@ -85,6 +104,8 @@ class Isophote:
         # Integrate
         tflux_e = 0.
         tflux_c = 0.
+        npix_e = 0
+        npix_c = 0
         for j in range(jmin, jmax):
             for i in range(imin, imax):
 
@@ -96,11 +117,13 @@ class Isophote:
                 # pixel is inside circle with diameter given by sma
                 if radius <= sma:
                     tflux_c += self.sample.image[j][i]
+                    npix_c += 1
 
                 # pixel is inside ellipse
                 if radius <= radius_e:
                     tflux_e += self.sample.image[j][i]
+                    npix_e += 1
 
-        return tflux_e, tflux_c
+        return tflux_e, tflux_c, npix_e, npix_c
 
 
