@@ -75,6 +75,10 @@ class Sample(object):
             the mean intensity along the elliptical path
         :param gradient: float
             the local radial intensity gradient
+        :param gradient_error: float
+            the error associated with the local radial intensity gradient
+        :param gradient_relative_error: float
+            the relative error associated with the local radial intensity gradient
         :param sector_area: float
             the average area of the sectors along the
             elliptical path where the sample values
@@ -118,6 +122,8 @@ class Sample(object):
         self.values = None
         self.mean = None
         self.gradient = None
+        self.gradient_error = None
+        self.gradient_relative_error = None
         self.sector_area = None
 
         # total_points reports the total number of pairs angle-radius that
@@ -206,8 +212,6 @@ class Sample(object):
         ''' Update this Sample instance with the mean intensity and
             local gradient values.
 
-            Later we will add the mean and gradient errors as well.
-
         :param step: float
             by how much to increment/decrement the semi-major axis in
             order to get a second sample that will enable estimation
@@ -219,7 +223,7 @@ class Sample(object):
 
         # Get sample with same geometry but at a different distance from
         # center. Estimate gradient from there.
-        gradient = self._get_gradient(step)
+        gradient, gradient_error = self._get_gradient(step)
 
         # Check for meaningful gradient. If no meaningful gradient, try
         # another sample, this time using larger radius. Meaningful
@@ -231,7 +235,7 @@ class Sample(object):
             previous_gradient = -0.05 # good enough, based on usage
 
         if gradient >= (previous_gradient / 3.):   # gradient is negative!
-            gradient = self._get_gradient(2 * step)
+            gradient, gradient_error = self._get_gradient(2 * step)
 
         # If still no meaningful gradient can be measured, try with previous
         # one, slightly shallower. A factor 0.8 is not too far from what is
@@ -240,8 +244,14 @@ class Sample(object):
         # r <~ 5 req). Gradient error is meaningless in this case.
         if gradient >= (previous_gradient / 3.):
             gradient *= 0.8
+            gradient_error = None
 
         self.gradient = gradient
+        self.gradient_error = gradient_error
+        if gradient_error:
+            self.gradient_relative_error = gradient_error / np.abs(gradient)
+        else:
+            self.gradient_relative_error = None
 
     def _get_gradient(self, step):
         gradient_sma = (1. + step) * self.geometry.sma
@@ -257,5 +267,11 @@ class Sample(object):
         mean_g = np.mean(sg[2])
         gradient = (mean_g - self.mean) / self.geometry.sma / step
 
-        return gradient
+        s = self.extract()
+        sigma = np.std(s[2])
+        sigma_g = np.std(sg[2])
+
+        gradient_error  = np.sqrt(sigma**2 / len(s[2]) + sigma_g**2 / len(sg[2])) / self.geometry.sma / step
+
+        return gradient, gradient_error
 

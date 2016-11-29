@@ -20,8 +20,11 @@ class TestFitter(unittest.TestCase):
         sample = Sample(test_data, 40.)
         sample.update()
 
-        self.assertAlmostEqual(sample.mean, 200.166,  3)
-        self.assertAlmostEqual(sample.gradient, -4.178,  3)
+        self.assertAlmostEqual(sample.mean, 200.166, 3)
+        self.assertAlmostEqual(sample.gradient, -4.178, 3)
+        self.assertAlmostEqual(sample.gradient_error, 0.0440, 3)
+        self.assertAlmostEqual(sample.gradient_relative_error, 0.0105, 3)
+        self.assertAlmostEqual(sample.sector_area, 2.00, 2)
 
     def test_fitting_raw(self):
         # this test performs a raw (no Fitter), 1-step
