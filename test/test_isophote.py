@@ -19,6 +19,8 @@ class TestIsophote(unittest.TestCase):
         fitter = Fitter(sample)
         iso = fitter.fit()
 
+        self.assertTrue(iso.valid)
+
         # fitted values
         self.assertAlmostEqual(iso.intens,  200.1659, 4)
         self.assertAlmostEqual(iso.rms,     2.073, 3)
@@ -32,6 +34,12 @@ class TestIsophote(unittest.TestCase):
         self.assertLessEqual(iso.tflux_c,    2.025E6, 2)
         self.assertGreaterEqual(iso.tflux_c, 2.022E6, 2)
 
+        # deviations from perfect ellipticity
+        self.assertLessEqual(abs(iso.a3), 0.01, 2)
+        self.assertLessEqual(abs(iso.b3), 0.01, 2)
+        self.assertLessEqual(abs(iso.a4), 0.01, 2)
+        self.assertLessEqual(abs(iso.b4), 0.01, 2)
+
     def test_m51(self):
 
         image = pyfits.open("M51.fits")
@@ -40,6 +48,8 @@ class TestIsophote(unittest.TestCase):
         sample = Sample(test_data, 20)
         fitter = Fitter(sample)
         iso = fitter.fit()
+
+        self.assertTrue(iso.valid)
 
         # geometry
         g = iso.sample.geometry
@@ -64,5 +74,25 @@ class TestIsophote(unittest.TestCase):
         self.assertGreaterEqual(iso.tflux_e, 1.11E6, 2)
         self.assertLessEqual(iso.tflux_c,    1.28E6, 2)
         self.assertGreaterEqual(iso.tflux_c, 1.26E6, 2)
+
+        # deviations from perfect ellipticity
+        self.assertLessEqual(abs(iso.a3), 0.08, 2)
+        self.assertLessEqual(abs(iso.b3), 0.08, 2)
+        self.assertLessEqual(abs(iso.a4), 0.08, 2)
+        self.assertLessEqual(abs(iso.b4), 0.08, 2)
+
+    def test_m51_niter(self):
+        # compares with old STSDAS task. In this task, the
+        # default for the starting value of SMA is 10; it
+        # fits with 20 iterations.
+        image = pyfits.open("M51.fits")
+        test_data = image[0].data
+
+        sample = Sample(test_data, 10)
+        fitter = Fitter(sample)
+        iso = fitter.fit()
+
+        self.assertTrue(iso.valid)
+        self.assertEqual(iso.niter, 20)
 
 

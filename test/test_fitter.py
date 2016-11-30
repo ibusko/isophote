@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 from util import build_test_data
-from ellipse.harmonics import fit_harmonics
+from ellipse.harmonics import fit_1st_and_2nd_harmonics
 from ellipse.sample import Sample
 from ellipse.isophote import Isophote
 from ellipse.fitter import Fitter
@@ -38,7 +38,7 @@ class TestFitter(unittest.TestCase):
         sample.update()
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
         # when eps is off, b2 is the largest (in absolute value).
         correction = b2 * 2. * (1. - sample.geometry.eps) / sample.geometry.sma / sample.gradient

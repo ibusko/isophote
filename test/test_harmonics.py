@@ -8,7 +8,7 @@ import unittest
 from util import build_test_data
 
 from ellipse.sample import Sample
-from ellipse.harmonics import fit_harmonics, harmonic_function
+from ellipse.harmonics import fit_1st_and_2nd_harmonics, fit_upper_harmonic, first_and_2nd_harmonic_function
 
 
 class TestHarmonics(unittest.TestCase):
@@ -55,8 +55,28 @@ class TestHarmonics(unittest.TestCase):
         b2_0 = 2.
         data = y0_0 + a1_0 * np.sin(E) + b1_0 * np.cos(E) + a2_0 * np.sin(2*E) + b2_0 * np.cos(2*E) + 0.01 * np.random.randn(N)
 
-        y0, a1, b1, a2, b2 = fit_harmonics(E, data)
+        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(E, data)
         data_fit = y0 + a1*np.sin(E) + b1*np.cos(E) + a2*np.sin(2*E) + b2* np.cos(2*E) + 0.01 * np.random.randn(N)
+        residual = data - data_fit
+
+        self.assertAlmostEqual(np.mean(residual), 0.000, 2)
+        self.assertAlmostEqual(np.std(residual),  0.015, 2)
+
+    def test_harmonics_3(self):
+
+        # tests an upper harmonic fit
+
+        N = 100
+        E = np.linspace(0, 4*np.pi, N)
+
+        y0_0 = 100.
+        a1_0 = 10.
+        b1_0 = 5.
+        order = 3
+        data = y0_0 + a1_0 * np.sin(order*E) + b1_0 * np.cos(order*E) + 0.01 * np.random.randn(N)
+
+        y0, a1, b1 = fit_upper_harmonic(E, data, order)
+        data_fit = y0 + a1*np.sin(order*E) + b1*np.cos(order*E) + 0.01 * np.random.randn(N)
         residual = data - data_fit
 
         self.assertAlmostEqual(np.mean(residual), 0.000, 2)
@@ -70,7 +90,7 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, 40.)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
         self.assertAlmostEqual(y0, 200.153, 3)
         self.assertAlmostEqual(a1, 0.03632, 4)
@@ -79,7 +99,7 @@ class TestHarmonics(unittest.TestCase):
         self.assertAlmostEqual(b2, 0.2617, 4)
 
         # check that harmonics subtract nicely
-        model = harmonic_function(s[0], y0, np.array([a1, b1, a2, b2]))
+        model = first_and_2nd_harmonic_function(s[0], np.array([y0, a1, b1, a2, b2]))
         residual = s[2] - model
 
         self.assertTrue(np.mean(residual) < 1.E-4)
@@ -93,7 +113,7 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, 40., eps=0.4)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
         self.assertAlmostEqual(y0, 246.354, 3)
         self.assertAlmostEqual(a1, -1.08690, 4)
@@ -110,7 +130,7 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, 40., eps=0.1)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
         self.assertAlmostEqual(y0, 189.273, 3)
         self.assertAlmostEqual(a1, 0.1081, 4)
@@ -127,7 +147,7 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, x0=220., y0=210., sma=40.)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
         self.assertAlmostEqual(y0, 152.869, 3)
         self.assertAlmostEqual(a1, 55.3241, 4)

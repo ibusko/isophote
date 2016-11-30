@@ -2,6 +2,9 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import numpy as np
 
+from ellipse.harmonics import fit_upper_harmonic
+
+
 
 class Isophote:
 
@@ -79,7 +82,16 @@ class Isophote:
         self.ndata = sample.actual_points
         self.nflag = sample.total_points - sample.actual_points
 
+        # flux contained inside ellipse and circle
         self.tflux_e, self.tflux_c, self.npix_e, self.npix_c = self._compute_fluxes()
+
+        # deviations from perfect ellipticity
+        c = fit_upper_harmonic(sample.values[0], sample.values[2], 3)
+        self.a3 = c[1] / sample.geometry.sma /sample.gradient
+        self.b3 = c[2] / sample.geometry.sma /sample.gradient
+        c = fit_upper_harmonic(sample.values[0], sample.values[2], 4)
+        self.a4 = c[1] / sample.geometry.sma /sample.gradient
+        self.b4 = c[2] / sample.geometry.sma /sample.gradient
 
     def _compute_fluxes(self):
         # Compute integrated flux inside ellipse, as well as inside

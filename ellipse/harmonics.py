@@ -4,45 +4,77 @@ import numpy as np
 from scipy.optimize import leastsq
 
 
-def harmonic_function(phi, y0, c):
+def _dofit(optimize_func, parameters):
+    # call the least squares fitting
+    # function and handle the result.
+    solution = leastsq(optimize_func, parameters)
+
+    if solution[1] > 4:
+        raise RuntimeError("Error in least squares fit: " + solution[1])
+
+    return solution[0]
+
+
+def first_and_2nd_harmonic_function(phi, c):
     '''
-    Compute harmonic function.
+    Computes harmonic function used to calculate the
+    corrections for ellipse fitting. This function includes
+    simultaneously both the 1st and 2nd order harmonics.
+
+    function = c[0] + c[1]*sin(phi) + c[2]*cos(phi) + c[3]*sin(2*phi) + c[4]*cos(2*phi)
 
     :param phi: float or np.array
         angle(s) along the elliptical path, going counterclockwise,
         starting coincident with the position angle. That is, the
         angles are defined from the semi-major axis that lies in
         the +X quadrant.
-    :param y0: float
-        mean intensity
-    :param c: np array of shape (4)
-        containing the four harmonic coefficients
+    :param c: np array of shape (5)
+        containing the five harmonic coefficients
     :return: float or np.array
         function value(s) at the given input angle(s)
     '''
-    return y0 + c[0]*np.sin(phi) + c[1]*np.cos(phi) + c[2]*np.sin(2*phi) + c[3]*np.cos(2*phi)
+    return c[0] + c[1]*np.sin(phi) + c[2]*np.cos(phi) + c[3]*np.sin(2*phi) + c[4]*np.cos(2*phi)
 
 
-def fit_harmonics(phi, sample):
+def fit_1st_and_2nd_harmonics(phi, intensities):
     '''
-    Fit harmonic function to a set of angle,intensity pairs
+    Fits 1st and 2nd harmonic function to a set of angle,intensity pairs.
+    This is used to compute the corrections for ellipse fitting.
 
     :param phi: np.array
         angles defined in the same way as in harmonic_function
-    :param sample: np.array
+    :param intensities: np.array
         intensities measured along the elliptical path, at the angles defined in parameter 'phi'
     :return: 5 float values
         fitted values for y0, a1, b1, a2, b2
     '''
     a1 = b1 = a2 = b2 = 1.
 
-    optimize_func = lambda x: harmonic_function(phi, x[0], np.array([x[1], x[2], x[3], x[4]])) - sample
+    optimize_func = lambda x: first_and_2nd_harmonic_function(phi, np.array([x[0], x[1], x[2], x[3], x[4]])) - intensities
 
-    solution = leastsq(optimize_func, [np.mean(sample), a1, b1, a2, b2])
-
-    if solution[1] > 4:
-        raise RuntimeError("Error in least squares fit: " + solution[5])
-
-    return solution[0]
+    return _dofit(optimize_func, [np.mean(intensities), a1, b1, a2, b2])
 
 
+def fit_upper_harmonic(phi, intensities, order):
+    '''
+    Fits upper harmonic function to a set of angle,intensity pairs.
+    With 'order' set to 3 or 4, the resulting amplitudes, divided
+    by the semi-major axis length and local gradient, measure the
+    deviations from perfect ellipticity.
+
+    function = y0 + c[0]*sin(order*phi) + c[1]*cos(order*phi)
+
+    :param phi: np.array
+        angles defined in the same way as in harmonic_function
+    :param intensities: np.array
+        intensities measured along the elliptical path, at the angles defined in parameter 'phi'
+    :param order: int
+        the order of the harmonic to be fitted.
+    :return: 3 float values
+        fitted values for y0, an, bn
+    '''
+    an = bn = 1.
+
+    optimize_func = lambda x: x[0] + x[1]*np.sin(order*phi) + x[2]*np.cos(order*phi) - intensities
+
+    return _dofit(optimize_func, [np.mean(intensities), an, bn])

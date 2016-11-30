@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 from ellipse.geometry import normalize_angle
-from ellipse.harmonics import fit_harmonics, harmonic_function
+from ellipse.harmonics import fit_1st_and_2nd_harmonics, first_and_2nd_harmonic_function
 from ellipse.sample import Sample, sample_copy
 from ellipse.isophote import Isophote
 
@@ -67,7 +67,7 @@ class Fitter(object):
             # a fatal error; terminate immediately with sample
             # marked as invalid.
             try:
-                coeffs = fit_harmonics(values[0], values[2])
+                coeffs = fit_1st_and_2nd_harmonics(values[0], values[2])
             except RuntimeError as e:
                 print(e)
                 sample_copy(self._sample, sample)
@@ -78,7 +78,7 @@ class Fitter(object):
             largest_harmonic = coeffs[1:][largest_harmonic_index]
 
             # check if converged
-            model = harmonic_function(values[0], coeffs[0], coeffs[1:])
+            model = first_and_2nd_harmonic_function(values[0], coeffs)
             residual = values[2] - model
 
             if (conver * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
