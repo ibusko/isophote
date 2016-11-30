@@ -113,7 +113,7 @@ class TestFitter(unittest.TestCase):
         self.assertLessEqual(g.x0,    245 + 1.5)
         self.assertGreaterEqual(g.y0, 245 - 1.5)
         self.assertLessEqual(g.y0,    245 + 1.5)
-        self.assertGreaterEqual(g.eps, 0.4 - 0.01)          # eps within 0.01
+        self.assertGreaterEqual(g.eps, 0.4 - 0.01)    # eps within 0.01
         self.assertLessEqual(g.eps,    0.4 + 0.01)
         self.assertGreaterEqual(g.pa, np.pi/4 - 0.05) # pa within 5 deg
         self.assertLessEqual(g.pa,    np.pi/4 + 0.05)
