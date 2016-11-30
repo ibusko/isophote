@@ -66,9 +66,12 @@ class Fitter(object):
             # Fit harmonic coefficients. Failure in fitting is
             # a fatal error; terminate immediately with sample
             # marked as invalid.
+
+#TODO check why we are getting a warning. Probab;y at small sma.
+
             try:
                 coeffs = fit_1st_and_2nd_harmonics(values[0], values[2])
-            except RuntimeError as e:
+            except Exception as e:
                 print(e)
                 sample_copy(self._sample, sample)
                 return Isophote(sample, iter+1, False, 3)

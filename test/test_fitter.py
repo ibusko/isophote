@@ -47,6 +47,18 @@ class TestFitter(unittest.TestCase):
         # got closer to test data (eps=0.2)
         self.assertAlmostEqual(new_eps, 0.19, 2)
 
+    def test_fitting_small_radii(self):
+
+        test_data = build_test_data.build()
+
+        sample = Sample(test_data, 2.)
+        fitter = Fitter(sample)
+
+        isophote = fitter.fit()
+
+        self.assertIsInstance(isophote, Isophote)
+        self.assertEqual(isophote.ndata, 32)
+
     def test_fitting_eps(self):
 
         test_data = build_test_data.build()
@@ -117,3 +129,4 @@ class TestFitter(unittest.TestCase):
         self.assertLessEqual(g.eps,    0.4 + 0.01)
         self.assertGreaterEqual(g.pa, np.pi/4 - 0.05) # pa within 5 deg
         self.assertLessEqual(g.pa,    np.pi/4 + 0.05)
+

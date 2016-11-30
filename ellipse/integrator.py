@@ -8,6 +8,9 @@ BI_LINEAR = 'bi-linear'
 MEAN = 'mean'
 MEDIAN = 'median'
 
+DPHI_MAX = 0.2     # limits for sector angular whidth
+DPHI_MIN = 0.01
+
 
 class Integrator(object):
 
@@ -94,7 +97,7 @@ class NearestNeighborIntegrator(Integrator):
             self._store_results(phi, radius, sample)
 
     def get_polar_angle_step(self):
-        return 2. / self._r
+        return max (min (2. / self._r, DPHI_MAX), DPHI_MIN)
 
     def get_sector_area(self):
         return 1.
@@ -157,7 +160,7 @@ class BiLinearIntegrator(Integrator):
         return sum / NCELL**2
 
     def get_polar_angle_step(self):
-        return 1. / self._r
+        return max (min (1. / self._r, DPHI_MAX), DPHI_MIN)
 
     def get_sector_area(self):
         return 2.
@@ -240,7 +243,7 @@ class AreaIntegrator(Integrator):
                 self._store_results(phi, radius, sample_value)
 
     def get_polar_angle_step(self):
-        return self._phistep
+        return max (min (self._phistep, DPHI_MAX), DPHI_MIN)
 
     def get_sector_area(self):
         return self._sector_area
