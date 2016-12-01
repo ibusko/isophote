@@ -18,15 +18,15 @@ class Ellipse():
         while True:
             isophote = self.fit_isophote(result, sma, step, linear)
 
-            if sma >= maxsma:
-                break
-
+            # figure out next sma; if too large, bail out
             if linear:
                 sma += step
             else:
                 sma *= (1. + step)
+            if sma >= maxsma:
+                break
 
-        # now reset sma to go inwards.
+        # reset sma so as to go inwards.
         if linear:
             sma = sma0 - step
         else:
@@ -36,18 +36,17 @@ class Ellipse():
         while True:
             isophote = self.fit_isophote(result, sma, step, linear)
 
-            # stop going inwards when sma becomes too small.
-            if sma <= max(minsma, 0.75):
-                break
-
+            # figure out next sma; if too small, bail out
             if linear:
                 sma -= step
             else:
                 sma /= (1. + step)
+            if sma <= max(minsma, 0.75):
+                break
 
         # if user asked for minsma=0, extract special isophote there
-        # if minsma == 0.0:
-        #     isophote = self.fit_isophote(result, 0.0, step, linear)
+        if minsma == 0.0:
+            isophote = self.fit_isophote(result, 0.0, step, linear)
 
         return result
 
