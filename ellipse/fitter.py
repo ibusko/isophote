@@ -6,7 +6,7 @@ import numpy as np
 from ellipse.geometry import normalize_angle
 from ellipse.harmonics import fit_1st_and_2nd_harmonics, first_and_2nd_harmonic_function
 from ellipse.sample import Sample, sample_copy
-from ellipse.isophote import Isophote
+from ellipse.isophote import Isophote, CentralPixel
 
 
 class Fitter(object):
@@ -66,9 +66,6 @@ class Fitter(object):
             # Fit harmonic coefficients. Failure in fitting is
             # a fatal error; terminate immediately with sample
             # marked as invalid.
-
-#TODO check why we are getting a warning. Probab;y at small sma.
-
             try:
                 coeffs = fit_1st_and_2nd_harmonics(values[0], values[2])
             except Exception as e:
@@ -219,5 +216,28 @@ _correctors = [_PositionCorrector_0(),
                _AngleCorrector(),
                _EllipticityCorrector()
 ]
+
+
+class CentralFitter(Fitter):
+    '''
+    Derived Fitter class, designed specifically to handle the
+    case of the central pixel in the galaxy image.
+    '''
+    def fit(self):
+        '''
+        Overrides the base class to perform just a simple 1-pixel
+        extraction at the current x0,y0 position, using bi-linear
+        interpolation.
+
+        :return: instance of the CentralPixel class.
+            For convenience, the CentralPixel class inherits from
+            the Isophote class, although it's not really a true
+            isophote but just a single intensity value at the central
+            position. Thus, most of its attributes are hardcoded to
+            None, or other default value when appropriate.
+        '''
+        self._sample.update()
+        return CentralPixel(self._sample)
+
 
 

@@ -5,7 +5,6 @@ import numpy as np
 from ellipse.harmonics import fit_upper_harmonic
 
 
-
 class Isophote:
 
     def __init__(self, sample, niter, valid, stop_code):
@@ -86,12 +85,18 @@ class Isophote:
         self.tflux_e, self.tflux_c, self.npix_e, self.npix_c = self._compute_fluxes()
 
         # deviations from perfect ellipticity
-        c = fit_upper_harmonic(sample.values[0], sample.values[2], 3)
-        self.a3 = c[1] / sample.geometry.sma /sample.gradient
-        self.b3 = c[2] / sample.geometry.sma /sample.gradient
-        c = fit_upper_harmonic(sample.values[0], sample.values[2], 4)
-        self.a4 = c[1] / sample.geometry.sma /sample.gradient
-        self.b4 = c[2] / sample.geometry.sma /sample.gradient
+        try:
+            c = fit_upper_harmonic(sample.values[0], sample.values[2], 3)
+            self.a3 = c[1] / sample.geometry.sma /sample.gradient
+            self.b3 = c[2] / sample.geometry.sma /sample.gradient
+        except Exception as e: # we want to catch everything
+            self.a3 = self.b3 = None
+        try:
+            c = fit_upper_harmonic(sample.values[0], sample.values[2], 4)
+            self.a4 = c[1] / sample.geometry.sma /sample.gradient
+            self.b4 = c[2] / sample.geometry.sma /sample.gradient
+        except Exception as e: # we want to catch everything
+            self.a4 = self.b4 = None
 
     def _compute_fluxes(self):
         # Compute integrated flux inside ellipse, as well as inside
@@ -137,5 +142,40 @@ class Isophote:
                     npix_e += 1
 
         return tflux_e, tflux_c, npix_e, npix_c
+
+
+class CentralPixel(Isophote):
+    '''
+    Container for the central pixel in the galaxy image.
+
+    For convenience, the CentralPixel class inherits from
+    the Isophote class, although it's not really a true
+    isophote but just a single intensity value at the central
+    position. Thus, most of its attributes are hardcoded to
+    None, or other default value when appropriate.
+    '''
+    def __init__(self, sample):
+
+        self.sample = sample
+        self.niter = 0
+        self.valid = True
+        self.stop_code = 0
+
+        self.intens = sample.mean
+
+        self.rms = None
+        self.int_err = None
+        self.pix_var = None
+        self.grad = None
+        self.grad_error = None
+        self.grad_r_error = None
+        self.sarea = None
+        self.ndata = sample.actual_points
+        self.nflag = sample.total_points - sample.actual_points
+
+        self.tflux_e = self.tflux_c = self.npix_e = self.npix_c = None
+
+        self.a3 = self.b3 = None
+        self.a4 = self.b4 = None
 
 

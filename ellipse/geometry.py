@@ -159,10 +159,12 @@ class Geometry(object):
         # the elliptical path. The actual step will be calculated
         # by the chosen area integration algorithm
         inner_sma_ = min((self.sma2 - self.sma1), 3.)
-        self.sector_angular_width = max(min((inner_sma_ / self.sma), PHI_MAX), PHI_MIN)
 
-        self.initial_polar_angle = self.sector_angular_width / 2.
-        self.initial_polar_radius = self.radius(self.initial_polar_angle)
+        # sma can eventually be zero!
+        if self.sma > 0.:
+            self.sector_angular_width = max(min((inner_sma_ / self.sma), PHI_MAX), PHI_MIN)
+            self.initial_polar_angle = self.sector_angular_width / 2.
+            self.initial_polar_radius = self.radius(self.initial_polar_angle)
 
     def _bounding_ellipses(self):
         '''

@@ -1,7 +1,7 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-from ellipse.sample import Sample
-from ellipse.fitter import Fitter
+from ellipse.sample import Sample, CentralSample
+from ellipse.fitter import Fitter, CentralFitter
 
 
 class Ellipse():
@@ -18,7 +18,7 @@ class Ellipse():
         while True:
             isophote = self.fit_isophote(result, sma, step, linear)
 
-            if not isophote.valid or sma >= maxsma:
+            if sma >= maxsma:
                 break
 
             if linear:
@@ -36,13 +36,18 @@ class Ellipse():
         while True:
             isophote = self.fit_isophote(result, sma, step, linear)
 
-            if not isophote.valid or sma <= minsma:
+            # stop going inwards when sma becomes too small.
+            if sma <= max(minsma, 0.75):
                 break
 
             if linear:
                 sma -= step
             else:
                 sma /= (1. + step)
+
+        # if user asked for minsma=0, extract special isophote there
+        if minsma == 0.0:
+            isophote = self.fit_isophote(result, 0.0, step, linear)
 
         return result
 
@@ -69,11 +74,19 @@ class Ellipse():
         :return: Isophote instance
             the fitted isophote
         '''
-        sample = Sample(self.image, sma, astep=step, linear_growth=linear)
-        fitter = Fitter(sample)
+        if sma > 0.:
+            sample = Sample(self.image, sma, astep=step, linear_growth=linear)
+            fitter = Fitter(sample)
+        else:
+            sample = CentralSample(self.image, 0.0)
+            fitter = CentralFitter(sample)
+
         isophote = fitter.fit()
 
-        isophote_list.append(isophote)
+        if isophote.valid:
+            isophote_list.append(isophote)
+
+            print ('@@@@@@     line: 79  - ',isophote.sample.geometry.sma, isophote.intens)
 
         return isophote
 

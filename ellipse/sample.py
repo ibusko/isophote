@@ -275,3 +275,30 @@ class Sample(object):
 
         return gradient, gradient_error
 
+
+class CentralSample(Sample):
+
+    def update(self):
+        ''' Overrides base class so as to update this Sample instance
+            with the intensity integrated at the x0,y0 position using
+            bi-linear integration. The local gradient is set to None.
+        '''
+        s = self.extract()
+        self.mean = s[2][0]
+
+        self.gradient = None
+        self.gradient_error = None
+        self.gradient_relative_error = None
+
+    def _extract(self):
+        angles = []
+        radii = []
+        intensities = []
+
+        integrator = integrators[BI_LINEAR](self.image, self.geometry, angles, radii, intensities)
+        integrator.integrate(0.0, 0.0)
+
+        self.total_points = 1
+        self.actual_points = 1
+
+        return np.array([np.array(angles), np.array(radii), np.array(intensities)])
