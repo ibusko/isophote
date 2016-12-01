@@ -76,6 +76,7 @@ class Isophote:
         self.pix_var = self.rms * np.sqrt(sample.sector_area)
         self.grad = sample.gradient
         self.grad_error = sample.gradient_error
+
         self.grad_r_error = sample.gradient_relative_error
         self.sarea = sample.sector_area
         self.ndata = sample.actual_points
@@ -143,6 +144,28 @@ class Isophote:
 
         return tflux_e, tflux_c, npix_e, npix_c
 
+    def print(self):
+        if self.grad_r_error:
+            s = " %7.2f  %9.2f   % 5.3f  %6.2f    %5.3f  %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
+                                                   self.intens,
+                                                   self.sample.geometry.eps,
+                                                   self.sample.geometry.pa / np.pi * 180.,
+                                                   self.grad_r_error,
+                                                   self.ndata,
+                                                   self.nflag,
+                                                   self.niter,
+                                                   self.stop_code)
+        else:
+            s = " %7.2f  %9.2f   % 5.3f  %6.2f    None   %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
+                                                   self.intens,
+                                                   self.sample.geometry.eps,
+                                                   self.sample.geometry.pa / np.pi * 180.,
+                                                   self.ndata,
+                                                   self.nflag,
+                                                   self.niter,
+                                                   self.stop_code)
+        print(s)
+
 
 class CentralPixel(Isophote):
     '''
@@ -177,5 +200,9 @@ class CentralPixel(Isophote):
 
         self.a3 = self.b3 = None
         self.a4 = self.b4 = None
+
+    def print(self):
+        s = "    0.00  %9.2f"% (self.intens)
+        print(s)
 
 

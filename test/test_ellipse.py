@@ -17,7 +17,7 @@ class TestEllipse(unittest.TestCase):
         test_data = build_test_data.build()
 
         ellipse = Ellipse(test_data)
-        isophote_list = ellipse.fit_image(maxsma=12.)
+        isophote_list = ellipse.fit_image()
 
         self.assertIsInstance(isophote_list, list)
         self.assertGreater(len(isophote_list), 1)

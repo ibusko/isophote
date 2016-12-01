@@ -17,14 +17,16 @@ def sample_copy(sample1, sample2):
     :param sample2: Sample instance
          destination
     '''
-    sample2.image         = sample1.image
-    sample2.integrmode    = sample1.integrmode
-    sample2.sector_area   = sample1.sector_area
-    sample2.values        = sample1.values
-    sample2.mean          = sample1.mean
-    sample2.gradient      = sample1.gradient
-    sample2.actual_points = sample1.actual_points
-    sample2.total_points  = sample1.total_points
+    sample2.image                   = sample1.image
+    sample2.integrmode              = sample1.integrmode
+    sample2.sector_area             = sample1.sector_area
+    sample2.values                  = sample1.values
+    sample2.mean                    = sample1.mean
+    sample2.gradient                = sample1.gradient
+    sample2.gradient_error          = sample1.gradient_error
+    sample2.gradient_relative_error = sample1.gradient_relative_error
+    sample2.actual_points           = sample1.actual_points
+    sample2.total_points            = sample1.total_points
 
 
 class Sample(object):

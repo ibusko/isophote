@@ -46,8 +46,8 @@ class Ellipse():
                 sma /= (1. + step)
 
         # if user asked for minsma=0, extract special isophote there
-        if minsma == 0.0:
-            isophote = self.fit_isophote(result, 0.0, step, linear)
+        # if minsma == 0.0:
+        #     isophote = self.fit_isophote(result, 0.0, step, linear)
 
         return result
 
@@ -85,8 +85,7 @@ class Ellipse():
 
         if isophote.valid:
             isophote_list.append(isophote)
-
-            print ('@@@@@@     line: 79  - ',isophote.sample.geometry.sma, isophote.intens)
+            isophote.print()
 
         return isophote
 
