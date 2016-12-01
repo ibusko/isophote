@@ -32,7 +32,7 @@ def sample_copy(sample1, sample2):
 class Sample(object):
 
     def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
-                 linear_growth=False, integrmode=BI_LINEAR):
+                 linear_growth=False, integrmode=BI_LINEAR, geometry=None):
         '''
         A Sample instance describes an elliptical path over the image, over which
         intensities can be extracted using a selection of integration algorithms.
@@ -62,11 +62,14 @@ class Sample(object):
             semi-major axis growing/shrinking mode
         :param integrmode: string
             algorithm used for area integration
+        :param geometry: Geometry instance
+            the geometry that describes the ellipse. This can be used in
+            lieu of the explicit specifcation of parameters 'sma', 'x0',
+            'y0', 'eps', etc. In any case, the Geometry instance
+             becomes an attribute of the Sample object.
 
         Attributes
         ----------
-        :param geometry: Geometry instance
-            the geometry that describes the ellipse
         :param values: 2-d numpy array
             sampled values as a 2-d numpy array
             with the following structure:
@@ -90,35 +93,25 @@ class Sample(object):
             cover the entire elliptical path
         :param actual_points: int
             the actual number of sample values that were
-            taken from the image. It can smaller than
+            taken from the image. It can be smaller than
             total_points when the ellipse encompasses
             regions outside the image.
         '''
         self.image = image
         self.integrmode = integrmode
 
-        # Many parameters below can be made private.
-        # Each integration method may need just a
-        # subset of them. Later on, we should be
-        # able to initialize only the ones needed
-        # for the given integration mode. We should
-        # also move whatever we can to local contexts,
-        # minimizing the number of attributes in 'self'.
+        if geometry:
+            self.geometry = geometry
+        else:
+            # if no center was specified, assume it's roughly
+            # coincident with the image center
+            _x0 = x0
+            _y0 = y0
+            if not _x0 or not _y0:
+                _x0 = image.shape[0] / 2
+                _y0 = image.shape[1] / 2
 
-        # initialize ellipse scanning
-        # self.s      = 0.0
-        # self.s2     = 0.0
-        # self.aarea  = 0.0
-
-        # if no center was specified, assume it's roughly
-        # coincident with the image center
-        _x0 = x0
-        _y0 = y0
-        if not _x0 or not _y0:
-            _x0 = image.shape[0] / 2
-            _y0 = image.shape[1] / 2
-
-        self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep, linear_growth)
+            self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep, linear_growth)
 
         # extracted values associated with this sample.
         self.values = None
