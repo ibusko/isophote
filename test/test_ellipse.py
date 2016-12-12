@@ -23,3 +23,11 @@ class TestEllipse(unittest.TestCase):
         self.assertGreater(len(isophote_list), 1)
         self.assertIsInstance(isophote_list[0], Isophote)
 
+        # verify that the list is properly sorted in sem-major axis length
+        self.assertGreater(isophote_list[-1], isophote_list[0])
+
+    def test_m51(self):
+        image = pyfits.open("M51.fits")
+        test_data = image[0].data
+        ellipse = Ellipse(test_data)
+        isophote_list = ellipse.fit_image()

@@ -39,6 +39,8 @@ class Isophote:
 
         Attributes:
         -----------
+        :param sma: float
+            semi-major axis length (pixels)
         :param intens: float
             mean intensity value along the elliptical path
         :param rms: float
@@ -144,6 +146,9 @@ class Isophote:
 
         return tflux_e, tflux_c, npix_e, npix_c
 
+    def __repr__(self):
+        return "sma=%7.2f" % (self.sma)
+
     def print(self):
         if self.grad_r_error:
             s = " %7.2f  %9.2f   % 5.3f  %6.2f    %5.3f  %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
@@ -165,6 +170,17 @@ class Isophote:
                                                    self.niter,
                                                    self.stop_code)
         print(s)
+
+    # These two methods are useful for sorting lists of instances. Note
+    # that __lt__ is the python3 way of supporting sorting. This might
+    # not work under python2.
+    @property
+    def sma(self):
+        return self.sample.geometry.sma
+
+    def __lt__(self, other):
+        if hasattr(other, 'sma'):
+            return self.sma < other.sma
 
 
 class CentralPixel(Isophote):

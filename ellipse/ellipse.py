@@ -48,6 +48,9 @@ class Ellipse():
         if minsma == 0.0:
             isophote = self.fit_isophote(result, 0.0, step, linear)
 
+        # sort list of isophotes according to sma
+        result.sort()
+
         return result
 
     def fit_isophote(self, isophote_list, sma, step, linear):
