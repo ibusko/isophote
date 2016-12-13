@@ -238,4 +238,45 @@ class Geometry(object):
 
         return radius, angle
 
+    def update_sma(self, step):
+        '''
+        Return an updated value for the semi-major axis, given the
+        current value. The step value must be managed by the caller
+        so as to support both modes: grow outwards, and shrink inwards.
+
+        :param step: float
+            the step value
+        :return: float
+            the new semi-major axis length
+        '''
+        if self.linear_growth:
+            sma = self.sma + step
+        else:
+            sma = self.sma * (1. + step)
+        return sma
+
+    def reset_sma(self, step):
+        '''
+        This method should be used whenever one wants to switch the
+        direction of semi-major axis growth, from outwards to inwards.
+
+        :param step: float
+            the current step value
+        :return: float, float
+            the new semi-major axis length and the new step value to
+            initiate the semi-major axis length shrink inwards. This
+            is the step value that should be used when calling method
+            update_sma.
+        '''
+        if self.linear_growth:
+            sma = self.sma - step
+            step = -step
+        else:
+            sma = self.sma / (1. + step)
+            step = 1. / (1.+step) - 1.
+
+        return sma, step
+
+
+
 

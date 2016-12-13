@@ -19,28 +19,20 @@ class Ellipse():
             isophote = self.fit_isophote(result, sma, step, linear)
 
             # figure out next sma; if too large, bail out
-            if linear:
-                sma += step
-            else:
-                sma *= (1. + step)
+            sma = isophote.sample.geometry.update_sma(step)
             if sma >= maxsma:
                 break
 
         # reset sma so as to go inwards.
-        if linear:
-            sma = sma0 - step
-        else:
-            sma = sma0 / (1. + step)
+        first_isophote = result[0]
+        sma, step = first_isophote.sample.geometry.reset_sma(step)
 
-        # finally, go from initial sma inwards
+        # now, go from initial sma inwards
         while True:
             isophote = self.fit_isophote(result, sma, step, linear)
 
             # figure out next sma; if too small, bail out
-            if linear:
-                sma -= step
-            else:
-                sma /= (1. + step)
+            sma = isophote.sample.geometry.update_sma(step)
             if sma <= max(minsma, 0.75):
                 break
 
@@ -65,12 +57,13 @@ class Ellipse():
         integration mode is selected).
 
         :param isophote_list: list
-            list that gets appended with the resulting Isophote instance.
+            list that gets appended with a new, fitted Isophote instance.
             Must be initialized by the caller.
         :param sma: float
             the semi-major axis length (pixels)
         :param step: float
-            the semi-major axis length (pixels)
+            the step value being used to grow/shrink the semi-major
+            axis length (pixels)
         :param linear: boolean
             semi-major axis growing/shrinking mode
         :return: Isophote instance
