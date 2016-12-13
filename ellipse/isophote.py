@@ -29,10 +29,11 @@ class Isophote:
                 2 - exceeded maximum number of iterations.
                 3 - singular matrix in harmonic fit, results may not be valid.
                     Also signals insufficient number of data points to fit.
-                4 - NOT IMPLEMENTED YET:
-                    small or wrong gradient, or ellipse diverged; subsequent
+                4 - small or wrong gradient, or ellipse diverged; subsequent
                     ellipses at larger semi-major axis may have the same
-                    constant geometric parameters.
+                    constant geometric parameters. It's also used when the
+                    user turns off the fitting algorithm via the 'maxrit'
+                    fitting parameter (see Ellipse class).
                 -1 - NOT IMPLEMENTED:
                      isophote was saved before completion of fit (by a cursor
                      command in interactive mode).

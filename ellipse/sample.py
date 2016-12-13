@@ -1,5 +1,7 @@
 from __future__ import division
 
+import copy
+
 import numpy as np
 
 from ellipse.geometry import Geometry
@@ -17,6 +19,7 @@ def sample_copy(sample1, sample2):
     :param sample2: Sample instance
          destination
     '''
+    # deepcopy doesn't work here.
     sample2.image                   = sample1.image
     sample2.integrmode              = sample1.integrmode
     sample2.sector_area             = sample1.sector_area
@@ -101,7 +104,11 @@ class Sample(object):
         self.integrmode = integrmode
 
         if geometry:
-            self.geometry = geometry
+            # when the geometry is inherited from somewhere else,
+            # its 'sma' attribute must be replaced by the value
+            # explicitly passed to the constructor.
+            self.geometry = copy.deepcopy(geometry)
+            self.geometry.sma = sma
         else:
             # if no center was specified, assume it's roughly
             # coincident with the image center

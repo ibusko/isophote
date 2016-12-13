@@ -115,18 +115,16 @@ class Fitter(object):
             # by having multiple calls to the Sample constructor.
             sample = corrector.correct(sample, largest_harmonic)
 
-
-            if not self.check_boundary_conditions(sample):
+            if not self._check_boundary_conditions(sample):
                 sample_copy(self._sample, sample)
                 return Isophote(sample, iter, True, 0)
 
-
-
-        # Copy sample info before returning!
+        # Got to the maximum number of iterations. Return with
+        # code 2, and assume it's still a valid isophote.
         sample_copy(self._sample, sample)
         return Isophote(sample, maxit, True, 2)
 
-    def check_boundary_conditions(self, sample, maxrit=None, wander=None):
+    def _check_boundary_conditions(self, sample, wander=None):
         good_to_go = True
 
         # If center wandered more than allowed, put it back
@@ -145,10 +143,6 @@ class Fitter(object):
             sample.geometry.x0 < 1. or sample.geometry.x0 > sample.image.shape[0] or \
             sample.geometry.y0 < 1. or sample.geometry.y0 > sample.image.shape[1]:
             # STOP(al) = ST_NONITERATE
-            good_to_go = False
-
-
-        if maxrit and sample.geometry.sma >= maxrit:
             good_to_go = False
 
         # See if eps == 0 (round isophote) was crossed.
