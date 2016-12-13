@@ -97,9 +97,9 @@ class Geometry(object):
             polar radius (pixels)
         '''
 
-        if self.sma >= 60.:
-            var = self.sma * (1.-self.eps) / math.sqrt(((1.-self.eps) * math.cos(angle))**2 + (math.sin(angle))**2)
-            print ('@@@@@@     line: 101  - ', self.sma, self.eps, angle, var)
+        # if self.sma >= 60.:
+            # var = self.sma * (1.-self.eps) / math.sqrt(((1.-self.eps) * math.cos(angle))**2 + (math.sin(angle))**2)
+            # print ('@@@@@@     line: 101  - ', self.sma, self.eps, angle, var)
 
         return self.sma * (1.-self.eps) / math.sqrt(((1.-self.eps) * math.cos(angle))**2 + (math.sin(angle))**2)
 
@@ -169,9 +169,6 @@ class Geometry(object):
         if self.sma > 0.:
             self.sector_angular_width = max(min((inner_sma_ / self.sma), PHI_MAX), PHI_MIN)
             self.initial_polar_angle = self.sector_angular_width / 2.
-
-            if self.sma > 60.:
-                print ('@@@@@@     line: 169  -  about to call self.radius()')
 
             self.initial_polar_radius = self.radius(self.initial_polar_angle)
 

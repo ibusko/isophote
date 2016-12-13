@@ -8,6 +8,9 @@ from ellipse.harmonics import fit_1st_and_2nd_harmonics, first_and_2nd_harmonic_
 from ellipse.sample import Sample, sample_copy
 from ellipse.isophote import Isophote, CentralPixel
 
+PI2 = np.pi / 2
+MAX_EPS = 0.95
+
 
 class Fitter(object):
     '''
@@ -112,12 +115,57 @@ class Fitter(object):
             # by having multiple calls to the Sample constructor.
             sample = corrector.correct(sample, largest_harmonic)
 
-        # even when running out of iterations, we consider the isophote as
-        # valid. Not sure if this is 100% correct. We'll see as we proceed
-        # with adding more termination criteria. Copy sample info before
-        # returning!
+
+            if not self.check_boundary_conditions(sample):
+                sample_copy(self._sample, sample)
+                return Isophote(sample, iter, True, 0)
+
+
+
+        # Copy sample info before returning!
         sample_copy(self._sample, sample)
         return Isophote(sample, maxit, True, 2)
+
+    def check_boundary_conditions(self, sample, maxrit=None, wander=None):
+        good_to_go = True
+
+        # If center wandered more than allowed, put it back
+        # in place and signal the end of iterative mode.
+        # if wander:
+        #     if abs(dx) > WANDER(al)) or abs(dy) > WANDER(al):
+        #         sample.geometry.x0 -= dx
+        #         sample.geometry.y0 -= dy
+        #         STOP(al) = ST_NONITERATE
+        #         good_to_go = False
+
+        # If ellipse diverged, or if maxrit was reached,
+        # signal the end of iterative mode for now on.
+        # if (STOP(al) == ST_OK) {
+        if abs(sample.geometry.eps > MAX_EPS) or \
+            sample.geometry.x0 < 1. or sample.geometry.x0 > sample.image.shape[0] or \
+            sample.geometry.y0 < 1. or sample.geometry.y0 > sample.image.shape[1]:
+            # STOP(al) = ST_NONITERATE
+            good_to_go = False
+
+
+        if maxrit and sample.geometry.sma >= maxrit:
+            good_to_go = False
+
+        # See if eps == 0 (round isophote) was crossed.
+        # If so, fix it but still good_to_go to go.
+        if sample.geometry.eps < 0.:
+            sample.geometry.eps = -sample.geometry.eps
+            if sample.geometry.pa < 0.:
+                sample.geometry.pa += PI2
+            else:
+                sample.geometry.pa -= PI2
+
+        # If ellipse is an exact circle, computations will diverge.
+        # Make it slightly flat, but still good to go.
+        if sample.geometry.eps == 0.0:
+            sample.geometry.eps = 0.05
+
+        return good_to_go
 
 
 class _ParameterCorrector(object):
