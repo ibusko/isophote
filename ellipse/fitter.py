@@ -6,7 +6,7 @@ import numpy as np
 
 from ellipse.geometry import normalize_angle
 from ellipse.harmonics import fit_1st_and_2nd_harmonics, first_and_2nd_harmonic_function
-from ellipse.sample import Sample, sample_copy
+from ellipse.sample import Sample
 from ellipse.isophote import Isophote, CentralPixel
 
 PI2 = np.pi / 2
@@ -74,7 +74,7 @@ class Fitter(object):
                 coeffs = fit_1st_and_2nd_harmonics(values[0], values[2])
             except Exception as e:
                 print(e)
-                sample_copy(self._sample, sample)
+                # sample_copy(self._sample, sample)
                 return Isophote(sample, iter+1, False, 3)
 
             # largest harmonic in absolute value drives the correction.
@@ -89,18 +89,11 @@ class Fitter(object):
                 # Got a valid solution. But before returning, ensure
                 # that a minimum of iterations has run.
                 if iter >= minit:
-                    # This copy of one sample into another is required because we build
-                    # a new instance of Sample at every single iteration step. Modifying
-                    # the same Sample every time instead proved to result in more
-                    # convoluted code with worse encapsulation, and hard-to-understand
-                    # logic related to the caching used in sample extraction.
-                    sample_copy(self._sample, sample)
                     return Isophote(sample, iter+1, True, 0)
 
             # it may not have converged yet, but the sample contains too
             # many invalid data points: return.
             if sample.actual_points < (sample.total_points * (1. - fflag)):
-                sample_copy(self._sample, sample)
                 return Isophote(sample, iter+1, True, 1)
 
             # pick appropriate corrector code.
@@ -119,12 +112,16 @@ class Fitter(object):
             # see if any abnormal (or unusual) conditions warrant
             # the change to non-iterative mode.
             if not self._is_good_to_go(sample):
-                sample_copy(self._sample, sample)
+                # sample_copy(self._sample, sample)
+
+                #TODO
+
+                sample.update()
                 return Isophote(sample, iter, True, -1)
 
         # Got to the maximum number of iterations. Return with
         # code 2, and assume it's still a valid isophote.
-        sample_copy(self._sample, sample)
+        sample.update()
         return Isophote(sample, maxit, True, 2)
 
     def _is_good_to_go(self, sample):

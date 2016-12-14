@@ -8,30 +8,6 @@ from ellipse.geometry import Geometry
 from ellipse.integrator import integrators, BI_LINEAR
 
 
-def sample_copy(sample1, sample2):
-    '''
-    Copy attributes from a Sample instance into another.
-
-    All but the .geometry attributes are copied.
-
-    :param sample1: Sample instance
-         origin
-    :param sample2: Sample instance
-         destination
-    '''
-    # deepcopy doesn't work here.
-    sample2.image                   = sample1.image
-    sample2.integrmode              = sample1.integrmode
-    sample2.sector_area             = sample1.sector_area
-    sample2.values                  = sample1.values
-    sample2.mean                    = sample1.mean
-    sample2.gradient                = sample1.gradient
-    sample2.gradient_error          = sample1.gradient_error
-    sample2.gradient_relative_error = sample1.gradient_relative_error
-    sample2.actual_points           = sample1.actual_points
-    sample2.total_points            = sample1.total_points
-
-
 class Sample(object):
 
     def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
