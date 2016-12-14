@@ -47,27 +47,27 @@ class Sample(object):
             pixels
         :param sma: float
             the semi-major axis length in pixels
-        :param x0: float
+        :param x0: float, default=None
             the X coordinate of the ellipse center
-        :param y0: foat
+        :param y0: foat, default=None
             the Y coordinate of the ellipse center
-        :param astep: float
+        :param astep: float, default=0.1
             step value for growing/shrinking the semi-
             major axis. It can be expressed either in
             pixels (when 'linear_growth'=True) or in
             relative value (when 'linear_growth=False')
-        :param eps: ellipticity
+        :param eps: ellipticity, default=0.2
              ellipticity
-        :param pa: float
+        :param pa: float, default=0.0
              position angle of ellipse in relation
              to the +X axis of the image array.
-        :param linear_growth: boolean
+        :param linear_growth: boolean, default=False
             semi-major axis growing/shrinking mode
-        :param integrmode: string
+        :param integrmode: string, default=BI_LINEAR
             algorithm used for area integration
-        :param geometry: Geometry instance
+        :param geometry: Geometry instance, default=None
             the geometry that describes the ellipse. This can be used in
-            lieu of the explicit specifcation of parameters 'sma', 'x0',
+            lieu of the explicit specification of parameters 'sma', 'x0',
             'y0', 'eps', etc. In any case, the Geometry instance
              becomes an attribute of the Sample object.
 

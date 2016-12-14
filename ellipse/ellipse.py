@@ -59,6 +59,12 @@ class Ellipse():
         while True:
             isophote = self.fit_isophote(isophote_list, sma, step, linear, maxrit)
 
+            # if abnormal condition, shut off iterative mode but keep going.
+            if isophote.stop_code < 0:
+                isophote.stop_code = 4
+                if not maxrit:
+                    maxrit = sma
+
             # figure out next sma; if exceeded user-defined
             # maximum, bail out from this loop.
             sma = isophote.sample.geometry.update_sma(step)
@@ -88,7 +94,7 @@ class Ellipse():
 
         return isophote_list
 
-    def fit_isophote(self, isophote_list, sma, step=DEFAULT_STEP, linear=False, maxrit=None):
+    def fit_isophote(self, isophote_list, sma, step=DEFAULT_STEP, linear=False, maxrit=None, noniterate=False):
         '''
         Fit one isophote with a given semi-major axis length.
 
@@ -114,13 +120,23 @@ class Ellipse():
             Whenever the current semi-major axis length is larger than
             maxrit, the isophote wil be just extracted using the current
             geometry, without fitting it. Ignored if None.
+        :param noniterate: boolean, default False
+            signals that the fitting algorithm should be bypassed and an
+            isophote should be extracted with the geometry taken directly
+            from the most recent Isophote instance stored in the
+            'isophote_list' parameter.
+            This parameter is mainly used when running the method in a loop
+            over different values of semi-major axis length, and we want
+            to change from iterative to non-iterative mode somewhere
+            along the sequence of isophotes. When set to True, this
+            parameter overrides the behavior associated with parameter
+            'maxrit'.
         :return: Isophote instance
             the fitted isophote. The fitted isophote is also appended
             to the input list passed via parameter 'isophote_list'.
         '''
-        if maxrit and sma > maxrit:
-            # once non-iterative mode is selected, all subsequent
-            # isophotes will inherit the same geometry.
+        if noniterate or (maxrit and sma > maxrit):
+            # in non-iterative mode, always use last fitted geometry.
             geometry = isophote_list[-1].sample.geometry
 
             isophote = self._non_iterative(sma, geometry)

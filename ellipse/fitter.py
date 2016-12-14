@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 import math
+
 import numpy as np
 
 from ellipse.geometry import normalize_angle
@@ -115,16 +116,18 @@ class Fitter(object):
             # by having multiple calls to the Sample constructor.
             sample = corrector.correct(sample, largest_harmonic)
 
-            if not self._check_boundary_conditions(sample):
+            # see if any abnormal (or unusual) conditions warrant
+            # the change to non-iterative mode.
+            if not self._is_good_to_go(sample):
                 sample_copy(self._sample, sample)
-                return Isophote(sample, iter, True, 0)
+                return Isophote(sample, iter, True, -1)
 
         # Got to the maximum number of iterations. Return with
         # code 2, and assume it's still a valid isophote.
         sample_copy(self._sample, sample)
         return Isophote(sample, maxit, True, 2)
 
-    def _check_boundary_conditions(self, sample, wander=None):
+    def _is_good_to_go(self, sample):
         good_to_go = True
 
         # If center wandered more than allowed, put it back
@@ -136,9 +139,6 @@ class Fitter(object):
         #         STOP(al) = ST_NONITERATE
         #         good_to_go = False
 
-        # If ellipse diverged, or if maxrit was reached,
-        # signal the end of iterative mode for now on.
-        # if (STOP(al) == ST_OK) {
         if abs(sample.geometry.eps > MAX_EPS) or \
             sample.geometry.x0 < 1. or sample.geometry.x0 > sample.image.shape[0] or \
             sample.geometry.y0 < 1. or sample.geometry.y0 > sample.image.shape[1]:

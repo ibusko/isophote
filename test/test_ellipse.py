@@ -30,5 +30,6 @@ class TestEllipse(unittest.TestCase):
         image = pyfits.open("M51.fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
-        isophote_list = ellipse.fit_image(maxrit=30)
+        isophote_list = ellipse.fit_image(minsma=26, maxsma=35)
+        # isophote_list = ellipse.fit_image()
 

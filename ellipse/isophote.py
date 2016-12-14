@@ -34,9 +34,7 @@ class Isophote:
                     constant geometric parameters. It's also used when the
                     user turns off the fitting algorithm via the 'maxrit'
                     fitting parameter (see Ellipse class).
-                -1 - NOT IMPLEMENTED:
-                     isophote was saved before completion of fit (by a cursor
-                     command in interactive mode).
+               -1 - internal use.
 
         Attributes:
         -----------
