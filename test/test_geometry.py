@@ -11,7 +11,7 @@ class TestGeometry(unittest.TestCase):
 
     def _check_geometry(self, geometry):
 
-        sma1, sma2 = geometry._bounding_ellipses()
+        sma1, sma2 = geometry.bounding_ellipses()
 
         self.assertAlmostEqual(sma1, 90.0, 3)
         self.assertAlmostEqual(sma2, 110.0, 3)

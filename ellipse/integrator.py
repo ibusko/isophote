@@ -8,7 +8,7 @@ BI_LINEAR = 'bi-linear'
 MEAN = 'mean'
 MEDIAN = 'median'
 
-DPHI_MAX = 0.2     # limits for sector angular whidth
+DPHI_MAX = 0.2     # limits for sector angular width
 DPHI_MIN = 0.01
 
 
@@ -196,8 +196,7 @@ class AreaIntegrator(Integrator):
         j2 = int(max(vertex_y))
 
         # polar angle limits for this sector
-        phi1 = self._geometry.phi1
-        phi2 = self._geometry.phi2
+        phi1, phi2 = self._geometry.polar_angle_sector_limits()
 
         # ignore data point if the elliptical sector lies
         # partially, ou totally, outside image boundaries
@@ -217,12 +216,13 @@ class AreaIntegrator(Integrator):
                     if phip < phi2 and phip >= phi1:
 
                         # check if radius is inside bounding ellipses
+                        sma1, sma2 = self._geometry.bounding_ellipses()
                         aux = (1. - self._geometry.eps) / math.sqrt(((1. - self._geometry.eps) *
                               math.cos(phip))**2 + (math.sin(phip))**2)
-                        rp1 = self._geometry.sma1 * aux
-                        rp2 = self._geometry.sma2 * aux
+                        sma1 *= aux
+                        sma2 *= aux
 
-                        if rp < rp2 and rp >= rp1:
+                        if rp < sma2 and rp >= sma1:
                             # update accumulator with pixel value
                             pix_value = self._image[j][i]
                             accumulator, npix = self.accumulate(pix_value, npix, accumulator)
@@ -251,42 +251,42 @@ class AreaIntegrator(Integrator):
     def initialize_accumulator(self):
         raise NotImplementedError
 
-    def accumulate(self, pixel_value, npix, sample):
+    def accumulate(self, pixel_value, npix, accumulator):
         raise NotImplementedError
 
-    def compute_sample_value(self, sample, npix):
+    def compute_sample_value(self, accumulator, npix):
         raise NotImplementedError
 
 
 class MeanIntegrator(AreaIntegrator):
 
     def initialize_accumulator(self):
-        sample = 0.
-        return sample
+        accumulator = 0.
+        return accumulator
 
-    def accumulate(self, pixel_value, npix, sample):
-        sample += pixel_value
+    def accumulate(self, pixel_value, npix, accumulator):
+        accumulator += pixel_value
         npix += 1
-        return sample, npix
+        return accumulator, npix
 
-    def compute_sample_value(self, sample, npix):
-        return sample / npix
+    def compute_sample_value(self, accumulator, npix):
+        return accumulator / npix
 
 
 class MedianIntegrator(AreaIntegrator):
 
     def initialize_accumulator(self):
-        sample = []
-        return sample
+        accumulator = []
+        return accumulator
 
-    def accumulate(self, pixel_value, npix, sample):
-        sample.append(pixel_value)
+    def accumulate(self, pixel_value, npix, accumulator):
+        accumulator.append(pixel_value)
         npix += 1
-        return sample, npix
+        return accumulator, npix
 
-    def compute_sample_value(self, sample, npix):
-        sample.sort()
-        return sample[int(npix/2)]
+    def compute_sample_value(self, accumulator, npix):
+        accumulator.sort()
+        return accumulator[int(npix/2)]
 
 
 # Specific integrator subclasses can be instantiated from here.

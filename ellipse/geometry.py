@@ -49,7 +49,7 @@ class Geometry(object):
 
         Parameters that describe the relationship of a given ellipse with
         other associated ellipses are also encapsulated in this container.
-        These associate ellipses may include e.g. the two (inner and outer)
+        These associated ellipses may include e.g. the two (inner and outer)
         bounding ellipses that are used to build sectors along the elliptical
         path.
 
@@ -96,20 +96,15 @@ class Geometry(object):
         :return: float
             polar radius (pixels)
         '''
-
-        # if self.sma >= 60.:
-            # var = self.sma * (1.-self.eps) / math.sqrt(((1.-self.eps) * math.cos(angle))**2 + (math.sin(angle))**2)
-            # print ('@@@@@@     line: 101  - ', self.sma, self.eps, angle, var)
-
         return self.sma * (1.-self.eps) / math.sqrt(((1.-self.eps) * math.cos(angle))**2 + (math.sin(angle))**2)
 
     def initialize_sector_geometry(self, phi):
         '''
-        Initialize geometry attributes associated to an elliptical sector at polar angle 'phi'.
+        Initialize geometry attributes associated with an elliptical sector at polar angle 'phi'.
         Computes:
          - the four vertices that define the elliptical sector on the pixel array.
-         - sector area (in variable self.sector_area)
-         - sector angular width
+         - sector area (in attribute self.sector_area)
+         - sector angular width (in attribute self.sector_angular_width)
 
         :param phi: float
             polar angle (radians) where the sector is located.
@@ -118,21 +113,22 @@ class Geometry(object):
         '''
         # These polar radii bound the region between the inner and
         # outer ellipses that define the first sector.
+        sma1, sma2 = self.bounding_ellipses()
         eps_ = 1. - self.eps
         # polar vector at one side of the elliptical sector
-        self.phi1 = phi - self.sector_angular_width / 2.
-        r1 = self.sma1 * eps_ / math.sqrt((eps_ * math.cos(self.phi1))**2 + (math.sin(self.phi1))**2)
-        r2 = self.sma2 * eps_ / math.sqrt((eps_ * math.cos(self.phi1))**2 + (math.sin(self.phi1))**2)
+        self._phi1 = phi - self.sector_angular_width / 2.
+        r1 = sma1 * eps_ / math.sqrt((eps_ * math.cos(self._phi1))**2 + (math.sin(self._phi1))**2)
+        r2 = sma2 * eps_ / math.sqrt((eps_ * math.cos(self._phi1))**2 + (math.sin(self._phi1))**2)
         # polar vector at the other side of the elliptical sector
-        self.phi2 = phi + self.sector_angular_width / 2.
-        r3 = self.sma2 * eps_ / math.sqrt((eps_ * math.cos(self.phi2))**2 + (math.sin(self.phi2))**2)
-        r4 = self.sma1 * eps_ / math.sqrt((eps_ * math.cos(self.phi2))**2 + (math.sin(self.phi2))**2)
+        self._phi2 = phi + self.sector_angular_width / 2.
+        r3 = sma2 * eps_ / math.sqrt((eps_ * math.cos(self._phi2))**2 + (math.sin(self._phi2))**2)
+        r4 = sma1 * eps_ / math.sqrt((eps_ * math.cos(self._phi2))**2 + (math.sin(self._phi2))**2)
 
         # sector area
-        sa1  = _area (self.sma1, self.eps, self.phi1, r1)
-        sa2  = _area (self.sma2, self.eps, self.phi1, r2)
-        sa3  = _area (self.sma2, self.eps, self.phi2, r3)
-        sa4  = _area (self.sma1, self.eps, self.phi2, r4)
+        sa1  = _area (sma1, self.eps, self._phi1, r1)
+        sa2  = _area (sma2, self.eps, self._phi1, r2)
+        sa3  = _area (sma2, self.eps, self._phi2, r3)
+        sa4  = _area (sma1, self.eps, self._phi2, r4)
         self.sector_area = abs ((sa3 - sa2) - (sa4 - sa1))
 
         # angular width of sector. It is defined such that it
@@ -144,26 +140,26 @@ class Geometry(object):
         vertex_y = np.zeros(shape=4, dtype=float)
 
         # vertices are labelled in counterclockwise sequence
-        vertex_x[0] = r1 * math.cos (self.phi1 + self.pa) + self.x0
-        vertex_y[0] = r1 * math.sin (self.phi1 + self.pa) + self.y0
-        vertex_x[1] = r2 * math.cos (self.phi1 + self.pa) + self.x0
-        vertex_y[1] = r2 * math.sin (self.phi1 + self.pa) + self.y0
-        vertex_x[2] = r4 * math.cos (self.phi2 + self.pa) + self.x0
-        vertex_y[2] = r4 * math.sin (self.phi2 + self.pa) + self.y0
-        vertex_x[3] = r3 * math.cos (self.phi2 + self.pa) + self.x0
-        vertex_y[3] = r3 * math.sin (self.phi2 + self.pa) + self.y0
+        vertex_x[0] = r1 * math.cos (self._phi1 + self.pa) + self.x0
+        vertex_y[0] = r1 * math.sin (self._phi1 + self.pa) + self.y0
+        vertex_x[1] = r2 * math.cos (self._phi1 + self.pa) + self.x0
+        vertex_y[1] = r2 * math.sin (self._phi1 + self.pa) + self.y0
+        vertex_x[2] = r4 * math.cos (self._phi2 + self.pa) + self.x0
+        vertex_y[2] = r4 * math.sin (self._phi2 + self.pa) + self.y0
+        vertex_x[3] = r3 * math.cos (self._phi2 + self.pa) + self.x0
+        vertex_y[3] = r3 * math.sin (self._phi2 + self.pa) + self.y0
 
         return vertex_x, vertex_y
 
     def _initialize(self):
 
-        self.sma1, self.sma2 = self._bounding_ellipses()
+        sma1, sma2 = self.bounding_ellipses()
 
         # this inner_sma_ variable has no particular significance
         # except that it is used to estimate an initial step along
         # the elliptical path. The actual step will be calculated
         # by the chosen area integration algorithm
-        inner_sma_ = min((self.sma2 - self.sma1), 3.)
+        inner_sma_ = min((sma2 - sma1), 3.)
 
         # sma can eventually be zero!
         if self.sma > 0.:
@@ -172,7 +168,7 @@ class Geometry(object):
 
             self.initial_polar_radius = self.radius(self.initial_polar_angle)
 
-    def _bounding_ellipses(self):
+    def bounding_ellipses(self):
         '''
         Compute the semi-major axis of the two ellipses that bound
         the annulus where integrations take place.
@@ -190,6 +186,19 @@ class Geometry(object):
             a2 = self.sma * (1. + self.astep/2.)
 
         return a1, a2
+
+    def polar_angle_sector_limits(self):
+        '''
+        Returns the two polar angles that bound the sector.
+
+        The two bounding polar angles only become available after
+        calling method initialize_sector_geometry(phi).
+
+        :return: tuple:
+            with two floats - the smaller and larger values of
+            polar angle that bound the current sector
+        '''
+        return self._phi1, self._phi2
 
     def to_polar(self, x, y):
         '''
@@ -215,7 +224,7 @@ class Geometry(object):
         y1 = y - self.y0
 
         radius = x1**2 + y1**2
-        if (radius > 0.0):
+        if radius > 0.0:
             radius = math.sqrt(radius)
             angle  = math.asin(abs(y1) / radius)
         else:
@@ -241,8 +250,9 @@ class Geometry(object):
     def update_sma(self, step):
         '''
         Return an updated value for the semi-major axis, given the
-        current value. The step value must be managed by the caller
-        so as to support both modes: grow outwards, and shrink inwards.
+        current value and the updating step value. The step value must
+        be managed by the caller so as to support both modes: grow
+        outwards, and shrink inwards.
 
         :param step: float
             the step value
@@ -272,8 +282,9 @@ class Geometry(object):
             sma = self.sma - step
             step = -step
         else:
-            sma = self.sma / (1. + step)
-            step = 1. / (1.+step) - 1.
+            aux = 1. / (1. + step)
+            sma = self.sma * aux
+            step = aux - 1.
 
         return sma, step
 
