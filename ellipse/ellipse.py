@@ -82,7 +82,7 @@ class Ellipse():
             # figure out next sma; if exceeded user-defined
             # minimum, or too small, bail out from this loop
             sma = isophote.sample.geometry.update_sma(step)
-            if sma <= max(minsma, 0.75):
+            if sma <= max(minsma, 0.5):
                 break
 
         # if user asked for minsma=0, extract special isophote there
@@ -135,15 +135,17 @@ class Ellipse():
             the fitted isophote. The fitted isophote is also appended
             to the input list passed via parameter 'isophote_list'.
         '''
-        if noniterate or (maxrit and sma > maxrit):
-            # in non-iterative mode, always use last fitted geometry.
+        # if available, geometry from last fitted isophote will be
+        # used as initial guess for next isophote.
+        geometry = None
+        if len(isophote_list) > 0:
             geometry = isophote_list[-1].sample.geometry
 
-            isophote = self._non_iterative(sma, geometry)
-
+        # do the fit.
+        if noniterate or (maxrit and sma > maxrit):
+            isophote = self._non_iterative(sma, step, linear, geometry)
         else:
-            # iterative mode
-            isophote = self._iterative(linear, sma, step)
+            isophote = self._iterative(sma, step, linear, geometry)
 
         # store result in list, and report summary at stdout
         if isophote.valid:
@@ -152,10 +154,13 @@ class Ellipse():
 
         return isophote
 
-    def _iterative(self, linear, sma, step):
+    def _iterative(self, sma, step, linear, geometry):
         if sma > 0.:
             # iterative fitter
-            sample = Sample(self.image, sma, astep=step, linear_growth=linear)
+            sample = Sample(self.image, sma,
+                            astep=step,
+                            linear_growth=linear,
+                            geometry=geometry)
             fitter = Fitter(sample)
         else:
             # sma == 0 requires special handling.
@@ -166,8 +171,11 @@ class Ellipse():
 
         return isophote
 
-    def _non_iterative(self, sma, geometry):
-        sample = Sample(self.image, sma, geometry=geometry)
+    def _non_iterative(self, sma, step, linear, geometry):
+        sample = Sample(self.image, sma,
+                        astep=step,
+                        linear_growth=linear,
+                        geometry=geometry)
         sample.update()
 
         # build isophote without iterating with a Fitter

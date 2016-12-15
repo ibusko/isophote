@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import unittest
 
 import numpy as np
+import pyfits
 
 from util import build_test_data
 from ellipse.harmonics import fit_1st_and_2nd_harmonics
@@ -130,3 +131,16 @@ class TestFitter(unittest.TestCase):
         self.assertGreaterEqual(g.pa, np.pi/4 - 0.05) # pa within 5 deg
         self.assertLessEqual(g.pa,    np.pi/4 + 0.05)
 
+    def test_m51(self):
+        image = pyfits.open("M51.fits")
+        test_data = image[0].data
+        sample = Sample(test_data, 31.38)
+        fitter = Fitter(sample)
+
+        isophote = fitter.fit()
+
+        self.assertIsInstance(isophote, Isophote)
+        self.assertEqual(isophote.ndata, 193)
+
+        # 31.38     370.57    0.076   76.64    0.130   189     0    17     0
+        isophote.print()
