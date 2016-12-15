@@ -74,7 +74,6 @@ class Fitter(object):
                 coeffs = fit_1st_and_2nd_harmonics(values[0], values[2])
             except Exception as e:
                 print(e)
-                # sample_copy(self._sample, sample)
                 return Isophote(sample, iter+1, False, 3)
 
             # largest harmonic in absolute value drives the correction.
@@ -89,6 +88,7 @@ class Fitter(object):
                 # Got a valid solution. But before returning, ensure
                 # that a minimum of iterations has run.
                 if iter >= minit:
+                    sample.update()
                     return Isophote(sample, iter+1, True, 0)
 
             # it may not have converged yet, but the sample contains too
@@ -112,7 +112,6 @@ class Fitter(object):
             # see if any abnormal (or unusual) conditions warrant
             # the change to non-iterative mode.
             if not self._is_good_to_go(sample):
-                # sample_copy(self._sample, sample)
 
                 #TODO
 

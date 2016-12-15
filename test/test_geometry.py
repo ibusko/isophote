@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from ellipse.geometry import Geometry
+from ellipse.geometry import Geometry, normalize_angle
 
 
 class TestGeometry(unittest.TestCase):
@@ -138,4 +138,74 @@ class TestGeometry(unittest.TestCase):
         self.assertAlmostEqual(vertex_y[1], 24.41, 2)
         self.assertAlmostEqual(vertex_y[2], 34.62, 2)
         self.assertAlmostEqual(vertex_y[3], 20.09, 2)
+
+    def test_normalize_angle(self):
+        PI = np.pi
+
+        angle = normalize_angle(PI*10 + PI/5)
+        self.assertAlmostEqual(angle, PI/5, 4)
+
+        angle = normalize_angle(PI*1.3)
+        self.assertAlmostEqual(angle, PI*0.3, 4)
+
+        angle = normalize_angle(-PI*10 + PI/5)
+        self.assertAlmostEqual(angle, PI/5, 4)
+
+        angle = normalize_angle(-PI*1.3)
+        self.assertAlmostEqual(angle, PI*0.7, 4)
+
+        angle = normalize_angle(-PI*10.3)
+        self.assertAlmostEqual(angle, PI*0.7, 4)
+
+    def test_reset_sma(self):
+        geometry = Geometry(0., 0., 100., 0.0, 0., 0.2, False)
+
+        sma, step = geometry.reset_sma(0.2)
+        self.assertAlmostEqual(sma, 83.33, 2)
+        self.assertAlmostEqual(step, -0.1666, 3)
+
+        geometry = Geometry(0., 0., 100., 0.0, 0., 20., True)
+
+        sma, step = geometry.reset_sma(20.)
+        self.assertAlmostEqual(sma, 80.0, 2)
+        self.assertAlmostEqual(step, -20.0, 2)
+
+    def test_update_sma(self):
+        geometry = Geometry(0., 0., 100., 0.0, 0., 0.2, False)
+
+        sma = geometry.update_sma(0.2)
+        self.assertAlmostEqual(sma, 120.0, 2)
+
+        geometry = Geometry(0., 0., 100., 0.0, 0., 20., True)
+
+        sma = geometry.update_sma(20.)
+        self.assertAlmostEqual(sma, 120.0, 2)
+
+    def test_polar_angle_sector_limits(self):
+        geometry = Geometry(0., 0., 100., 0.3, np.pi/4, 0.2, False)
+        geometry.initialize_sector_geometry(np.pi/3)
+
+        phi1, phi2 = geometry.polar_angle_sector_limits()
+        self.assertAlmostEqual(phi1, 1.022198, 4)
+        self.assertAlmostEqual(phi2, 1.072198, 4)
+
+    def test_bounding_ellipses(self):
+        geometry = Geometry(0., 0., 100., 0.3, np.pi/4, 0.2, False)
+
+        sma1, sma2 = geometry.bounding_ellipses()
+        self.assertAlmostEqual(sma1, 90.0, 2)
+        self.assertAlmostEqual(sma2, 110.0, 2)
+
+    def test_radius(self):
+        geometry = Geometry(0., 0., 100., 0.3, np.pi/4, 0.2, False)
+
+        r = geometry.radius(0.0)
+        self.assertAlmostEqual(r, 100.0, 2)
+
+        r = geometry.radius(np.pi/2)
+        self.assertAlmostEqual(r, 70., 2)
+
+
+
+
 

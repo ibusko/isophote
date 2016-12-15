@@ -14,19 +14,23 @@ class TestIsophote(unittest.TestCase):
     def test_fit(self):
 
         # low noise image, fitted perfectly by sample.
-        test_data = build_test_data.build()
+        test_data = build_test_data.build(noise=1.E-10)
         sample = Sample(test_data, 40)
         fitter = Fitter(sample)
-        iso = fitter.fit()
+        iso = fitter.fit(maxit=400)
 
         self.assertTrue(iso.valid)
+        self.assertTrue(iso.stop_code == 0 or iso.stop_code == 2)
 
         # fitted values
-        self.assertAlmostEqual(iso.intens,  200.1659, 4)
-        self.assertAlmostEqual(iso.rms,     2.073, 3)
-        self.assertAlmostEqual(iso.int_err, 0.139, 3)
-        self.assertAlmostEqual(iso.pix_var, 2.932, 3)
-        self.assertAlmostEqual(iso.grad,   -4.178, 3)
+        self.assertLessEqual(iso.intens,    201., 2)
+        self.assertGreaterEqual(iso.intens, 199., 2)
+        self.assertLessEqual(iso.int_err,    0.150, 2)
+        self.assertGreaterEqual(iso.int_err, 0.130, 2)
+        self.assertLessEqual(iso.pix_var,    3.20, 2)
+        self.assertGreaterEqual(iso.pix_var, 2.70, 2)
+        self.assertLessEqual(iso.grad,      -4.00, 2)
+        self.assertGreaterEqual(iso.grad,   -4.30, 2)
 
         # integrals
         self.assertLessEqual(iso.tflux_e,    1.85E6, 2)
@@ -50,6 +54,7 @@ class TestIsophote(unittest.TestCase):
         iso = fitter.fit()
 
         self.assertTrue(iso.valid)
+        self.assertTrue(iso.stop_code == 0 or iso.stop_code == 2)
 
         # geometry
         g = iso.sample.geometry
@@ -63,11 +68,11 @@ class TestIsophote(unittest.TestCase):
         self.assertLessEqual(g.pa,     0.62 + 0.05)
 
         # fitted values
-        self.assertAlmostEqual(iso.intens,  740.150, 3)
-        self.assertAlmostEqual(iso.rms,     160.61, 2)
-        self.assertAlmostEqual(iso.int_err, 15.18, 2)
-        self.assertAlmostEqual(iso.pix_var, 227.14, 2)
-        self.assertAlmostEqual(iso.grad,   -36.133, 3)
+        self.assertAlmostEqual(iso.intens,  734.704, 3)
+        self.assertAlmostEqual(iso.rms,      89.753, 2)
+        self.assertAlmostEqual(iso.int_err,   8.481, 2)
+        self.assertAlmostEqual(iso.pix_var, 126.93,  2)
+        self.assertAlmostEqual(iso.grad,    -45.674, 3)
 
         # integrals
         self.assertLessEqual(iso.tflux_e,    1.12E6, 2)
@@ -76,10 +81,10 @@ class TestIsophote(unittest.TestCase):
         self.assertGreaterEqual(iso.tflux_c, 1.26E6, 2)
 
         # deviations from perfect ellipticity
-        self.assertLessEqual(abs(iso.a3), 0.08, 2)
-        self.assertLessEqual(abs(iso.b3), 0.08, 2)
-        self.assertLessEqual(abs(iso.a4), 0.08, 2)
-        self.assertLessEqual(abs(iso.b4), 0.08, 2)
+        self.assertLessEqual(abs(iso.a3), 0.04, 2)
+        self.assertLessEqual(abs(iso.b3), 0.03, 2)
+        self.assertLessEqual(abs(iso.a4), 0.03, 2)
+        self.assertLessEqual(abs(iso.b4), 0.02, 2)
 
     def test_m51_niter(self):
         # compares with old STSDAS task. In this task, the
