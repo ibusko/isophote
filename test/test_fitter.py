@@ -132,7 +132,7 @@ class TestFitter(unittest.TestCase):
         self.assertLessEqual(g.pa,    np.pi/4 + 0.05)
 
     def test_m51(self):
-        image = pyfits.open("M51.fits")
+        image = pyfits.open("data/M51.fits")
         test_data = image[0].data
         sample = Sample(test_data, 31.38)
         fitter = Fitter(sample)

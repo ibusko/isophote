@@ -4,6 +4,8 @@ from ellipse.sample import Sample, CentralSample
 from ellipse.fitter import Fitter, CentralFitter
 from ellipse.isophote import Isophote
 
+from ellipse.integrator import BI_LINEAR
+
 DEFAULT_STEP = 0.1
 
 
@@ -20,7 +22,8 @@ class Ellipse():
         '''
         self.image = image
 
-    def fit_image(self, sma0=10., minsma=0., maxsma=100., step=DEFAULT_STEP, linear=False, maxrit=None):
+    def fit_image(self, sma0=10., minsma=0., maxsma=100., step=DEFAULT_STEP,
+                  integrmode=BI_LINEAR, linear=False, maxrit=None):
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
         to the constructor. This method basically loops over each one of the
@@ -38,6 +41,8 @@ class Ellipse():
             the step value being used to grow/shrink the semi-major
             axis length (pixels if 'linear=True', or relative value
             if 'linear=False')
+        :param integrmode: string, default = BI_LINEAR
+            integration mode, as defined in module integrator.py
         :param linear: boolean, default False
             semi-major axis growing/shrinking mode
         :param maxrit: float, default None
@@ -57,7 +62,7 @@ class Ellipse():
         # hitting one of several stopping criteria.
         sma = sma0
         while True:
-            isophote = self.fit_isophote(isophote_list, sma, step, linear, maxrit)
+            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit)
 
             # if abnormal condition, shut off iterative mode but keep going.
             if isophote.stop_code < 0:
@@ -77,7 +82,7 @@ class Ellipse():
 
         # now, go from initial sma inwards towards center.
         while True:
-            isophote = self.fit_isophote(isophote_list, sma, step, linear, maxrit)
+            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit)
 
             # figure out next sma; if exceeded user-defined
             # minimum, or too small, bail out from this loop
@@ -87,14 +92,15 @@ class Ellipse():
 
         # if user asked for minsma=0, extract special isophote there
         if minsma == 0.0:
-            self.fit_isophote(isophote_list, 0.0, step, linear)
+            self.fit_isophote(isophote_list, 0.0, step, integrmode, linear)
 
         # sort list of isophotes according to sma
         isophote_list.sort()
 
         return isophote_list
 
-    def fit_isophote(self, isophote_list, sma, step=DEFAULT_STEP, linear=False, maxrit=None, noniterate=False):
+    def fit_isophote(self, isophote_list, sma, step=DEFAULT_STEP, integrmode=BI_LINEAR,
+                     linear=False, maxrit=None, noniterate=False):
         '''
         Fit one isophote with a given semi-major axis length.
 
@@ -113,6 +119,8 @@ class Ellipse():
         :param step: float, default = DEFAULT_STEP
             the step value being used to grow/shrink the semi-major
             axis length (pixels)
+        :param integrmode: string, default = BI_LINEAR
+            integration mode, as defined in module integrator.py
         :param linear: boolean, default = False
             semi-major axis growing/shrinking mode
         :param maxrit: float, default None
@@ -145,22 +153,27 @@ class Ellipse():
         if noniterate or (maxrit and sma > maxrit):
             isophote = self._non_iterative(sma, step, linear, geometry)
         else:
-            isophote = self._iterative(sma, step, linear, geometry)
+            isophote = self._iterative(sma, step, linear, geometry, integrmode)
 
         # store result in list, and report summary at stdout
-        if isophote.valid:
-            isophote_list.append(isophote)
-            isophote.print()
+        # if isophote.valid:
+        #     isophote_list.append(isophote)
+        #     isophote.print()
+        # For now, to facilitate regression comparisons, we
+        # store all, and not just valid, isophotes in the list.
+        isophote_list.append(isophote)
+        isophote.print()
 
         return isophote
 
-    def _iterative(self, sma, step, linear, geometry):
+    def _iterative(self, sma, step, linear, geometry, integrmode):
         if sma > 0.:
             # iterative fitter
             sample = Sample(self.image, sma,
                             astep=step,
                             linear_growth=linear,
-                            geometry=geometry)
+                            geometry=geometry,
+                            integrmode=integrmode)
             fitter = Fitter(sample)
         else:
             # sma == 0 requires special handling.

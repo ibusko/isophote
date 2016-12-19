@@ -2,6 +2,8 @@ import math
 
 import numpy as np
 
+import astropy.io.fits as fits
+
 from ellipse.geometry import Geometry
 
 
@@ -55,3 +57,35 @@ def build(nx=512, ny=512, x0=None, y0=None, background=100., noise=1.E-6, i0=100
     image += np.random.normal(0., noise, image.shape)
 
     return image
+
+
+def build_image(name, nx=512, ny=512, x0=None, y0=None, background=100., noise=1.E-6, i0=100., sma=40., eps=0.2, pa=0.):
+
+    if not name.endswith('.fits'):
+        name += '.fits'
+
+    array = build(nx, ny, x0, y0, background, noise, i0, sma, eps, pa)
+
+    hdu = fits.PrimaryHDU(array)
+    hdulist = fits.HDUList([hdu])
+
+    header = hdulist[0].header
+
+    header['X0'] = (x0, 'x position of galaxy center')
+    header['Y0'] = (y0, 'y position of galaxy center')
+    header['BACK'] = (background, 'constant background value')
+    header['NOISE'] = (noise, 'standard deviation of noise')
+    header['I0'] = (i0, 'reference pixel value')
+    header['SMA'] = (sma, 'reference semi major axis')
+    header['EPS'] = (eps, 'ellipticity')
+    header['PA'] = (pa, 'position ange')
+
+    hdulist.writeto(name)
+
+
+if __name__ == '__main__' :
+    # build_image('../test/data/synth_lowsnr', noise=40., pa=np.pi/4)
+    build_image('../test/data/synth', pa=np.pi/4)
+
+
+

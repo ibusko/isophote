@@ -27,7 +27,7 @@ class TestEllipse(unittest.TestCase):
         self.assertGreater(isophote_list[-1], isophote_list[0])
 
     def test_m51(self):
-        image = pyfits.open("M51.fits")
+        image = pyfits.open("data/M51.fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
         # isophote_list = ellipse.fit_image(minsma=26, maxsma=35)

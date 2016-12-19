@@ -46,7 +46,7 @@ class TestIsophote(unittest.TestCase):
 
     def test_m51(self):
 
-        image = pyfits.open("M51.fits")
+        image = pyfits.open("data/M51.fits")
         test_data = image[0].data
 
         sample = Sample(test_data, 20)
@@ -90,7 +90,7 @@ class TestIsophote(unittest.TestCase):
         # compares with old STSDAS task. In this task, the
         # default for the starting value of SMA is 10; it
         # fits with 20 iterations.
-        image = pyfits.open("M51.fits")
+        image = pyfits.open("data/M51.fits")
         test_data = image[0].data
 
         sample = Sample(test_data, 10)
