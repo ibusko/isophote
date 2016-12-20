@@ -97,7 +97,7 @@ class NearestNeighborIntegrator(Integrator):
             self._store_results(phi, radius, sample)
 
     def get_polar_angle_step(self):
-        return max (min (2. / self._r, DPHI_MAX), DPHI_MIN)
+        return 2. / self._r
 
     def get_sector_area(self):
         return 1.
@@ -128,9 +128,9 @@ class BiLinearIntegrator(Integrator):
             qy = 1. - fy
             if (self._geometry.sma > 20.):
                 sample = self._image[j][i]     * qx * qy + \
-    	                 self._image[j+1][i]   * fx * qy + \
-    	                 self._image[j][i+1]   * qx * fy + \
-    	                 self._image[j+1][i+1] * fx * fy
+    	                 self._image[j+1][i]   * qx * fy + \
+    	                 self._image[j][i+1]   * fx * qy + \
+    	                 self._image[j+1][i+1] * fy * fx
             else:
                 sample = self._subpix (self._image, i, j, fx, fy)
 
@@ -140,8 +140,8 @@ class BiLinearIntegrator(Integrator):
     def _subpix(self, image, i, j, fx, fy):
 
         z1 = image[j][i]
-        z2 = image[j+1][i]
-        z3 = image[j][i+1]
+        z2 = image[j][i+1]
+        z3 = image[j+1][i]
         z4 = image[j+1][i+1]
 
         sum = 0.
@@ -156,11 +156,11 @@ class BiLinearIntegrator(Integrator):
                 za = a1 * x + z1
                 zb = a2 * x + z3
                 z  = (zb - za) * y + za
-                sum = sum + z
+                sum += z
         return sum / NCELL**2
 
     def get_polar_angle_step(self):
-        return max (min (1. / self._r, DPHI_MAX), DPHI_MIN)
+        return 1. / self._r
 
     def get_sector_area(self):
         return 2.

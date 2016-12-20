@@ -13,13 +13,13 @@ test_data = None
 
 class TestIntegrator(unittest.TestCase):
 
-    def _init_test(self, integrmode=BI_LINEAR):
+    def _init_test(self, integrmode=BI_LINEAR, sma=40., noise=1.E-6):
 
         global test_data
         if test_data is None:
-            test_data = build_test_data.build()
+            test_data = build_test_data.build(noise=noise)
 
-        self.sample = Sample(test_data, 40., integrmode=integrmode)
+        self.sample = Sample(test_data, sma, integrmode=integrmode)
         s = self.sample.extract()
 
         self.assertEqual(len(s), 3)
@@ -33,9 +33,31 @@ class TestIntegrator(unittest.TestCase):
         s = self._init_test()
 
         self.assertEqual(len(s[0]), 223)
+
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 200.166, 3)
-        self.assertAlmostEqual(np.std(s[2]),  2.073, 3)
+        self.assertAlmostEqual(np.mean(s[2]), 200.018, 3)
+        self.assertAlmostEqual(np.std(s[2]),  0.0159, 4)
+
+        # radii
+        self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
+        self.assertAlmostEqual(np.min(s[1]), 32.0, 2)
+
+        self.assertEqual(self.sample.total_points, 223)
+        self.assertEqual(self.sample.actual_points, 223)
+
+    def test_bilinear_small(self):
+
+        s = self._init_test(sma=10., noise=1.E-12)
+
+        # self.assertEqual(len(s[0]), 28)
+
+        for k in range(len(s[2])):
+            print("@@@@@@  file test_integrator.py; line 55 - ",  k, "  " , s[2][k])
+        print("@@@@@@  file test_integrator.py; line 56 - ",  np.std(s[2]))
+
+        # intensities
+        self.assertAlmostEqual(np.mean(s[2]), 2347.4, 1)
+        self.assertAlmostEqual(np.std(s[2]),  80.9, 1)
 
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
