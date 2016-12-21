@@ -29,9 +29,10 @@ class TestRegression(unittest.TestCase):
     '''
     def test_regression(self):
 
-        # self._do_regression("M51")
-        self._do_regression("synth")
+        self._do_regression("M51")
+        # self._do_regression("synth")
         # self._do_regression("synth_lowsnr")
+        # self._do_regression("synth_highsnr")
 
     def _do_regression(self, name):
 

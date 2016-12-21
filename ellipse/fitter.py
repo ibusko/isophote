@@ -87,7 +87,7 @@ class Fitter(object):
             if (conver * sample.sector_area * np.std(residual)) > np.abs(largest_harmonic):
                 # Got a valid solution. But before returning, ensure
                 # that a minimum of iterations has run.
-                if iter >= minit:
+                if iter >= minit-1:
                     sample.update()
                     return Isophote(sample, iter+1, True, 0)
 
@@ -144,7 +144,8 @@ class Fitter(object):
         # See if eps == 0 (round isophote) was crossed.
         # If so, fix it but still good_to_go to go.
         if sample.geometry.eps < 0.:
-            sample.geometry.eps = -sample.geometry.eps
+            # sample.geometry.eps = -sample.geometry.eps
+            sample.geometry.eps = 0.05
             if sample.geometry.pa < 0.:
                 sample.geometry.pa += PI2
             else:

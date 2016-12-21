@@ -3,13 +3,13 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import unittest
 
 import numpy as np
+
 from util import build_test_data
-
 from ellipse.sample import Sample
-
 from ellipse.integrator import NEAREST_NEIGHBOR, BI_LINEAR, MEAN, MEDIAN
 
 test_data = None
+
 
 class TestIntegrator(unittest.TestCase):
 
@@ -20,6 +20,7 @@ class TestIntegrator(unittest.TestCase):
             test_data = build_test_data.build(noise=noise)
 
         self.sample = Sample(test_data, sma, integrmode=integrmode)
+
         s = self.sample.extract()
 
         self.assertEqual(len(s), 3)
@@ -47,24 +48,19 @@ class TestIntegrator(unittest.TestCase):
 
     def test_bilinear_small(self):
 
+        # small radius forces sub-pixel sampling
         s = self._init_test(sma=10., noise=1.E-12)
 
-        # self.assertEqual(len(s[0]), 28)
-
-        for k in range(len(s[2])):
-            print("@@@@@@  file test_integrator.py; line 55 - ",  k, "  " , s[2][k])
-        print("@@@@@@  file test_integrator.py; line 56 - ",  np.std(s[2]))
-
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 2347.4, 1)
-        self.assertAlmostEqual(np.std(s[2]),  80.9, 1)
+        self.assertAlmostEqual(np.mean(s[2]), 1046.1, 1)
+        self.assertAlmostEqual(np.std(s[2]),  18.95, 1)
 
         # radii
-        self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
-        self.assertAlmostEqual(np.min(s[1]), 32.0, 2)
+        self.assertAlmostEqual(np.max(s[1]), 10.0, 1)
+        self.assertAlmostEqual(np.min(s[1]), 8.0, 1)
 
-        self.assertEqual(self.sample.total_points, 223)
-        self.assertEqual(self.sample.actual_points, 223)
+        self.assertEqual(self.sample.total_points, 56)
+        self.assertEqual(self.sample.actual_points, 56)
 
     def test_nearest_neighbor(self):
 

@@ -75,9 +75,9 @@ class Isophote:
         self.rms = np.std(sample.values[2])
 
 
-        print("@@@@@@  file isophote.py; line 78 - ",  self.sma)
-        print("@@@@@@  file isophote.py; line 79 - ",  self.sample.values[2])
-        print("@@@@@@  file isophote.py; line 80 - ",  np.std(self.sample.values[2]))
+        # print("@@@@@@  file isophote.py; line 78 - ",  self.sma)
+        # print("@@@@@@  file isophote.py; line 79 - ",  self.sample.values[2])
+        # print("@@@@@@  file isophote.py; line 80 - ",  np.std(self.sample.values[2]))
 
 
 

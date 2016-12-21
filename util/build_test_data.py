@@ -85,7 +85,8 @@ def build_image(name, nx=512, ny=512, x0=None, y0=None, background=100., noise=1
 
 if __name__ == '__main__' :
     # build_image('../test/data/synth_lowsnr', noise=40., pa=np.pi/4)
-    build_image('../test/data/synth', pa=np.pi/4)
+    build_image('../test/data/synth_highsnr', noise=1.E-12, pa=np.pi/4)
+    # build_image('../test/data/synth', pa=np.pi/4)
 
 
 

@@ -6,7 +6,6 @@ from scipy.optimize import leastsq
 import unittest
 
 from util import build_test_data
-
 from ellipse.sample import Sample
 from ellipse.harmonics import fit_1st_and_2nd_harmonics, fit_upper_harmonic, first_and_2nd_harmonic_function
 
@@ -92,18 +91,18 @@ class TestHarmonics(unittest.TestCase):
 
         y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 200.153, 3)
-        self.assertAlmostEqual(a1, 0.03632, 4)
-        self.assertAlmostEqual(b1, 0.07501, 4)
-        self.assertAlmostEqual(a2, 0.09122, 4)
-        self.assertAlmostEqual(b2, 0.2617, 4)
+        self.assertAlmostEqual(y0, 200.019, 3)
+        self.assertAlmostEqual(a1, -0.000138, 3)
+        self.assertAlmostEqual(b1, 0.000254, 3)
+        self.assertAlmostEqual(a2, -5.658e-05, 3)
+        self.assertAlmostEqual(b2, -0.00911, 3)
 
         # check that harmonics subtract nicely
         model = first_and_2nd_harmonic_function(s[0], np.array([y0, a1, b1, a2, b2]))
         residual = s[2] - model
 
         self.assertTrue(np.mean(residual) < 1.E-4)
-        self.assertAlmostEqual(np.std(residual),  2.06, 2)
+        self.assertAlmostEqual(np.std(residual),  0.015, 2)
 
     def test_fit_sample_2(self):
 
@@ -115,12 +114,12 @@ class TestHarmonics(unittest.TestCase):
 
         y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 246.354, 3)
-        self.assertAlmostEqual(a1, -1.08690, 4)
-        self.assertAlmostEqual(b1, -0.1685, 3)
+        self.assertAlmostEqual(y0, 245.136, 3)
+        self.assertAlmostEqual(a1, 0.000197, 3)
+        self.assertAlmostEqual(b1, 0.0191, 3)
         # these drive the correction for position angle
-        self.assertAlmostEqual(a2, 28.4540, 4)
-        self.assertAlmostEqual(b2, -65.2513, 4)
+        self.assertAlmostEqual(a2, 28.788, 3)
+        self.assertAlmostEqual(b2, -63.108, 3)
 
     def test_fit_sample_3(self):
 
@@ -132,12 +131,12 @@ class TestHarmonics(unittest.TestCase):
 
         y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 189.273, 3)
-        self.assertAlmostEqual(a1, 0.1081, 4)
-        self.assertAlmostEqual(b1, -0.1407, 4)
-        self.assertAlmostEqual(a2, 0.04396, 4)
+        self.assertAlmostEqual(y0, 188.677, 3)
+        self.assertAlmostEqual(a1, 0.000283, 3)
+        self.assertAlmostEqual(b1, -0.0121, 3)
+        self.assertAlmostEqual(a2, -0.00091, 3)
         # this drives the correction for ellipticity
-        self.assertAlmostEqual(b2, 9.8599, 4)
+        self.assertAlmostEqual(b2, 10.134, 3)
 
     def test_fit_sample_4(self):
 
@@ -149,10 +148,10 @@ class TestHarmonics(unittest.TestCase):
 
         y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
 
-        self.assertAlmostEqual(y0, 152.869, 3)
-        self.assertAlmostEqual(a1, 55.3241, 4)
-        self.assertAlmostEqual(b1, 33.5510, 4)
-        self.assertAlmostEqual(a2, 33.0182, 4)
-        self.assertAlmostEqual(b2, -13.8363, 4)
+        self.assertAlmostEqual(y0, 152.857, 3)
+        self.assertAlmostEqual(a1, 55.348, 3)
+        self.assertAlmostEqual(b1, 33.508, 3)
+        self.assertAlmostEqual(a2, 33.056, 3)
+        self.assertAlmostEqual(b2, -13.890, 3)
 
 
