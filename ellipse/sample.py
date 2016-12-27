@@ -174,8 +174,6 @@ class Sample(object):
             phi += min (phistep_, 0.5)
             radius = self.geometry.radius(phi)
 
-            # print ('@@@@@@     line: 177  -   ',self.geometry.eps, "  ", radius, "  ", phi, "  ", phistep_)
-
         # average sector area is calculated after the integrator had
         # the opportunity  to step over the entire elliptical path.
         self.sector_area = np.mean(np.array(sector_areas))
@@ -214,7 +212,7 @@ class Sample(object):
         if not previous_gradient:
             previous_gradient = -0.05 # good enough, based on usage
 
-        if gradient >= (previous_gradient / 3.):   # gradient is negative!
+        if abs(gradient) <= abs(previous_gradient / 3.):   # gradient is negative!
             gradient, gradient_error = self._get_gradient(2 * step)
 
         # If still no meaningful gradient can be measured, try with previous
@@ -246,10 +244,6 @@ class Sample(object):
         sg = gradient_sample.extract()
         mean_g = np.mean(sg[2])
         gradient = (mean_g - self.mean) / self.geometry.sma / step
-
-        print ('@@@@@@     line: 250  - ', gradient)
-
-        #TODO adopt stopping criteria for gradient computation. Eg, positive value is wrong.
 
         s = self.extract()
         sigma = np.std(s[2])

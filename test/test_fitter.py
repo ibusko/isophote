@@ -142,11 +142,25 @@ class TestFitter(unittest.TestCase):
         image = pyfits.open("data/M51.fits")
         test_data = image[0].data
 
-        sample = Sample(test_data, 20., eps=0.1, position_angle=np.pi/4)
+        # we start the fit with initial values taken from
+        # previous isophote, as determined by the old code.
+
+        # sample taken in high SNR region
+        sample = Sample(test_data, 21.44, eps=0.18, position_angle=(36./180.*np.pi))
         fitter = Fitter(sample)
         isophote = fitter.fit()
 
         isophote.print()
 
-        self.assertEqual(isophote.ndata, 113)
-        self.assertAlmostEqual(isophote.intens, 732.5, 1)
+        self.assertEqual(isophote.ndata, 118)
+        self.assertAlmostEqual(isophote.intens, 685.2, 1)
+
+        # last sample taken by the original code, before turning inwards.
+        sample = Sample(test_data, 61.16, eps=0.219, position_angle=((77.5+90)/180*np.pi))
+        fitter = Fitter(sample)
+        isophote = fitter.fit()
+
+        isophote.print()
+
+        self.assertEqual(isophote.ndata, 378)
+        self.assertAlmostEqual(isophote.intens, 155.4, 1)

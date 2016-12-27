@@ -27,7 +27,7 @@ class Fitter(object):
         '''
         self._sample = sample
 
-    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5):
         '''
         Perform the actual fit, returning an Isophote instance:
 
@@ -49,6 +49,8 @@ class Fitter(object):
             For now, flagged data points are points that lie outside
             the image frame. In the future, it may include masked
             pixels as well.
+        :param maxgerr: float
+            maximum acceptable relative error in the local radial intensity gradient.
         :return: instance of Isophote
             isophote with the fitted sample plus additional fit status
             information
@@ -111,7 +113,8 @@ class Fitter(object):
 
             # see if any abnormal (or unusual) conditions warrant
             # the change to non-iterative mode.
-            if not self._is_good_to_go(sample):
+            sample.update()
+            if not self._is_good_to_go(sample, maxgerr):
 
                 #TODO
 
@@ -123,7 +126,7 @@ class Fitter(object):
         sample.update()
         return Isophote(sample, maxit, True, 2)
 
-    def _is_good_to_go(self, sample):
+    def _is_good_to_go(self, sample, maxgerr):
         good_to_go = True
 
         # If center wandered more than allowed, put it back
@@ -135,6 +138,14 @@ class Fitter(object):
         #         STOP(al) = ST_NONITERATE
         #         good_to_go = False
 
+        # check if an acceptable gradient value could be computed.
+        if sample.gradient_error:
+            if sample.gradient_relative_error > maxgerr or sample.gradient >= 0.:
+                good_to_go = False
+        else:
+            good_to_go = False
+
+        # check if ellipse geometry diverged.
         if abs(sample.geometry.eps > MAX_EPS) or \
             sample.geometry.x0 < 1. or sample.geometry.x0 > sample.image.shape[0] or \
             sample.geometry.y0 < 1. or sample.geometry.y0 > sample.image.shape[1]:
