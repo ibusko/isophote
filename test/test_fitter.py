@@ -142,11 +142,11 @@ class TestFitter(unittest.TestCase):
         image = pyfits.open("data/M51.fits")
         test_data = image[0].data
 
-        sample = Sample(test_data, 60., eps=0.1, position_angle=np.pi/4)
+        sample = Sample(test_data, 20., eps=0.1, position_angle=np.pi/4)
         fitter = Fitter(sample)
         isophote = fitter.fit()
 
-        # self.assertEqual(isophote.ndata, 183)
         isophote.print()
 
-        # self.assertAlmostEqual(isophote.intens, 391.2, 1)
+        self.assertEqual(isophote.ndata, 113)
+        self.assertAlmostEqual(isophote.intens, 732.5, 1)
