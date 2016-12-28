@@ -36,21 +36,21 @@ class TestRegression(unittest.TestCase):
 
     def _do_regression(self, name):
 
-        table = Table.read(DATA + name + '_table.fits')
-        # table = Table.read(DATA + name + '_table_mean.fits')
+        # table = Table.read(DATA + name + '_table.fits')
+        table = Table.read(DATA + name + '_table_mean.fits')
         nrows = len(table['SMA'])
         print(table.columns)
 
         image = pyfits.open(DATA + name + ".fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
-        isophote_list = ellipse.fit_image()
-        # isophote_list = ellipse.fit_image(integrmode=MEAN)
+        # isophote_list = ellipse.fit_image()
+        isophote_list = ellipse.fit_image(integrmode=MEAN)
 
         # for key, value in t.meta.items():
         #     print('{0} = {1}'.format(key, value))
 
-        format = "%5.2f  %6.1f    %8.3f %8.3f %8.3f        %5.3f  %6.2f   %06.2f %6.2f      %4d  %3d  %3d  %2d"
+        format = "%5.2f  %6.1f    %8.3f %8.3f %8.3f        %5.3f  %6.2f   %06.2f %6.2f   %5.2f   %4d  %3d  %3d  %2d"
 
         for row in range(nrows):
             try:
@@ -68,6 +68,7 @@ class TestRegression(unittest.TestCase):
             pa_i = iso.sample.geometry.pa if iso.sample.geometry.pa else 0.
             x0_i = iso.sample.geometry.x0
             y0_i = iso.sample.geometry.y0
+            rerr_i = iso.sample.gradient_relative_error if iso.sample.gradient_relative_error else 0.
             ndata_i = iso.ndata
             nflag_i = iso.nflag
             niter_i = iso.niter
@@ -88,13 +89,14 @@ class TestRegression(unittest.TestCase):
             pa_t = table['PA'][row]
             x0_t = table['X0'][row]
             y0_t = table['Y0'][row]
+            rerr_t = table['GRAD_R_ERR'][row]
             ndata_t = table['NDATA'][row]
             nflag_t = table['NFLAG'][row]
             niter_t = table['NITER'][row] if table['NITER'][row] else 0
             stop_t = table['STOP'][row] if table['STOP'][row] else -1
 
-            print("* data "+format % (sma_i, intens_i, int_err_i, pix_var_i, rms_i, ellip_i, pa_i, x0_i, y0_i, ndata_i, nflag_i, niter_i, stop_i))
-            print("  ref  "+format % (sma_t, intens_t, int_err_t, pix_var_t, rms_t, ellip_t, pa_t, x0_t, y0_t, ndata_t, nflag_t, niter_t, stop_t))
+            print("* data "+format % (sma_i, intens_i, int_err_i, pix_var_i, rms_i, ellip_i, pa_i, x0_i, y0_i, rerr_i, ndata_i, nflag_i, niter_i, stop_i))
+            print("  ref  "+format % (sma_t, intens_t, int_err_t, pix_var_t, rms_t, ellip_t, pa_t, x0_t, y0_t, rerr_t, ndata_t, nflag_t, niter_t, stop_t))
             print()
 
 

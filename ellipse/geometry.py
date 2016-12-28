@@ -35,7 +35,7 @@ def normalize_angle(angle):
 def _area(sma, eps, phi, r):
     aux  = r * math.cos(phi) / sma
     signal = aux / abs(aux)
-    if (abs(aux) >= 1.):
+    if abs(aux) >= 1.:
         aux = signal
     return (abs (sma ** 2 * (1.-eps)/2. * math.acos(aux)))
 
@@ -129,11 +129,21 @@ class Geometry(object):
         sa2  = _area (sma2, self.eps, self._phi1, r2)
         sa3  = _area (sma2, self.eps, self._phi2, r3)
         sa4  = _area (sma1, self.eps, self._phi2, r4)
-        self.sector_area = abs ((sa3 - sa2) - (sa4 - sa1))
+        # self.sector_area = abs ((sa3 - sa2) - (sa4 - sa1))
+        area = abs ((sa3 - sa2) - (sa4 - sa1))
 
         # angular width of sector. It is defined such that it
         # comes out with roughly constant area along the ellipse.
         self.sector_angular_width = max(min((self.sector_area / (r3 - r4) / r4), PHI_MAX), PHI_MIN)
+
+        print ('@@@@@@     line: 138  - ', phi, "  ", self.sector_area, "  ", r3, "  ", r4, "    ", self.sector_angular_width)
+        # print ('@@@@@@     line: 138  - ', phi, "  ", sa1, "  ", sa2, "  ", sa3, "  ", sa4)
+        # print ('@@@@@@     line: 138  - ', phi, "  ", sma1, "  ", sma2)
+        # print ('@@@@@@     line: 138  - ', phi, "  ", self._phi1, "  ", self._phi2)
+
+
+        # var = max(min((self.sector_area / (r3 - r4) / r4), PHI_MAX), PHI_MIN)
+        # print ('@@@@@@     line: 143  - ', var)
 
         # compute the 4 vertices that define the elliptical sector.
         vertex_x = np.zeros(shape=4, dtype=float)
@@ -155,11 +165,14 @@ class Geometry(object):
 
         sma1, sma2 = self.bounding_ellipses()
 
+        print ('@@@@@@     line: 168  - ', sma1, sma2)
+
         # this inner_sma_ variable has no particular significance
         # except that it is used to estimate an initial step along
         # the elliptical path. The actual step will be calculated
         # by the chosen area integration algorithm
         inner_sma_ = min((sma2 - sma1), 3.)
+        self.sector_area = (sma2 - sma1) * inner_sma_
 
         # sma can eventually be zero!
         if self.sma > 0.:

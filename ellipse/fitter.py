@@ -27,7 +27,7 @@ class Fitter(object):
         '''
         self._sample = sample
 
-    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5, going_inwards=False):
         '''
         Perform the actual fit, returning an Isophote instance:
 
@@ -50,7 +50,11 @@ class Fitter(object):
             the image frame. In the future, it may include masked
             pixels as well.
         :param maxgerr: float
-            maximum acceptable relative error in the local radial intensity gradient.
+            maximum acceptable relative error in the local radial
+            intensity gradient.
+        :param going_inwards: boolean, default False
+            defines the sense of SMA growth. This is used by stopping
+            criteria that depend on the gradient relative error.
         :return: instance of Isophote
             isophote with the fitted sample plus additional fit status
             information
@@ -114,19 +118,16 @@ class Fitter(object):
             # see if any abnormal (or unusual) conditions warrant
             # the change to non-iterative mode.
             sample.update()
-            if not self._is_good_to_go(sample, maxgerr):
-
-                #TODO
-
+            if not self._is_good_to_go(sample, maxgerr, going_inwards):
                 sample.update()
-                return Isophote(sample, iter, True, -1)
+                return Isophote(sample, iter+1, True, -1)
 
         # Got to the maximum number of iterations. Return with
         # code 2, and assume it's still a valid isophote.
         sample.update()
         return Isophote(sample, maxit, True, 2)
 
-    def _is_good_to_go(self, sample, maxgerr):
+    def _is_good_to_go(self, sample, maxgerr, going_inwards):
         good_to_go = True
 
         # If center wandered more than allowed, put it back
@@ -140,7 +141,7 @@ class Fitter(object):
 
         # check if an acceptable gradient value could be computed.
         if sample.gradient_error:
-            if sample.gradient_relative_error > maxgerr or sample.gradient >= 0.:
+            if not going_inwards and (sample.gradient_relative_error > maxgerr or sample.gradient >= 0.):
                 good_to_go = False
         else:
             good_to_go = False
@@ -273,11 +274,14 @@ class CentralFitter(Fitter):
     Derived Fitter class, designed specifically to handle the
     case of the central pixel in the galaxy image.
     '''
-    def fit(self):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5, going_inwards=False):
         '''
         Overrides the base class to perform just a simple 1-pixel
         extraction at the current x0,y0 position, using bi-linear
         interpolation.
+
+        Parameters are ignored. They were added just so the method's
+        signature matches the superclass' and my IDE doesn't complain.
 
         :return: instance of the CentralPixel class.
             For convenience, the CentralPixel class inherits from

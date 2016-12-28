@@ -82,7 +82,7 @@ class Ellipse():
 
         # now, go from initial sma inwards towards center.
         while True:
-            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit)
+            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit, going_inwards=True)
 
             # figure out next sma; if exceeded user-defined
             # minimum, or too small, bail out from this loop
@@ -100,7 +100,7 @@ class Ellipse():
         return isophote_list
 
     def fit_isophote(self, isophote_list, sma, step=DEFAULT_STEP, integrmode=BI_LINEAR,
-                     linear=False, maxrit=None, noniterate=False):
+                     linear=False, maxrit=None, noniterate=False, going_inwards=False):
         '''
         Fit one isophote with a given semi-major axis length.
 
@@ -139,6 +139,9 @@ class Ellipse():
             along the sequence of isophotes. When set to True, this
             parameter overrides the behavior associated with parameter
             'maxrit'.
+        :param going_inwards: boolean, default False
+            defines the sense of SMA growth. This is used by stopping
+            criteria that depend on the gradient relative error.
         :return: Isophote instance
             the fitted isophote. The fitted isophote is also appended
             to the input list passed via parameter 'isophote_list'.
@@ -153,7 +156,7 @@ class Ellipse():
         if noniterate or (maxrit and sma > maxrit):
             isophote = self._non_iterative(sma, step, linear, geometry)
         else:
-            isophote = self._iterative(sma, step, linear, geometry, integrmode)
+            isophote = self._iterative(sma, step, linear, geometry, integrmode, going_inwards)
 
         # store result in list, and report summary at stdout
         # if isophote.valid:
@@ -166,7 +169,7 @@ class Ellipse():
 
         return isophote
 
-    def _iterative(self, sma, step, linear, geometry, integrmode):
+    def _iterative(self, sma, step, linear, geometry, integrmode, going_inwards=False):
         if sma > 0.:
             # iterative fitter
             sample = Sample(self.image, sma,
@@ -180,7 +183,7 @@ class Ellipse():
             sample = CentralSample(self.image, 0.0)
             fitter = CentralFitter(sample)
 
-        isophote = fitter.fit()
+        isophote = fitter.fit(going_inwards=going_inwards)
 
         return isophote
 

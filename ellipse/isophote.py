@@ -71,19 +71,7 @@ class Isophote:
         self.stop_code = stop_code
 
         self.intens = sample.mean
-
         self.rms = np.std(sample.values[2])
-
-
-        # print("@@@@@@  file isophote.py; line 78 - ",  self.sma)
-        # print("@@@@@@  file isophote.py; line 79 - ",  self.sample.values[2])
-        # print("@@@@@@  file isophote.py; line 80 - ",  np.std(self.sample.values[2]))
-
-
-
-
-
-
         self.int_err = self.rms / np.sqrt(sample.actual_points)
         self.pix_var = self.rms * np.sqrt(sample.sector_area)
         self.grad = sample.gradient

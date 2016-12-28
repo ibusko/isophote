@@ -8,9 +8,6 @@ BI_LINEAR = 'bi-linear'
 MEAN = 'mean'
 MEDIAN = 'median'
 
-DPHI_MAX = 0.2     # limits for sector angular width
-DPHI_MIN = 0.01
-
 
 class Integrator(object):
 
@@ -178,6 +175,8 @@ class AreaIntegrator(Integrator):
 
     def integrate(self, radius, phi):
 
+        self._phi = phi
+
         # Get image coordinates of the four vertices of the elliptical sector.
         vertex_x, vertex_y = self._geometry.initialize_sector_geometry(phi)
 
@@ -243,7 +242,18 @@ class AreaIntegrator(Integrator):
                 self._store_results(phi, radius, sample_value)
 
     def get_polar_angle_step(self):
-        return max (min (self._phistep, DPHI_MAX), DPHI_MIN)
+        phi1, phi2 = self._geometry.polar_angle_sector_limits()
+
+
+        # phistep = dphi / 2. + phi2 - phi
+
+        phistep = self._geometry.sector_angular_width / 2. + phi2 - self._phi
+
+
+        # return self._phistep
+        return phistep
+
+
 
     def get_sector_area(self):
         return self._sector_area
