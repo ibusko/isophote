@@ -2,6 +2,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import unittest
 
+import numpy as np
 import pyfits
 
 from util import build_test_data
@@ -14,7 +15,7 @@ class TestEllipse(unittest.TestCase):
     def test_fit(self):
 
         # low noise image, fitted perfectly by sample.
-        test_data = build_test_data.build()
+        test_data = build_test_data.build(pa=10./180.*np.pi)
 
         ellipse = Ellipse(test_data)
         isophote_list = ellipse.fit_image()
@@ -30,6 +31,5 @@ class TestEllipse(unittest.TestCase):
         image = pyfits.open("data/M51.fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
-        # isophote_list = ellipse.fit_image(minsma=26, maxsma=35)
         isophote_list = ellipse.fit_image()
 

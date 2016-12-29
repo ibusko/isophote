@@ -19,20 +19,20 @@ class TestGeometry(unittest.TestCase):
         # using an arbitrary angle of 0.5 rad. This is
         # to avoid a polar vector that sits on top of
         # one of the ellipse's axis.
-        vertex_x, vertex_y = geometry.initialize_sector_geometry(0.5)
+        vertex_x, vertex_y = geometry.initialize_sector_geometry(0.6)
 
         self.assertAlmostEqual(geometry.sector_angular_width, 0.0571, 2)
-        self.assertAlmostEqual(geometry.sector_area, 71.00, 2)
+        self.assertAlmostEqual(geometry.sector_area, 63.83, 2)
 
-        self.assertAlmostEqual(vertex_x[0], 219.86, 2)
-        self.assertAlmostEqual(vertex_x[1], 212.05, 2)
-        self.assertAlmostEqual(vertex_x[2], 217.49, 2)
-        self.assertAlmostEqual(vertex_x[3], 209.16, 2)
+        self.assertAlmostEqual(vertex_x[0], 215.4, 1)
+        self.assertAlmostEqual(vertex_x[1], 206.6, 1)
+        self.assertAlmostEqual(vertex_x[2], 213.5, 1)
+        self.assertAlmostEqual(vertex_x[3], 204.3, 1)
 
-        self.assertAlmostEqual(vertex_y[0], 323.33, 2)
-        self.assertAlmostEqual(vertex_y[1], 338.52, 2)
-        self.assertAlmostEqual(vertex_y[2], 319.75, 2)
-        self.assertAlmostEqual(vertex_y[3], 334.14, 2)
+        self.assertAlmostEqual(vertex_y[0], 316.1, 1)
+        self.assertAlmostEqual(vertex_y[1], 329.7, 1)
+        self.assertAlmostEqual(vertex_y[2], 312.5, 1)
+        self.assertAlmostEqual(vertex_y[3], 325.3, 1)
 
     def test_ellipse(self):
 
@@ -100,14 +100,14 @@ class TestGeometry(unittest.TestCase):
         vertex_x, vertex_y = geometry.initialize_sector_geometry(0)
 
         self.assertAlmostEqual(vertex_x[0], 89.97, 2)
-        self.assertAlmostEqual(vertex_x[1], 109.96, 2)
+        self.assertAlmostEqual(vertex_x[1], 109.97, 2)
         self.assertAlmostEqual(vertex_x[2], 89.97, 2)
-        self.assertAlmostEqual(vertex_x[3], 109.96, 2)
+        self.assertAlmostEqual(vertex_x[3], 109.97, 2)
 
-        self.assertAlmostEqual(vertex_y[0], -2.50, 2)
-        self.assertAlmostEqual(vertex_y[1], -3.06, 2)
-        self.assertAlmostEqual(vertex_y[2], 2.50, 2)
-        self.assertAlmostEqual(vertex_y[3], 3.06, 2)
+        self.assertAlmostEqual(vertex_y[0], -2.25, 2)
+        self.assertAlmostEqual(vertex_y[1], -2.75, 2)
+        self.assertAlmostEqual(vertex_y[2], 2.25, 2)
+        self.assertAlmostEqual(vertex_y[3], 2.75, 2)
 
     def test_area2(self):
         # circle with center at 100.,100.
@@ -129,15 +129,15 @@ class TestGeometry(unittest.TestCase):
         # sector at 225 deg on circle
         vertex_x, vertex_y = geometry.initialize_sector_geometry(225./180.*np.pi)
 
-        self.assertAlmostEqual(vertex_x[0], 34.62, 2)
-        self.assertAlmostEqual(vertex_x[1], 20.09, 2)
-        self.assertAlmostEqual(vertex_x[2], 38.15, 2)
-        self.assertAlmostEqual(vertex_x[3], 24.41, 2)
+        self.assertAlmostEqual(vertex_x[0], 34.79, 2)
+        self.assertAlmostEqual(vertex_x[1], 20.30, 2)
+        self.assertAlmostEqual(vertex_x[2], 37.97, 2)
+        self.assertAlmostEqual(vertex_x[3], 24.19, 2)
 
-        self.assertAlmostEqual(vertex_y[0], 38.15, 2)
-        self.assertAlmostEqual(vertex_y[1], 24.41, 2)
-        self.assertAlmostEqual(vertex_y[2], 34.62, 2)
-        self.assertAlmostEqual(vertex_y[3], 20.09, 2)
+        self.assertAlmostEqual(vertex_y[0], 37.97, 2)
+        self.assertAlmostEqual(vertex_y[1], 24.19, 2)
+        self.assertAlmostEqual(vertex_y[2], 34.79, 2)
+        self.assertAlmostEqual(vertex_y[3], 20.30, 2)
 
     def test_normalize_angle(self):
         PI = np.pi

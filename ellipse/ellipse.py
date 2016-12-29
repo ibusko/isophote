@@ -66,9 +66,13 @@ class Ellipse():
 
             # if abnormal condition, shut off iterative mode but keep going.
             if isophote.stop_code < 0:
-                isophote.stop_code = 4
-                if not maxrit:
-                    maxrit = sma
+
+                self._fix_last_isophote(isophote_list, -1)
+
+                # shut off iterative mode.
+                maxrit = sma
+
+            isophote.print()
 
             # figure out next sma; if exceeded user-defined
             # maximum, bail out from this loop.
@@ -84,6 +88,12 @@ class Ellipse():
         while True:
             isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit, going_inwards=True)
 
+            # if abnormal condition, shut off iterative mode but keep going.
+            if isophote.stop_code < 0:
+                self._fix_last_isophote(isophote_list, 0)
+
+            isophote.print()
+
             # figure out next sma; if exceeded user-defined
             # minimum, or too small, bail out from this loop
             sma = isophote.sample.geometry.update_sma(step)
@@ -92,7 +102,8 @@ class Ellipse():
 
         # if user asked for minsma=0, extract special isophote there
         if minsma == 0.0:
-            self.fit_isophote(isophote_list, 0.0, step, integrmode, linear)
+            isophote = self.fit_isophote(isophote_list, 0.0, step, integrmode, linear)
+            isophote.print()
 
         # sort list of isophotes according to sma
         isophote_list.sort()
@@ -158,14 +169,12 @@ class Ellipse():
         else:
             isophote = self._iterative(sma, step, linear, geometry, integrmode, going_inwards)
 
-        # store result in list, and report summary at stdout
-        # if isophote.valid:
-        #     isophote_list.append(isophote)
-        #     isophote.print()
+        # store result in list
+        if isophote.valid:
+            isophote_list.append(isophote)
         # For now, to facilitate regression comparisons, we
         # store all, and not just valid, isophotes in the list.
-        isophote_list.append(isophote)
-        isophote.print()
+        # isophote_list.append(isophote)
 
         return isophote
 
@@ -198,6 +207,24 @@ class Ellipse():
         isophote = Isophote(sample, 0, True, 4)
 
         return isophote
+
+    def _fix_last_isophote(self, isophote_list, index):
+        if len(isophote_list) > 0:
+            isophote = isophote_list.pop()
+            isophote.stop_code = 5
+
+            # check if isophote is bad; if so, fix its geometry
+            # to be like the geometry of the index-th isophote
+            # in list.
+            isophote.fix_geometry(isophote_list[index])
+
+            # force new extraction of raw data, since
+            # geometry changed.
+            isophote.sample.values = None
+            isophote.sample.update()
+
+            # add isophote in list
+            isophote_list.append(isophote)
 
 
 

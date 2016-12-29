@@ -171,7 +171,7 @@ class Sample(object):
             # update angle and radius to be used to define
             # next polar vector along the elliptical path
             phistep_ = integrator.get_polar_angle_step()
-            phi += min (phistep_, 0.5)
+            phi += min(phistep_, 0.5)
             radius = self.geometry.radius(phi)
 
         # average sector area is calculated after the integrator had

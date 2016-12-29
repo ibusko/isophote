@@ -11,6 +11,7 @@ from ellipse.isophote import Isophote, CentralPixel
 
 PI2 = np.pi / 2
 MAX_EPS = 0.95
+MIN_EPS = 0.0
 
 
 class Fitter(object):
@@ -248,7 +249,7 @@ class _EllipticityCorrector(_ParameterCorrector):
 
         correction = harmonic * 2. * (1. - eps) / sma / gradient
 
-        new_eps = sample.geometry.eps - correction
+        new_eps = min((sample.geometry.eps - correction), MAX_EPS)
 
         return Sample(sample.image, sample.geometry.sma,
                       x0 = sample.geometry.x0,

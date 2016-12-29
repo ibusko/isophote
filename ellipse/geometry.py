@@ -51,7 +51,8 @@ class Geometry(object):
         other associated ellipses are also encapsulated in this container.
         These associated ellipses may include e.g. the two (inner and outer)
         bounding ellipses that are used to build sectors along the elliptical
-        path.
+        path. These sectors are used as areas for integrating pixel values,
+        when area integration mode (mean or median) is used.
 
         The Geometry object also keeps track of *where* in the ellipse we are,
         when performing an 'extract' operation. This is mostly relevant when
@@ -85,7 +86,17 @@ class Geometry(object):
         self.astep = astep
         self.linear_growth = linear_growth
 
-        self._initialize()
+        # variables used in the calculation of the sector angular width.
+        sma1, sma2 = self.bounding_ellipses()
+        inner_sma = min((sma2 - sma1), 3.)
+        self._area_factor = (sma2 - sma1) * inner_sma
+
+        # sma can eventually be zero!
+        if self.sma > 0.:
+            self.sector_angular_width = max(min((inner_sma / self.sma), PHI_MAX), PHI_MIN)
+            self.initial_polar_angle = self.sector_angular_width / 2.
+
+            self.initial_polar_radius = self.radius(self.initial_polar_angle)
 
     def radius(self, angle):
         '''
@@ -101,6 +112,7 @@ class Geometry(object):
     def initialize_sector_geometry(self, phi):
         '''
         Initialize geometry attributes associated with an elliptical sector at polar angle 'phi'.
+
         Computes:
          - the four vertices that define the elliptical sector on the pixel array.
          - sector area (in attribute self.sector_area)
@@ -111,8 +123,9 @@ class Geometry(object):
         :return: tuple with two 1-D np arrays
             with the X and Y coordinates of each vertex.
         '''
-        # These polar radii bound the region between the inner and
-        # outer ellipses that define the first sector.
+
+        # These polar radii bound the region between the inner
+        # and outer ellipses that define the sector.
         sma1, sma2 = self.bounding_ellipses()
         eps_ = 1. - self.eps
         # polar vector at one side of the elliptical sector
@@ -129,21 +142,11 @@ class Geometry(object):
         sa2  = _area (sma2, self.eps, self._phi1, r2)
         sa3  = _area (sma2, self.eps, self._phi2, r3)
         sa4  = _area (sma1, self.eps, self._phi2, r4)
-        # self.sector_area = abs ((sa3 - sa2) - (sa4 - sa1))
-        area = abs ((sa3 - sa2) - (sa4 - sa1))
+        self.sector_area = abs ((sa3 - sa2) - (sa4 - sa1))
 
-        # angular width of sector. It is defined such that it
-        # comes out with roughly constant area along the ellipse.
-        self.sector_angular_width = max(min((self.sector_area / (r3 - r4) / r4), PHI_MAX), PHI_MIN)
-
-        print ('@@@@@@     line: 138  - ', phi, "  ", self.sector_area, "  ", r3, "  ", r4, "    ", self.sector_angular_width)
-        # print ('@@@@@@     line: 138  - ', phi, "  ", sa1, "  ", sa2, "  ", sa3, "  ", sa4)
-        # print ('@@@@@@     line: 138  - ', phi, "  ", sma1, "  ", sma2)
-        # print ('@@@@@@     line: 138  - ', phi, "  ", self._phi1, "  ", self._phi2)
-
-
-        # var = max(min((self.sector_area / (r3 - r4) / r4), PHI_MAX), PHI_MIN)
-        # print ('@@@@@@     line: 143  - ', var)
+        # angular width of sector. It is calculated such that the sectors
+        # come out with roughly constant area along the ellipse.
+        self.sector_angular_width = max(min((self._area_factor / (r3 - r4) / r4), PHI_MAX), PHI_MIN)
 
         # compute the 4 vertices that define the elliptical sector.
         vertex_x = np.zeros(shape=4, dtype=float)
@@ -160,26 +163,6 @@ class Geometry(object):
         vertex_y[3] = r3 * math.sin (self._phi2 + self.pa) + self.y0
 
         return vertex_x, vertex_y
-
-    def _initialize(self):
-
-        sma1, sma2 = self.bounding_ellipses()
-
-        print ('@@@@@@     line: 168  - ', sma1, sma2)
-
-        # this inner_sma_ variable has no particular significance
-        # except that it is used to estimate an initial step along
-        # the elliptical path. The actual step will be calculated
-        # by the chosen area integration algorithm
-        inner_sma_ = min((sma2 - sma1), 3.)
-        self.sector_area = (sma2 - sma1) * inner_sma_
-
-        # sma can eventually be zero!
-        if self.sma > 0.:
-            self.sector_angular_width = max(min((inner_sma_ / self.sma), PHI_MAX), PHI_MIN)
-            self.initial_polar_angle = self.sector_angular_width / 2.
-
-            self.initial_polar_radius = self.radius(self.initial_polar_angle)
 
     def bounding_ellipses(self):
         '''

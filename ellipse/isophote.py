@@ -29,11 +29,15 @@ class Isophote:
                 2 - exceeded maximum number of iterations.
                 3 - singular matrix in harmonic fit, results may not be valid.
                     Also signals insufficient number of data points to fit.
-                4 - small or wrong gradient, or ellipse diverged; subsequent
-                    ellipses at larger semi-major axis may have the same
-                    constant geometric parameters. It's also used when the
+                4 - small or wrong gradient, or ellipse diverged. Subsequent
+                    ellipses at larger or smaller semi-major axis may have the
+                    same constant geometric parameters. It's also used when the
                     user turns off the fitting algorithm via the 'maxrit'
                     fitting parameter (see Ellipse class).
+                5 - ellipse diverged; not even the minimum number of iterations
+                    could be executed. Subsequent ellipses at larger or smaller
+                    semi-major axis may have the same constant geometric
+                    parameters.
                -1 - internal use.
 
         Attributes:
@@ -168,6 +172,27 @@ class Isophote:
                                                    self.niter,
                                                    self.stop_code)
         print(s)
+
+    def fix_geometry(self, isophote):
+        '''
+        This method should be called when the fitting goes berserk and delivers
+        an isophote with bad geometry, such as with eps>1 or another meaningless
+        situation. This is not a problem in itself when fitting any given isophote,
+        but will create an error when the affected isophote is used as starting
+        guess for the next fit.
+
+        The method will set the geometry of the affected isophote to be identical
+        with the geometry of the isophote used as input value.
+
+        Parameters:
+        ----------
+        :param isophote: instance of Isophote
+            the isophote where to take geometry information from
+        '''
+        self.sample.geometry.eps = isophote.sample.geometry.eps
+        self.sample.geometry.pa  = isophote.sample.geometry.pa
+        self.sample.geometry.x0  = isophote.sample.geometry.x0
+        self.sample.geometry.y0  = isophote.sample.geometry.y0
 
     # These two methods are useful for sorting lists of instances. Note
     # that __lt__ is the python3 way of supporting sorting. This might
