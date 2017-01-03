@@ -122,11 +122,6 @@ class Fitter(object):
 
             # see if any abnormal (or unusual) conditions warrant
             # the change to non-iterative mode.
-
-
-            # print ('@@@@@@     line: 125  - ', sample.geometry.eps, "  ", corrector)
-
-
             sample.update()
             good_to_go, lexceed = self._is_good_to_go(sample, maxgerr, going_inwards, lexceed)
             if not good_to_go:
