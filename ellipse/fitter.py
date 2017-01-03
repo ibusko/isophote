@@ -171,16 +171,14 @@ class Fitter(object):
         # If so, fix it but still good_to_go to go.
         if sample.geometry.eps < 0.:
             # sample.geometry.eps = -sample.geometry.eps
-            sample.geometry.eps = 0.05
+            sample.geometry.eps = MIN_EPS
             if sample.geometry.pa < 0.:
                 sample.geometry.pa += PI2
-            else:
-                sample.geometry.pa -= PI2
 
         # If ellipse is an exact circle, computations will diverge.
         # Make it slightly flat, but still good to go.
         if sample.geometry.eps == 0.0:
-            sample.geometry.eps = 0.05
+            sample.geometry.eps = MIN_EPS
 
         return good_to_go, lexceed
 
