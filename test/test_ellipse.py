@@ -6,6 +6,7 @@ import numpy as np
 import pyfits
 
 from util import build_test_data
+from ellipse.integrator import MEAN
 from ellipse.ellipse import Ellipse
 from ellipse.isophote import Isophote
 
@@ -31,5 +32,8 @@ class TestEllipse(unittest.TestCase):
         image = pyfits.open("data/M51.fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
+        # isophote_list = ellipse.fit_image(sma0=11.0, minsma=11.0, maxsma=16.11)
+        # print ('@@@@@@     line: 36  - ')
         isophote_list = ellipse.fit_image()
+        # isophote_list = ellipse.fit_image(integrmode=MEAN)
 

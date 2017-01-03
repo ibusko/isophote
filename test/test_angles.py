@@ -26,7 +26,6 @@ class TestAngles(unittest.TestCase):
         r = a
         a1 = a * (1. - ((1. - 1./astep) / 2.))
         a2 = a * (1. + (astep - 1.) / 2.)
-        print ('@@@@@@     line: 29  - ',a1,a2)
         r3     = a2
         r4     = a1
         aux    = min ((a2 - a1), 3.)
@@ -37,8 +36,6 @@ class TestAngles(unittest.TestCase):
         aux    = 1. - eps
         r3     = a2 * aux / np.sqrt ((aux * np.cos (phi2))**2 + (np.sin (phi2))**2)
         r4     = a1 * aux / np.sqrt ((aux * np.cos (phi2))**2 + (np.sin (phi2))**2)
-
-        print ('@@@@@@     line: 40  - ', phi, "  ", sarea, "  ", r3, "  ", r4, "    ", dphi)
 
         ncount = 0
         while phi < np.pi*2:
@@ -62,9 +59,14 @@ class TestAngles(unittest.TestCase):
 
             ncount += 1
 
-            print ('@@@@@@     line: 64  - ', phi, "  ", sarea, "  ", r3, "  ", r4, "    ", dphi)
+            # print ('@@@@@@  test_angles.py   line: 62  - ', phi, "  ", sarea, "  ", r3, "  ", r4, "    ", dphi)
+
+            self.assertAlmostEqual(sarea, 11.45, 2)
 
             phi = phi + min (phistep, 0.5)
             r   = a * (1. - eps) / np.sqrt (((1. - eps) * np.cos (phi))**2 + (np.sin (phi))**2)
 
         print ( ncount)
+
+        self.assertEqual(ncount, 72)
+

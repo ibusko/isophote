@@ -11,7 +11,7 @@ from ellipse.isophote import Isophote, CentralPixel
 
 PI2 = np.pi / 2
 MAX_EPS = 0.95
-MIN_EPS = 0.0
+MIN_EPS = 0.05
 
 
 class Fitter(object):
@@ -28,7 +28,7 @@ class Fitter(object):
         '''
         self._sample = sample
 
-    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5, going_inwards=False):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.9, going_inwards=False):
         '''
         Perform the actual fit, returning an Isophote instance:
 
@@ -61,6 +61,10 @@ class Fitter(object):
             information
         '''
         sample = self._sample
+
+        # flag signals that limiting gradient error ('maxgerr') wasn't
+        # exceeded yet.
+        lexceed = False
 
         for iter in range(maxit):
 
@@ -118,8 +122,14 @@ class Fitter(object):
 
             # see if any abnormal (or unusual) conditions warrant
             # the change to non-iterative mode.
+
+
+            # print ('@@@@@@     line: 125  - ', sample.geometry.eps, "  ", corrector)
+
+
             sample.update()
-            if not self._is_good_to_go(sample, maxgerr, going_inwards):
+            good_to_go, lexceed = self._is_good_to_go(sample, maxgerr, going_inwards, lexceed)
+            if not good_to_go:
                 sample.update()
                 return Isophote(sample, iter+1, True, -1)
 
@@ -128,7 +138,7 @@ class Fitter(object):
         sample.update()
         return Isophote(sample, maxit, True, 2)
 
-    def _is_good_to_go(self, sample, maxgerr, going_inwards):
+    def _is_good_to_go(self, sample, maxgerr, going_inwards, lexceed):
         good_to_go = True
 
         # If center wandered more than allowed, put it back
@@ -143,7 +153,10 @@ class Fitter(object):
         # check if an acceptable gradient value could be computed.
         if sample.gradient_error:
             if not going_inwards and (sample.gradient_relative_error > maxgerr or sample.gradient >= 0.):
-                good_to_go = False
+                if lexceed:
+                    good_to_go = False
+                else:
+                    lexceed = True
         else:
             good_to_go = False
 
@@ -169,7 +182,7 @@ class Fitter(object):
         if sample.geometry.eps == 0.0:
             sample.geometry.eps = 0.05
 
-        return good_to_go
+        return good_to_go, lexceed
 
 
 class _ParameterCorrector(object):

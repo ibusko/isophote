@@ -66,12 +66,14 @@ class Ellipse():
 
             # if abnormal condition, shut off iterative mode but keep going.
             if isophote.stop_code < 0:
-
                 self._fix_last_isophote(isophote_list, -1)
 
                 # shut off iterative mode.
                 maxrit = sma
 
+            # reset variable from the actual list, since the last
+            # 'isophote' instance may no longer be OK.
+            isophote = isophote_list[-1]
             isophote.print()
 
             # figure out next sma; if exceeded user-defined
@@ -88,10 +90,13 @@ class Ellipse():
         while True:
             isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit, going_inwards=True)
 
-            # if abnormal condition, shut off iterative mode but keep going.
+            # if abnormal condition, fix isophote but keep going.
             if isophote.stop_code < 0:
                 self._fix_last_isophote(isophote_list, 0)
 
+            # reset variable from the actual list, since the last
+            # 'isophote' instance may no longer be OK.
+            isophote = isophote_list[-1]
             isophote.print()
 
             # figure out next sma; if exceeded user-defined
@@ -211,7 +216,6 @@ class Ellipse():
     def _fix_last_isophote(self, isophote_list, index):
         if len(isophote_list) > 0:
             isophote = isophote_list.pop()
-            isophote.stop_code = 5
 
             # check if isophote is bad; if so, fix its geometry
             # to be like the geometry of the index-th isophote
@@ -223,8 +227,12 @@ class Ellipse():
             isophote.sample.values = None
             isophote.sample.update()
 
-            # add isophote in list
-            isophote_list.append(isophote)
+            # build new instance so it can have its attributes
+            # populated from the updated sample attributes.
+            new_isophote = Isophote(isophote.sample, isophote.niter, isophote.valid, 5)
+
+            # add new isophote in list
+            isophote_list.append(new_isophote)
 
 
 
