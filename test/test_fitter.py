@@ -6,10 +6,11 @@ import numpy as np
 import pyfits
 
 from util import build_test_data
+from ellipse.geometry import Geometry
 from ellipse.harmonics import fit_1st_and_2nd_harmonics
-from ellipse.sample import Sample
+from ellipse.sample import Sample, CentralSample
 from ellipse.isophote import Isophote
-from ellipse.fitter import Fitter
+from ellipse.fitter import Fitter, CentralFitter
 
 
 class TestFitter(unittest.TestCase):
@@ -174,3 +175,21 @@ class TestFitter(unittest.TestCase):
 
         self.assertEqual(isophote.ndata, 378)
         self.assertAlmostEqual(isophote.intens, 155.4, 1)
+
+    def test_m51_central(self):
+        image = pyfits.open("data/M51.fits")
+        test_data = image[0].data
+
+        # this code finds central x and y offset by about 0.1 pixel wrt the
+        # spp code. In here we use as input the position computed by this
+        # code, and check in here just the extraction algorithm.
+        g = Geometry(257.02, 258.1, 0.0, 0.0, 0.0, 0.1, False)
+        sample = CentralSample(test_data, 0.0, geometry=g)
+        fitter = CentralFitter(sample)
+
+        isophote = fitter.fit()
+
+        # this code finds the central pixel intensity about
+        # 3% larger than the spp code.
+        self.assertLessEqual(isophote.intens, 7990.)
+        self.assertGreaterEqual(isophote.intens, 7950.)

@@ -217,7 +217,7 @@ class Ellipse():
             fitter = Fitter(sample)
         else:
             # sma == 0 requires special handling.
-            sample = CentralSample(self.image, 0.0)
+            sample = CentralSample(self.image, 0.0, geometry=geometry)
             fitter = CentralFitter(sample)
 
         isophote = fitter.fit(going_inwards=going_inwards)
