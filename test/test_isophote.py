@@ -98,6 +98,6 @@ class TestIsophote(unittest.TestCase):
         iso = fitter.fit()
 
         self.assertTrue(iso.valid)
-        self.assertEqual(iso.niter, 16)
+        self.assertEqual(iso.niter, 20)
 
 

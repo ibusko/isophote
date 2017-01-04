@@ -142,6 +142,16 @@ class TestFitter(unittest.TestCase):
         image = pyfits.open("data/M51.fits")
         test_data = image[0].data
 
+        #
+        # # here we evaluate the detailed convergency behavior
+        # # for a particular ellipse where we can see the eps
+        # # parameter jumping back and forth.
+        # sample = Sample(test_data, 13.31000001, eps=0.16, position_angle=((-37.5+90)/180.*np.pi))
+        # sample.update()
+        # fitter = Fitter(sample)
+        # isophote = fitter.fit()
+        #
+
         # we start the fit with initial values taken from
         # previous isophote, as determined by the old code.
 

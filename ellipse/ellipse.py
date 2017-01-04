@@ -7,6 +7,7 @@ from ellipse.isophote import Isophote
 from ellipse.integrator import BI_LINEAR
 
 DEFAULT_STEP = 0.1
+FAILED_FIT = 5
 
 
 class Ellipse():
@@ -22,7 +23,7 @@ class Ellipse():
         '''
         self.image = image
 
-    def fit_image(self, sma0=10., minsma=0., maxsma=100., step=DEFAULT_STEP,
+    def fit_image(self, sma0=10., minsma=0., maxsma=None, step=DEFAULT_STEP,
                   integrmode=BI_LINEAR, linear=False, maxrit=None):
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
@@ -35,8 +36,11 @@ class Ellipse():
             starting value for the semi-major axis length (pixels)
         :param minsma:  float, default = 0.
             minimum value for the semi-major axis length (pixels)
-        :param maxsma: float, default=100.
-            maximum value for the semi-major axis length (pixels)
+        :param maxsma: float, default = None.
+            maximum value for the semi-major axis length (pixels).
+            When set to None, the algorithm will increase the semi
+            major axis until one of several conditions will cause
+            it to stop and revert to fit ellipses with sma < sma0.
         :param step: float, default = DEFAULT_STEP
             the step value being used to grow/shrink the semi-major
             axis length (pixels if 'linear=True', or relative value
@@ -61,25 +65,44 @@ class Ellipse():
         # first, go from initial sma outwards until
         # hitting one of several stopping criteria.
         sma = sma0
+        noiter = False
         while True:
-            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit)
+            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit, noniterate=noiter)
 
-            # if abnormal condition, shut off iterative mode but keep going.
+            # check for failed fit.
             if isophote.stop_code < 0:
                 self._fix_last_isophote(isophote_list, -1)
 
-                # shut off iterative mode.
-                maxrit = sma
+                # get last isophote from the actual list, since the last
+                # 'isophote' instance in this context may no longer be OK.
+                isophote = isophote_list[-1]
+
+                # if two consecutive isophotes failed to fit,
+                # shut off iterative mode. Or, bail out and
+                # change to go inwards.
+                if len(isophote_list) > 1:
+                    if isophote.stop_code == FAILED_FIT and \
+                       isophote_list[-2].stop_code == FAILED_FIT:
+                        if maxsma and maxsma > isophote.sma:
+                            # if a maximum sma value was provided by user, and the
+                            # current sma is smaller than maxsma, keep growing sma
+                            # in non-iterative mode until reaching it.
+                            noiter = True
+                        else:
+                            # if no maximum sma, stop growing and change
+                            # to go inwards. Print from last kept isophote.
+                            isophote.print()
+                            break
 
             # reset variable from the actual list, since the last
             # 'isophote' instance may no longer be OK.
             isophote = isophote_list[-1]
             isophote.print()
 
-            # figure out next sma; if exceeded user-defined
+            # update sma. If exceeded user-defined
             # maximum, bail out from this loop.
             sma = isophote.sample.geometry.update_sma(step)
-            if sma >= maxsma:
+            if maxsma and sma >= maxsma:
                 break
 
         # reset sma so as to go inwards.
@@ -229,9 +252,9 @@ class Ellipse():
 
             # build new instance so it can have its attributes
             # populated from the updated sample attributes.
-            new_isophote = Isophote(isophote.sample, isophote.niter, isophote.valid, 5)
+            new_isophote = Isophote(isophote.sample, isophote.niter, isophote.valid, FAILED_FIT)
 
-            # add new isophote in list
+            # add new isophote to list
             isophote_list.append(new_isophote)
 
 

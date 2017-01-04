@@ -65,7 +65,7 @@ class TestRegression(unittest.TestCase):
         isophote_list = ellipse.fit_image()
         # isophote_list = ellipse.fit_image(integrmode=MEAN)
 
-        format = "%5.2f  %6.1f    %8.3f %8.3f %8.3f        %7.5f  %6.2f   %06.2f %6.2f   %5.2f   %4d  %3d  %3d  %2d"
+        format = "%5.2f  %6.1f    %8.3f %8.3f %8.3f        %9.5f  %6.2f   %6.2f %6.2f   %5.2f   %4d  %3d  %3d  %2d"
 
         for row in range(nrows):
             try:
@@ -118,8 +118,8 @@ class TestRegression(unittest.TestCase):
             rms_d = (rms_i - rms_t) / rms_t * 100.
             ellip_d = (ellip_i - ellip_t) / ellip_t * 100.
             pa_d = pa_i - pa_t  # diff in angle is absolute
-            x0_d = (x0_i - x0_t) / x0_t * 100.
-            y0_d = (y0_i - y0_t) / y0_t * 100.
+            x0_d = x0_i - x0_t  # diff in position is absolute
+            y0_d = y0_i - y0_t
             rerr_d = rerr_i - rerr_t  # diff in relative error is absolute
             ndata_d = (ndata_i - ndata_t) / ndata_t * 100.
             nflag_d = 0

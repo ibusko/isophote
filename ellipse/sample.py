@@ -212,7 +212,7 @@ class Sample(object):
         if not previous_gradient:
             previous_gradient = -0.05 # good enough, based on usage
 
-        if abs(gradient) <= abs(previous_gradient / 3.):   # gradient is negative!
+        if gradient >= (previous_gradient / 3.):   # gradient is negative!
             gradient, gradient_error = self._get_gradient(2 * step)
 
         # If still no meaningful gradient can be measured, try with previous
@@ -221,7 +221,7 @@ class Sample(object):
         # deVaucouleurs law or an exponential disk (at least at its inner parts,
         # r <~ 5 req). Gradient error is meaningless in this case.
         if gradient >= (previous_gradient / 3.):
-            gradient *= 0.8
+            gradient = previous_gradient * 0.8
             gradient_error = None
 
         self.gradient = gradient

@@ -28,7 +28,7 @@ class Fitter(object):
         '''
         self._sample = sample
 
-    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.9, going_inwards=False):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5, going_inwards=False):
         '''
         Perform the actual fit, returning an Isophote instance:
 
@@ -112,17 +112,16 @@ class Fitter(object):
 
             # generate *NEW* Sample instance with corrected parameter. Note that
             # this instance is still devoid of other information besides its geometry.
-            # It needs to be explicitly updated in case we need to return it as the
-            # result of the fit operation.
+            # It needs to be explicitly updated for computations to proceed.
             # We have to build a new Sample instance every time because of the lazy
             # extraction process used by Sample code. To minimize the number of
             # calls to the area integrators, we pay a (hopefully smaller) price here,
             # by having multiple calls to the Sample constructor.
             sample = corrector.correct(sample, largest_harmonic)
+            sample.update()
 
             # see if any abnormal (or unusual) conditions warrant
             # the change to non-iterative mode.
-            sample.update()
             good_to_go, lexceed = self._is_good_to_go(sample, maxgerr, going_inwards, lexceed)
             if not good_to_go:
                 sample.update()
@@ -165,10 +164,11 @@ class Fitter(object):
         # See if eps == 0 (round isophote) was crossed.
         # If so, fix it but still good_to_go to go.
         if sample.geometry.eps < 0.:
-            # sample.geometry.eps = -sample.geometry.eps
-            sample.geometry.eps = MIN_EPS
-            if sample.geometry.pa < 0.:
+            sample.geometry.eps = min(-sample.geometry.eps, MAX_EPS)
+            if sample.geometry.pa < PI2:
                 sample.geometry.pa += PI2
+            else:
+                sample.geometry.pa -= PI2
 
         # If ellipse is an exact circle, computations will diverge.
         # Make it slightly flat, but still good to go.
