@@ -16,7 +16,7 @@ class TestEllipse(unittest.TestCase):
     def test_fit(self):
 
         # low noise image, fitted perfectly by sample.
-        test_data = build_test_data.build(pa=10./180.*np.pi)
+        test_data = build_test_data.build(pa=10./180.*np.pi, noise=1.E-12)
 
         ellipse = Ellipse(test_data)
         isophote_list = ellipse.fit_image()
@@ -32,8 +32,5 @@ class TestEllipse(unittest.TestCase):
         image = pyfits.open("data/M51.fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
-        # isophote_list = ellipse.fit_image(sma0=11.0, minsma=11.0, maxsma=16.11)
-        # print ('@@@@@@     line: 36  - ')
         isophote_list = ellipse.fit_image()
-        # isophote_list = ellipse.fit_image(integrmode=MEAN)
 

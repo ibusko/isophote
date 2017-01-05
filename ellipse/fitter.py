@@ -121,14 +121,14 @@ class Fitter(object):
             sample.update()
 
             # see if any abnormal (or unusual) conditions warrant
-            # the change to non-iterative mode.
+            # the change to non-iterative mode, or go inwards mode.
             good_to_go, lexceed = self._is_good_to_go(sample, maxgerr, going_inwards, lexceed)
             if not good_to_go:
                 sample.update()
                 return Isophote(sample, iter+1, True, -1)
 
         # Got to the maximum number of iterations. Return with
-        # code 2, and assume it's still a valid isophote.
+        # code 2, and handle it as a valid isophote.
         sample.update()
         return Isophote(sample, maxit, True, 2)
 

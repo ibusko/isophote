@@ -6,6 +6,7 @@ import numpy as np
 import pyfits
 
 from util import build_test_data
+from util.build_test_data import DEFAULT_POS, DEFAULT_EPS
 from ellipse.geometry import Geometry
 from ellipse.harmonics import fit_1st_and_2nd_harmonics
 from ellipse.sample import Sample, CentralSample
@@ -36,7 +37,7 @@ class TestFitter(unittest.TestCase):
 
         # pick first guess ellipse that is off in just
         # one of the parameters (eps).
-        sample = Sample(test_data, 40., eps=0.4)
+        sample = Sample(test_data, 40., eps=2*DEFAULT_EPS)
         sample.update()
         s = sample.extract()
 
@@ -70,7 +71,7 @@ class TestFitter(unittest.TestCase):
         test_data = build_test_data.build()
 
         # initial guess is off in the eps parameter
-        sample = Sample(test_data, 40., eps=0.4)
+        sample = Sample(test_data, 40., eps=2*DEFAULT_EPS)
         fitter = Fitter(sample)
 
         isophote = fitter.fit()
@@ -96,7 +97,8 @@ class TestFitter(unittest.TestCase):
 
     def test_fitting_xy(self):
 
-        test_data = build_test_data.build(x0=245, y0=245)
+        pos_ = DEFAULT_POS - 5
+        test_data = build_test_data.build(x0=pos_, y0=pos_)
 
         # initial guess is off in the x0 and y0 parameters
         sample = Sample(test_data, 40)
@@ -105,18 +107,18 @@ class TestFitter(unittest.TestCase):
         isophote = fitter.fit()
 
         g = isophote.sample.geometry
-        self.assertGreaterEqual(g.x0, 245 - 1)
-        self.assertLessEqual(g.x0,    245 + 1)
-        self.assertGreaterEqual(g.y0, 245 - 1)
-        self.assertLessEqual(g.y0,    245 + 1)
+        self.assertGreaterEqual(g.x0, pos_ - 1)
+        self.assertLessEqual(g.x0,    pos_ + 1)
+        self.assertGreaterEqual(g.y0, pos_ - 1)
+        self.assertLessEqual(g.y0,    pos_ + 1)
 
     def test_fitting_all(self):
 
         # build test image that is off from the defaults
         # assumed by the Sample constructor.
-        POS = 250
+        POS = DEFAULT_POS - 5
         ANGLE = np.pi / 4
-        EPS = 0.4
+        EPS = 2 * DEFAULT_EPS
         test_data = build_test_data.build(x0=POS, y0=POS, eps=EPS, pa=ANGLE)
 
         # initial guess is off in all parameters. We find that the initial
@@ -161,8 +163,6 @@ class TestFitter(unittest.TestCase):
         fitter = Fitter(sample)
         isophote = fitter.fit()
 
-        isophote.print()
-
         self.assertEqual(isophote.ndata, 118)
         self.assertAlmostEqual(isophote.intens, 685.2, 1)
 
@@ -170,8 +170,6 @@ class TestFitter(unittest.TestCase):
         sample = Sample(test_data, 61.16, eps=0.219, position_angle=((77.5+90)/180*np.pi))
         fitter = Fitter(sample)
         isophote = fitter.fit()
-
-        isophote.print()
 
         self.assertEqual(isophote.ndata, 378)
         self.assertAlmostEqual(isophote.intens, 155.4, 1)
@@ -182,14 +180,15 @@ class TestFitter(unittest.TestCase):
 
         # this code finds central x and y offset by about 0.1 pixel wrt the
         # spp code. In here we use as input the position computed by this
-        # code, and check in here just the extraction algorithm.
+        # code, thus this test is checking just the extraction algorithm.
         g = Geometry(257.02, 258.1, 0.0, 0.0, 0.0, 0.1, False)
         sample = CentralSample(test_data, 0.0, geometry=g)
         fitter = CentralFitter(sample)
 
         isophote = fitter.fit()
 
-        # this code finds the central pixel intensity about
-        # 3% larger than the spp code.
+        # the central pixel intensity is about 3% larger than
+        # found by the spp code.
+        self.assertEqual(isophote.ndata, 1)
         self.assertLessEqual(isophote.intens, 7990.)
         self.assertGreaterEqual(isophote.intens, 7950.)

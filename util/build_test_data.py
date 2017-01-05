@@ -6,8 +6,13 @@ import astropy.io.fits as fits
 
 from ellipse.geometry import Geometry
 
+DEFAULT_SIZE = 512
+DEFAULT_POS = int(DEFAULT_SIZE / 2)
+DEFAULT_EPS = 0.2
+DEFAULT_PA = 0.
 
-def build(nx=512, ny=512, x0=None, y0=None, background=100., noise=1.E-6, i0=100., sma=40., eps=0.2, pa=0.):
+
+def build(nx=DEFAULT_SIZE, ny=DEFAULT_SIZE, x0=None, y0=None, background=100., noise=1.E-6, i0=100., sma=40., eps=DEFAULT_EPS, pa=DEFAULT_PA):
     '''
     Builds artificial image for testing purposes
 
