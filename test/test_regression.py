@@ -30,9 +30,10 @@ class TestRegression(unittest.TestCase):
     we are mainly checking numerical differences that originate in the algorithms
     themselves, and not caused by noise. The quantities compared this way are:
 
-      - mean intensity: 1% max difference for sma > 3 pixels, 5% otherwise
-      - ellipticity: 1% max difference for sma > 3 pixels, 20% otherwise
-      - position angle: 1 deg. max difference for sma > 3 pixels, 20 deg. otherwise
+      - mean intensity: less than 1% diff. for sma > 3 pixels, 5% otherwise
+      - ellipticity: less than 1% diff. for sma > 3 pixels, 20% otherwise
+      - position angle: less than 1 deg. diff. for sma > 3 pixels, 20 deg. otherwise
+      - X and Y position: less than 0.2 pixel diff.
 
     For the M51 image we have mostly good agreement with the spp code in most
     of the parameters (mean isophotal intensity agrees within a fraction of 1%
@@ -149,6 +150,9 @@ class TestRegression(unittest.TestCase):
             print()
 
             if name == "synth_highsnr":
+                self.assertLessEqual(abs(x0_d), 0.21)
+                self.assertLessEqual(abs(y0_d), 0.21)
+
                 if sma_i > 3.:
                     self.assertLessEqual(abs(intens_d), 1.)
                 else:
