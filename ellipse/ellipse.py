@@ -1,12 +1,13 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 from ellipse.sample import Sample, CentralSample
-from ellipse.fitter import Fitter, CentralFitter
+from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED
 from ellipse.isophote import Isophote
 
 from ellipse.integrator import BI_LINEAR
 
 DEFAULT_STEP = 0.1
+FIXED_ELLIPSE = 4
 FAILED_FIT = 5
 
 
@@ -14,17 +15,20 @@ class Ellipse():
     '''
     This class provides the main access point to the isophote fitting algorithm.
     '''
-    def __init__(self, image):
+    def __init__(self, image, geometry=None):
         '''
         Constructor
 
         :param image: np 2-D array
             image array
+        :param geometry: instance of Geometry
+            the optional geometry that describes the first ellipse to be fitted
         '''
         self.image = image
+        self._geometry = geometry
 
     def fit_image(self, sma0=10., minsma=0., maxsma=None, step=DEFAULT_STEP,
-                  integrmode=BI_LINEAR, linear=False, maxrit=None):
+                  integrmode=BI_LINEAR, linear=False, maxrit=None, verbose=False):
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
         to the constructor. This method basically loops over each one of the
@@ -54,6 +58,8 @@ class Ellipse():
             Whenever the current semi-major axis length is larger than
             maxrit, the isophotes wil be just extracted using the current
             geometry, without being fitted. Ignored if None.
+        :param verbose: boolean, default False
+            print iteration info
         :return: list
             this list stores fitted Isophote instances, sorted according
             to the semi-major axis length value.
@@ -70,7 +76,15 @@ class Ellipse():
             isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit, noniterate=noiter)
 
             # check for failed fit.
-            if isophote.stop_code < 0:
+            if isophote.stop_code < 0 or isophote.stop_code == TOO_MANY_FLAGGED:
+
+                # in case the fit failed right at the outset, return an empty
+                # list. This is the usual case when the user provides initial
+                # guesses that are too way off to enable the fitting algorithm
+                # to find any meaningful solution.
+                if len(isophote_list) == 1:
+                    return []
+
                 self._fix_last_isophote(isophote_list, -1)
 
                 # get last isophote from the actual list, since the last
@@ -81,8 +95,9 @@ class Ellipse():
                 # shut off iterative mode. Or, bail out and
                 # change to go inwards.
                 if len(isophote_list) > 1:
-                    if isophote.stop_code == FAILED_FIT and \
-                       isophote_list[-2].stop_code == FAILED_FIT:
+                    if (isophote.stop_code == FAILED_FIT and isophote_list[-2].stop_code == FAILED_FIT) \
+                            or \
+                        isophote.stop_code == TOO_MANY_FLAGGED:
                         if maxsma and maxsma > isophote.sma:
                             # if a maximum sma value was provided by user, and the
                             # current sma is smaller than maxsma, keep growing sma
@@ -91,13 +106,13 @@ class Ellipse():
                         else:
                             # if no maximum sma, stop growing and change
                             # to go inwards. Print from last kept isophote.
-                            isophote.print()
+                            isophote.print(verbose)
                             break
 
             # reset variable from the actual list, since the last
             # 'isophote' instance may no longer be OK.
             isophote = isophote_list[-1]
-            isophote.print()
+            isophote.print(verbose)
 
             # update sma. If exceeded user-defined
             # maximum, bail out from this loop.
@@ -120,7 +135,7 @@ class Ellipse():
             # reset variable from the actual list, since the last
             # 'isophote' instance may no longer be OK.
             isophote = isophote_list[-1]
-            isophote.print()
+            isophote.print(verbose)
 
             # figure out next sma; if exceeded user-defined
             # minimum, or too small, bail out from this loop
@@ -131,7 +146,7 @@ class Ellipse():
         # if user asked for minsma=0, extract special isophote there
         if minsma == 0.0:
             isophote = self.fit_isophote(isophote_list, 0.0, step, integrmode, linear)
-            isophote.print()
+            isophote.print(verbose)
 
         # sort list of isophotes according to sma
         isophote_list.sort()
@@ -187,7 +202,7 @@ class Ellipse():
         '''
         # if available, geometry from last fitted isophote will be
         # used as initial guess for next isophote.
-        geometry = None
+        geometry = self._geometry
         if len(isophote_list) > 0:
             geometry = isophote_list[-1].sample.geometry
 
@@ -232,7 +247,7 @@ class Ellipse():
         sample.update()
 
         # build isophote without iterating with a Fitter
-        isophote = Isophote(sample, 0, True, 4)
+        isophote = Isophote(sample, 0, True, FIXED_ELLIPSE)
 
         return isophote
 
@@ -250,9 +265,13 @@ class Ellipse():
             isophote.sample.values = None
             isophote.sample.update()
 
+            # we take the opportunity to change an eventual
+            # negative stop code to its' positive equivalent.
+            code = FAILED_FIT if isophote.stop_code < 0 else isophote.stop_code
+
             # build new instance so it can have its attributes
             # populated from the updated sample attributes.
-            new_isophote = Isophote(isophote.sample, isophote.niter, isophote.valid, FAILED_FIT)
+            new_isophote = Isophote(isophote.sample, isophote.niter, isophote.valid, code)
 
             # add new isophote to list
             isophote_list.append(new_isophote)

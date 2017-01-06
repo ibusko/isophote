@@ -59,8 +59,6 @@ class TestAngles(unittest.TestCase):
 
             ncount += 1
 
-            # print ('@@@@@@  test_angles.py   line: 62  - ', phi, "  ", sarea, "  ", r3, "  ", r4, "    ", dphi)
-
             self.assertAlmostEqual(sarea, 11.45, 2)
 
             phi = phi + min (phistep, 0.5)

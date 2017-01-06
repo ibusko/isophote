@@ -12,6 +12,7 @@ from ellipse.isophote import Isophote, CentralPixel
 PI2 = np.pi / 2
 MAX_EPS = 0.95
 MIN_EPS = 0.05
+TOO_MANY_FLAGGED = 1
 
 
 class Fitter(object):
@@ -28,7 +29,7 @@ class Fitter(object):
         '''
         self._sample = sample
 
-    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5, going_inwards=False):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.7, maxgerr=0.5, going_inwards=False):
         '''
         Perform the actual fit, returning an Isophote instance:
 
@@ -104,8 +105,8 @@ class Fitter(object):
 
             # it may not have converged yet, but the sample contains too
             # many invalid data points: return.
-            if sample.actual_points < (sample.total_points * (1. - fflag)):
-                return Isophote(sample, iter+1, True, 1)
+            if sample.actual_points < (sample.total_points * fflag):
+                return Isophote(sample, iter+1, True, TOO_MANY_FLAGGED)
 
             # pick appropriate corrector code.
             corrector = _correctors[largest_harmonic_index]
@@ -158,7 +159,6 @@ class Fitter(object):
         if abs(sample.geometry.eps > MAX_EPS) or \
             sample.geometry.x0 < 1. or sample.geometry.x0 > sample.image.shape[0] or \
             sample.geometry.y0 < 1. or sample.geometry.y0 > sample.image.shape[1]:
-            # STOP(al) = ST_NONITERATE
             good_to_go = False
 
         # See if eps == 0 (round isophote) was crossed.
@@ -281,7 +281,7 @@ class CentralFitter(Fitter):
     Derived Fitter class, designed specifically to handle the
     case of the central pixel in the galaxy image.
     '''
-    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.5, maxgerr=0.5, going_inwards=False):
+    def fit(self, conver=0.05, minit=10, maxit=50, fflag=0.7, maxgerr=0.5, going_inwards=False):
         '''
         Overrides the base class to perform just a simple 1-pixel
         extraction at the current x0,y0 position, using bi-linear

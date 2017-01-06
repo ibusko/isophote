@@ -151,27 +151,28 @@ class Isophote:
     def __repr__(self):
         return "sma=%7.2f" % (self.sma)
 
-    def print(self):
-        if self.grad_r_error:
-            s = " %7.2f  %9.2f   % 5.3f  %6.2f    %5.3f  %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
-                                                   self.intens,
-                                                   self.sample.geometry.eps,
-                                                   self.sample.geometry.pa / np.pi * 180.,
-                                                   self.grad_r_error,
-                                                   self.ndata,
-                                                   self.nflag,
-                                                   self.niter,
-                                                   self.stop_code)
-        else:
-            s = " %7.2f  %9.2f   % 5.3f  %6.2f    None   %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
-                                                   self.intens,
-                                                   self.sample.geometry.eps,
-                                                   self.sample.geometry.pa / np.pi * 180.,
-                                                   self.ndata,
-                                                   self.nflag,
-                                                   self.niter,
-                                                   self.stop_code)
-        print(s)
+    def print(self, verbose=False):
+        if verbose:
+            if self.grad_r_error:
+                s = " %7.2f  %9.2f   % 5.3f  %6.2f    %5.3f  %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
+                                                       self.intens,
+                                                       self.sample.geometry.eps,
+                                                       self.sample.geometry.pa / np.pi * 180.,
+                                                       self.grad_r_error,
+                                                       self.ndata,
+                                                       self.nflag,
+                                                       self.niter,
+                                                       self.stop_code)
+            else:
+                s = " %7.2f  %9.2f   % 5.3f  %6.2f    None   %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
+                                                       self.intens,
+                                                       self.sample.geometry.eps,
+                                                       self.sample.geometry.pa / np.pi * 180.,
+                                                       self.ndata,
+                                                       self.nflag,
+                                                       self.niter,
+                                                       self.stop_code)
+            print(s)
 
     def fix_geometry(self, isophote):
         '''
@@ -240,8 +241,9 @@ class CentralPixel(Isophote):
         self.a3 = self.b3 = None
         self.a4 = self.b4 = None
 
-    def print(self):
-        s = "    0.00  %9.2f"% (self.intens)
-        print(s)
+    def print(self, verbose=False):
+        if verbose:
+            s = "    0.00  %9.2f"% (self.intens)
+            print(s)
 
 
