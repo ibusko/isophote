@@ -6,6 +6,7 @@ import numpy as np
 
 from util import build_test_data
 from ellipse.geometry import Geometry
+from ellipse.integrator import MEAN
 from ellipse.fitter import TOO_MANY_FLAGGED
 from ellipse.ellipse import Ellipse, FIXED_ELLIPSE, FAILED_FIT
 from ellipse.isophote import Isophote
@@ -16,10 +17,11 @@ from util.build_test_data import DEFAULT_POS, DEFAULT_SIZE, DEFAULT_EPS
 POS = DEFAULT_POS + DEFAULT_SIZE / 4
 PA = 10. / 180. * np.pi
 
-# build off-center test data. Make the first guess
-# geometry slightly offset from the actual image.
+# build off-center test data. It's fine to have a single np array
+# to use in all tests that need it, but do not use a single instance
+# of Geometry. The code may eventually modify it's contents. The safe
+# bet is to build it wherever it's needed. The cost is negligible.
 OFFSET_GALAXY = build_test_data.build(x0=POS, y0=POS, pa=PA, noise=1.E-12)
-OFFSET_GEOMETRY = Geometry(POS+5, POS+5, 10., DEFAULT_EPS, PA, 0.1, False)
 
 
 class TestEllipse(unittest.TestCase):
@@ -54,7 +56,8 @@ class TestEllipse(unittest.TestCase):
     def test_offcenter_fit(self):
         # A first guess ellipse that is roughly centered on the
         # offset galaxy image.
-        ellipse = Ellipse(OFFSET_GALAXY, geometry=OFFSET_GEOMETRY)
+        g = Geometry(POS+5, POS+5, 10., DEFAULT_EPS, PA, 0.1, False)
+        ellipse = Ellipse(OFFSET_GALAXY, geometry=g)
         isophote_list = ellipse.fit_image()
 
         # the fit should stop when too many potential sample
@@ -65,7 +68,8 @@ class TestEllipse(unittest.TestCase):
     def test_offcenter_go_beyond_frame(self):
         # Same as before, but now force the fit to goo
         # beyond the image frame limits.
-        ellipse = Ellipse(OFFSET_GALAXY, geometry=OFFSET_GEOMETRY)
+        g = Geometry(POS+5, POS+5, 10., DEFAULT_EPS, PA, 0.1, False)
+        ellipse = Ellipse(OFFSET_GALAXY, geometry=g)
         isophote_list = ellipse.fit_image(maxsma=400.)
 
         # the fit should go to maxsma, but with fixed geometry
