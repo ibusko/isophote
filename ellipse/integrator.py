@@ -244,17 +244,8 @@ class AreaIntegrator(Integrator):
 
     def get_polar_angle_step(self):
         phi1, phi2 = self._geometry.polar_angle_sector_limits()
-
-
-        # phistep = dphi / 2. + phi2 - phi
-
         phistep = self._geometry.sector_angular_width / 2. + phi2 - self._phi
-
-
-        # return self._phistep
         return phistep
-
-
 
     def get_sector_area(self):
         return self._sector_area

@@ -8,6 +8,7 @@ import pyfits
 from util import build_test_data
 from util.build_test_data import DEFAULT_POS, DEFAULT_EPS
 from ellipse.geometry import Geometry
+from ellipse.integrator import MEAN, MEDIAN
 from ellipse.harmonics import fit_1st_and_2nd_harmonics
 from ellipse.sample import Sample, CentralSample
 from ellipse.isophote import Isophote
@@ -121,10 +122,12 @@ class TestFitter(unittest.TestCase):
         EPS = 2 * DEFAULT_EPS
         test_data = build_test_data.build(x0=POS, y0=POS, eps=EPS, pa=ANGLE)
 
+        sma = 60.
+
         # initial guess is off in all parameters. We find that the initial
         # guesses, especially for position angle, must be kinda close to the
         # actual value. 20% off max seems to work in this case of high SNR.
-        sample = Sample(test_data, 40, position_angle=(1.2 * ANGLE))
+        sample = Sample(test_data, sma, position_angle=(1.2 * ANGLE))
 
         fitter = Fitter(sample)
         isophote = fitter.fit()
@@ -140,6 +143,21 @@ class TestFitter(unittest.TestCase):
         self.assertLessEqual(g.eps,    EPS + 0.01)
         self.assertGreaterEqual(g.pa, ANGLE - 0.05)   # pa within 5 deg
         self.assertLessEqual(g.pa,    ANGLE + 0.05)
+
+        sample_m = Sample(test_data, sma, position_angle=(1.2 * ANGLE), integrmode=MEAN)
+
+        fitter_m = Fitter(sample_m)
+        isophote_m = fitter_m.fit()
+
+        self.assertEqual(isophote_m.stop_code, 0)
+
+
+        print("@@@@@@  file test_fitter.py; line 152 -  intens   ",  isophote.intens, isophote_m.intens)
+        print("@@@@@@  file test_fitter.py; line 152 -  rms      ",  isophote.rms, isophote_m.rms)
+        print("@@@@@@  file test_fitter.py; line 152 -  pix var  ",  isophote.pix_var, isophote_m.pix_var)
+        print("@@@@@@  file test_fitter.py; line 152 -  int_err  ",  isophote.int_err, isophote_m.int_err)
+        print("@@@@@@  file test_fitter.py; line 153 -  ndata    ",  isophote.ndata, isophote_m.ndata)
+        print("@@@@@@  file test_fitter.py; line 154 -  sarea    ",  isophote.sarea, isophote_m.sarea)
 
     def test_m51(self):
         image = pyfits.open("data/M51.fits")
