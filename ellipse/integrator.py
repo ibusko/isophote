@@ -95,7 +95,7 @@ class NearestNeighborIntegrator(Integrator):
             self._store_results(phi, radius, sample)
 
     def get_polar_angle_step(self):
-        return 2. / self._r
+        return 1. / self._r
 
     def get_sector_area(self):
         return 1.
