@@ -63,16 +63,16 @@ class TestIntegrator(unittest.TestCase):
 
         s = self._init_test(integrmode=NEAREST_NEIGHBOR)
 
-        self.assertEqual(len(s[0]), 112)
+        self.assertEqual(len(s[0]), 223)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 201.23, 2)
-        self.assertAlmostEqual(np.std(s[2]),  21.88, 2)
+        self.assertAlmostEqual(np.mean(s[2]), 201.2, 1)
+        self.assertAlmostEqual(np.std(s[2]),  21.9, 1)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.0, 2)
         self.assertAlmostEqual(np.min(s[1]), 32.0, 2)
 
-        self.assertEqual(self.sample.total_points, 112)
-        self.assertEqual(self.sample.actual_points, 112)
+        self.assertEqual(self.sample.total_points, 223)
+        self.assertEqual(self.sample.actual_points, 223)
 
     def test_mean(self):
 
@@ -80,15 +80,31 @@ class TestIntegrator(unittest.TestCase):
 
         self.assertEqual(len(s[0]), 64)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 199.73, 2)
-        self.assertAlmostEqual(np.std(s[2]),  21.36, 2)
+        self.assertAlmostEqual(np.mean(s[2]), 199.9, 1)
+        self.assertAlmostEqual(np.std(s[2]),  21.3, 1)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.00, 2)
         self.assertAlmostEqual(np.min(s[1]), 32.01, 2)
 
-        self.assertAlmostEqual(self.sample.sector_area, 12.5, 1)
+        self.assertAlmostEqual(self.sample.sector_area, 12.4, 1)
         self.assertEqual(self.sample.total_points, 64)
         self.assertEqual(self.sample.actual_points, 64)
+
+    def test_mean_small(self):
+
+        s = self._init_test(sma=5., integrmode=MEAN)
+
+        self.assertEqual(len(s[0]), 28)
+        # intensities
+        self.assertAlmostEqual(np.mean(s[2]), 2348.8, 1)
+        self.assertAlmostEqual(np.std(s[2]),  295.8, 1)
+        # radii
+        self.assertAlmostEqual(np.max(s[1]), 5.00, 2)
+        self.assertAlmostEqual(np.min(s[1]), 4.00, 2)
+
+        self.assertAlmostEqual(self.sample.sector_area, 2.0, 1)
+        self.assertEqual(self.sample.total_points, 28)
+        self.assertEqual(self.sample.actual_points, 28)
 
     def test_median(self):
 
@@ -96,12 +112,12 @@ class TestIntegrator(unittest.TestCase):
 
         self.assertEqual(len(s[0]), 64)
         # intensities
-        self.assertAlmostEqual(np.mean(s[2]), 200.02, 2)
-        self.assertAlmostEqual(np.std(s[2]),  21.32, 2)
+        self.assertAlmostEqual(np.mean(s[2]), 199.9, 1)
+        self.assertAlmostEqual(np.std(s[2]),  21.3, 1)
         # radii
         self.assertAlmostEqual(np.max(s[1]), 40.00, 2)
         self.assertAlmostEqual(np.min(s[1]), 32.01, 2)
 
-        self.assertAlmostEqual(self.sample.sector_area, 12.5, 1)
+        self.assertAlmostEqual(self.sample.sector_area, 12.4, 1)
         self.assertEqual(self.sample.total_points, 64)
         self.assertEqual(self.sample.actual_points, 64)

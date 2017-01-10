@@ -154,6 +154,25 @@ class Sample(object):
         radius = self.geometry.initial_polar_radius
         phi = self.geometry.initial_polar_angle
 
+        # In case of an area integrator, ask the integrator to deliver a hint of how much
+        # area the sectors will have. In case of too small areas, tests showed that the
+        # area integrators (mean, median) won't perform properly. In that case, we override
+        # the caller's selection and use the bi-linear integrator regardless.
+        if integrator.is_area():
+            integrator.integrate(radius, phi)
+            area = integrator.get_sector_area()
+            # this integration that just took place messes up with the storage
+            # arrays and the constructors. We have to build a new integrator
+            # instance from scratch, even if it is the same kind as originally
+            # selected by the caller.
+            angles = []
+            radii = []
+            intensities = []
+            if area < 1.0:
+                integrator = integrators[BI_LINEAR](self.image, self.geometry, angles, radii, intensities)
+            else:
+                integrator = integrators[self.integrmode](self.image, self.geometry, angles, radii, intensities)
+
         # walk along elliptical path, integrating at specified
         # places defined by polar vector.
         while (phi < np.pi*2.):
@@ -175,7 +194,7 @@ class Sample(object):
             radius = self.geometry.radius(phi)
 
         # average sector area is calculated after the integrator had
-        # the opportunity  to step over the entire elliptical path.
+        # the opportunity to step over the entire elliptical path.
         self.sector_area = np.mean(np.array(sector_areas))
 
         # actual number of sampled points
