@@ -154,7 +154,7 @@ class TestFitter(unittest.TestCase):
 
         print("@@@@@@  file test_fitter.py; line 152 -  intens   ",  isophote.intens, isophote_m.intens)
         print("@@@@@@  file test_fitter.py; line 152 -  rms      ",  isophote.rms, isophote_m.rms)
-        print("@@@@@@  file test_fitter.py; line 152 -  pix var  ",  isophote.pix_var, isophote_m.pix_var)
+        print("@@@@@@  file test_fitter.py; line 152 -  pix var  ",  isophote.pix_stddev, isophote_m.pix_stddev)
         print("@@@@@@  file test_fitter.py; line 152 -  int_err  ",  isophote.int_err, isophote_m.int_err)
         print("@@@@@@  file test_fitter.py; line 153 -  ndata    ",  isophote.ndata, isophote_m.ndata)
         print("@@@@@@  file test_fitter.py; line 154 -  sarea    ",  isophote.sarea, isophote_m.sarea)

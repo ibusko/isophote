@@ -50,8 +50,8 @@ class Isophote:
             root-mean-sq of intensity values along the elliptical path
         :param int_err: float
             error of the mean (rms / sqrt(# data points)))
-        :param pix_var: float
-            estimate of pixel variance (rms * sqrt(average sector integration area))
+        :param pix_stddev: float
+            estimate of pixel standard deviation (rms * sqrt(average sector integration area))
         :param grad: float
             local radial intensity gradient
         :param grad_error: float
@@ -77,7 +77,7 @@ class Isophote:
         self.intens = sample.mean
         self.rms = np.std(sample.values[2])
         self.int_err = self.rms / np.sqrt(sample.actual_points)
-        self.pix_var = self.rms * np.sqrt(sample.sector_area)
+        self.pix_stddev = self.rms * np.sqrt(sample.sector_area)
         self.grad = sample.gradient
         self.grad_error = sample.gradient_error
 
@@ -228,7 +228,7 @@ class CentralPixel(Isophote):
 
         self.rms = None
         self.int_err = None
-        self.pix_var = None
+        self.pix_stddev = None
         self.grad = None
         self.grad_error = None
         self.grad_r_error = None

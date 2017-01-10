@@ -95,7 +95,7 @@ class TestRegression(unittest.TestCase):
             sma_i = iso.sample.geometry.sma
             intens_i = iso.intens
             int_err_i = iso.int_err if iso.int_err else 0.
-            pix_var_i = iso.pix_var if iso.pix_var else 0.
+            pix_stddev_i = iso.pix_stddev if iso.pix_stddev else 0.
             rms_i = iso.rms if iso.rms else 0.
             ellip_i = iso.sample.geometry.eps if iso.sample.geometry.eps else 0.
             pa_i = iso.sample.geometry.pa if iso.sample.geometry.pa else 0.
@@ -116,7 +116,7 @@ class TestRegression(unittest.TestCase):
             sma_t = table['SMA'][row]
             intens_t = table['INTENS'][row]
             int_err_t = table['INT_ERR'][row]
-            pix_var_t = table['PIX_VAR'][row]
+            pix_stddev_t = table['PIX_VAR'][row]
             rms_t = table['RMS'][row]
             ellip_t = table['ELLIP'][row]
             pa_t = table['PA'][row]
@@ -132,7 +132,7 @@ class TestRegression(unittest.TestCase):
             sma_d = (sma_i - sma_t) / sma_t * 100.
             intens_d = (intens_i - intens_t) / intens_t * 100.
             int_err_d = (int_err_i - int_err_t) / int_err_t * 100.
-            pix_var_d = (pix_var_i - pix_var_t) / pix_var_t * 100.
+            pix_stddev_d = (pix_stddev_i - pix_stddev_t) / pix_stddev_t * 100.
             rms_d = (rms_i - rms_t) / rms_t * 100.
             ellip_d = (ellip_i - ellip_t) / ellip_t * 100.
             pa_d = pa_i - pa_t  # diff in angle is absolute
@@ -144,9 +144,9 @@ class TestRegression(unittest.TestCase):
             niter_d = 0
             stop_d = 0 if stop_i == stop_t else -1
 
-            print("* data "+format % (sma_i, intens_i, int_err_i, pix_var_i, rms_i, ellip_i, pa_i, x0_i, y0_i, rerr_i, ndata_i, nflag_i, niter_i, stop_i))
-            print("  ref  "+format % (sma_t, intens_t, int_err_t, pix_var_t, rms_t, ellip_t, pa_t, x0_t, y0_t, rerr_t, ndata_t, nflag_t, niter_t, stop_t))
-            print("  diff "+format % (sma_d, intens_d, int_err_d, pix_var_d, rms_d, ellip_d, pa_d, x0_d, y0_d, rerr_d, ndata_d, nflag_d, niter_d, stop_d))
+            print("* data "+format % (sma_i, intens_i, int_err_i, pix_stddev_i, rms_i, ellip_i, pa_i, x0_i, y0_i, rerr_i, ndata_i, nflag_i, niter_i, stop_i))
+            print("  ref  "+format % (sma_t, intens_t, int_err_t, pix_stddev_t, rms_t, ellip_t, pa_t, x0_t, y0_t, rerr_t, ndata_t, nflag_t, niter_t, stop_t))
+            print("  diff "+format % (sma_d, intens_d, int_err_d, pix_stddev_d, rms_d, ellip_d, pa_d, x0_d, y0_d, rerr_d, ndata_d, nflag_d, niter_d, stop_d))
             print()
 
             if name == "synth_highsnr":

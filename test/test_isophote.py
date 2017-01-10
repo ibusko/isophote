@@ -23,14 +23,14 @@ class TestIsophote(unittest.TestCase):
         self.assertTrue(iso.stop_code == 0 or iso.stop_code == 2)
 
         # fitted values
-        self.assertLessEqual(iso.intens,      201., 2)
-        self.assertGreaterEqual(iso.intens,   199., 2)
-        self.assertLessEqual(iso.int_err,      0.0010, 2)
-        self.assertGreaterEqual(iso.int_err,   0.0009, 2)
-        self.assertLessEqual(iso.pix_var,      0.03, 2)
-        self.assertGreaterEqual(iso.pix_var,   0.02, 2)
-        self.assertLessEqual(abs(iso.grad),    4.25, 2)
-        self.assertGreaterEqual(abs(iso.grad), 4.20, 2)
+        self.assertLessEqual(iso.intens,        201., 2)
+        self.assertGreaterEqual(iso.intens,     199., 2)
+        self.assertLessEqual(iso.int_err,       0.0010, 2)
+        self.assertGreaterEqual(iso.int_err,    0.0009, 2)
+        self.assertLessEqual(iso.pix_stddev,    0.03, 2)
+        self.assertGreaterEqual(iso.pix_stddev, 0.02, 2)
+        self.assertLessEqual(abs(iso.grad),     4.25, 2)
+        self.assertGreaterEqual(abs(iso.grad),  4.20, 2)
 
         # integrals
         self.assertLessEqual(iso.tflux_e,    1.85E6, 2)
@@ -68,11 +68,11 @@ class TestIsophote(unittest.TestCase):
         self.assertLessEqual(g.pa,     0.62 + 0.05)
 
         # fitted values
-        self.assertAlmostEqual(iso.intens,  674.1,  1)
-        self.assertAlmostEqual(iso.rms,      85.38, 2)
-        self.assertAlmostEqual(iso.int_err,   7.79, 2)
-        self.assertAlmostEqual(iso.pix_var,  120.7, 1)
-        self.assertAlmostEqual(iso.grad,    -34.49, 2)
+        self.assertAlmostEqual(iso.intens,     674.1,  1)
+        self.assertAlmostEqual(iso.rms,         85.38, 2)
+        self.assertAlmostEqual(iso.int_err,      7.79, 2)
+        self.assertAlmostEqual(iso.pix_stddev, 120.7,  1)
+        self.assertAlmostEqual(iso.grad,       -34.49, 2)
 
         # integrals
         self.assertLessEqual(iso.tflux_e,    1.21E6, 2)
