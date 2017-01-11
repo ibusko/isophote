@@ -53,11 +53,15 @@ class TestRegression(unittest.TestCase):
 
     For now, we can only check the bi-linear integration mode. The mean and median
     modes cannot be checked since the original 'ellipse' task has a bug that causes
-    the creation of erroneous output tables. We need to write code that reads the
-    standard output of 'ellipse' instead, captured from screen, and use it as
-    reference.
+    the creation of erroneous output tables. A partial comparison could be made if we
+    write new code that reads the standard output of 'ellipse' instead, captured from
+    screen, and use it as reference for the regression.
     '''
+
     def test_regression(self):
+
+        self.integrmode = BI_LINEAR
+        # self.integrmode = MEAN
 
         # self._do_regression("M51")
         # self._do_regression("synth")
@@ -79,8 +83,8 @@ class TestRegression(unittest.TestCase):
         image = fits.open(DATA + name + ".fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
-        isophote_list = ellipse.fit_image(verbose=True)
-        # isophote_list = ellipse.fit_image(integrmode=MEAN)
+        # isophote_list = ellipse.fit_image(verbose=True)
+        isophote_list = ellipse.fit_image(verbose=True, integrmode=self.integrmode)
 
         format = "%5.2f  %6.1f    %8.3f %8.3f %8.3f        %9.5f  %6.2f   %6.2f %6.2f   %5.2f   %4d  %3d  %3d  %2d"
 
@@ -149,7 +153,7 @@ class TestRegression(unittest.TestCase):
             print("  diff "+format % (sma_d, intens_d, int_err_d, pix_stddev_d, rms_d, ellip_d, pa_d, x0_d, y0_d, rerr_d, ndata_d, nflag_d, niter_d, stop_d))
             print()
 
-            if name == "synth_highsnr":
+            if name == "synth_highsnr" and self.integrmode == BI_LINEAR:
                 self.assertLessEqual(abs(x0_d), 0.21)
                 self.assertLessEqual(abs(y0_d), 0.21)
 
