@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import unittest
 
 import numpy as np
-import pyfits
+from astropy.io import fits
 
 from ellipse.sample import Sample
 from ellipse.integrator import NEAREST_NEIGHBOR, BI_LINEAR, MEAN, MEDIAN
@@ -13,7 +13,7 @@ class TestIntegrator(unittest.TestCase):
 
     def _init_test(self, integrmode=BI_LINEAR, sma=40.):
 
-        image = pyfits.open("data/synth_highsnr.fits")
+        image = fits.open("data/synth_highsnr.fits")
         test_data = image[0].data
 
         self.sample = Sample(test_data, sma, integrmode=integrmode)

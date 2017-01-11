@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import unittest
 
-import pyfits
+from astropy.io import fits
 
 from util import build_test_data
 from ellipse.sample import Sample
@@ -46,7 +46,7 @@ class TestIsophote(unittest.TestCase):
 
     def test_m51(self):
 
-        image = pyfits.open("data/M51.fits")
+        image = fits.open("data/M51.fits")
         test_data = image[0].data
 
         sample = Sample(test_data, 21.44)
@@ -90,7 +90,7 @@ class TestIsophote(unittest.TestCase):
         # compares with old STSDAS task. In this task, the
         # default for the starting value of SMA is 10; it
         # fits with 20 iterations.
-        image = pyfits.open("data/M51.fits")
+        image = fits.open("data/M51.fits")
         test_data = image[0].data
 
         sample = Sample(test_data, 10)

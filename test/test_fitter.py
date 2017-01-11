@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import unittest
 
 import numpy as np
-import pyfits
+from astropy.io import fits
 
 from util import build_test_data
 from util.build_test_data import DEFAULT_POS, DEFAULT_EPS
@@ -160,7 +160,7 @@ class TestFitter(unittest.TestCase):
         print("@@@@@@  file test_fitter.py; line 154 -  sarea    ",  isophote.sarea, isophote_m.sarea)
 
     def test_m51(self):
-        image = pyfits.open("data/M51.fits")
+        image = fits.open('data/M51.fits')
         test_data = image[0].data
 
         #
@@ -193,7 +193,7 @@ class TestFitter(unittest.TestCase):
         self.assertAlmostEqual(isophote.intens, 155.4, 1)
 
     def test_m51_central(self):
-        image = pyfits.open("data/M51.fits")
+        image = fits.open("data/M51.fits")
         test_data = image[0].data
 
         # this code finds central x and y offset by about 0.1 pixel wrt the

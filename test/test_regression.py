@@ -3,8 +3,8 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import math
 import unittest
 
-import pyfits
 import numpy as np
+from astropy.io import fits
 
 from astropy.table import Table
 
@@ -76,7 +76,7 @@ class TestRegression(unittest.TestCase):
         nrows = len(table['SMA'])
         print(table.columns)
 
-        image = pyfits.open(DATA + name + ".fits")
+        image = fits.open(DATA + name + ".fits")
         test_data = image[0].data
         ellipse = Ellipse(test_data)
         isophote_list = ellipse.fit_image(verbose=True)
