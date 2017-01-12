@@ -286,10 +286,7 @@ class IsophoteList(Isophote):
         return self._list
 
     def _collect_as_array(self, attr_name):
-        result = []
-        for k in range(len(self._list)):
-            result.append(self._list[k].__dict__[attr_name])
-        return np.array(result)
+        return np.array(self._collect_as_list(attr_name))
 
     def _collect_as_list(self, attr_name):
         result = []
