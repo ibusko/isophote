@@ -257,3 +257,27 @@ class CentralPixel(Isophote):
             print(s)
 
 
+class IsophoteList(Isophote):
+    '''
+    This class is a convenience container that provides the same attributes
+    that the Isophote class offers, except that scalar attributes are replaced
+    by numpy array attributes. These arrays reflect the values of the given
+    attribute across the entire list of Isophote instances provided at constructor
+    time.
+    '''
+    def __init__(self, iso_list):
+        '''
+        Builds an IsophoteList instance from a (python) list
+        of Isophote instances.
+
+        :param iso_list: list
+            a list with Isophote instances
+        '''
+        self._list = iso_list
+
+    def as_list(self):
+        return self._list
+
+    # @property
+    # def intens(self):
+    #     return self._collect('intens')

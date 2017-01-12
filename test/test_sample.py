@@ -22,10 +22,10 @@ class TestSample(unittest.TestCase):
 
         self.test_data = build_test_data.build(background=100., i0=0., noise=10.)
 
-        self._doit(NEAREST_NEIGHBOR, 8., 11.)
-        self._doit(BI_LINEAR,        8., 11.)
-        self._doit(MEAN,             8., 11.)
-        self._doit(MEDIAN,           7., 13.) # the median is not so good at estimating rms
+        self._doit(NEAREST_NEIGHBOR, 8., 12.)
+        self._doit(BI_LINEAR,        8., 12.)
+        self._doit(MEAN,             8., 12.)
+        self._doit(MEDIAN,           7., 14.) # the median is not so good at estimating rms
 
     def _doit(self, integrmode, amin, amax):
         sample = Sample(self.test_data, 50., astep=0.2, integrmode=integrmode)

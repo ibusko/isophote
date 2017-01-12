@@ -151,14 +151,6 @@ class TestFitter(unittest.TestCase):
 
         self.assertEqual(isophote_m.stop_code, 0)
 
-
-        print("@@@@@@  file test_fitter.py; line 152 -  intens   ",  isophote.intens, isophote_m.intens)
-        print("@@@@@@  file test_fitter.py; line 152 -  rms      ",  isophote.rms, isophote_m.rms)
-        print("@@@@@@  file test_fitter.py; line 152 -  pix var  ",  isophote.pix_stddev, isophote_m.pix_stddev)
-        print("@@@@@@  file test_fitter.py; line 152 -  int_err  ",  isophote.int_err, isophote_m.int_err)
-        print("@@@@@@  file test_fitter.py; line 153 -  ndata    ",  isophote.ndata, isophote_m.ndata)
-        print("@@@@@@  file test_fitter.py; line 154 -  sarea    ",  isophote.sarea, isophote_m.sarea)
-
     def test_m51(self):
         image = fits.open('data/M51.fits')
         test_data = image[0].data

@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 from ellipse.sample import Sample, CentralSample
 from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED
-from ellipse.isophote import Isophote, print_header
+from ellipse.isophote import Isophote, IsophoteList, print_header
 
 from ellipse.integrator import BI_LINEAR
 
@@ -34,7 +34,7 @@ class Ellipse():
         to the constructor. This method basically loops over each one of the
         values of semi-major axis length (sma) constructed from the input parameters,
         and fits one isophote at each sma, returning the entire set of isophotes in
-        a sorted list.
+        a sorted IsophoteList instance.
 
         :param sma0: float, default = 10.
             starting value for the semi-major axis length (pixels)
@@ -60,7 +60,7 @@ class Ellipse():
             geometry, without being fitted. Ignored if None.
         :param verbose: boolean, default False
             print iteration info
-        :return: list
+        :return: IsophoteList instance
             this list stores fitted Isophote instances, sorted according
             to the semi-major axis length value.
         '''
@@ -85,7 +85,7 @@ class Ellipse():
                 # guesses that are too way off to enable the fitting algorithm
                 # to find any meaningful solution.
                 if len(isophote_list) == 1:
-                    return []
+                    return IsophoteList([])
 
                 self._fix_last_isophote(isophote_list, -1)
 
@@ -153,7 +153,7 @@ class Ellipse():
         # sort list of isophotes according to sma
         isophote_list.sort()
 
-        return isophote_list
+        return IsophoteList(isophote_list)
 
     def fit_isophote(self, isophote_list, sma, step=DEFAULT_STEP, integrmode=BI_LINEAR,
                      linear=False, maxrit=None, noniterate=False, going_inwards=False):
