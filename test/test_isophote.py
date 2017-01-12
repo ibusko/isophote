@@ -2,11 +2,13 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import unittest
 
+import numpy as np
 from astropy.io import fits
 
 from util import build_test_data
 from ellipse.sample import Sample
 from ellipse.fitter import Fitter
+from ellipse.isophote import Isophote, IsophoteList
 
 
 class TestIsophote(unittest.TestCase):
@@ -99,5 +101,25 @@ class TestIsophote(unittest.TestCase):
 
         self.assertTrue(iso.valid)
         self.assertEqual(iso.niter, 20)
+
+class TestIsophoteList(unittest.TestCase):
+
+    def test_isophote_list(self):
+        test_data = build_test_data.build()
+        iso_list = []
+        for k in range(10):
+            sample = Sample(test_data, float(k+10.))
+            sample.update(0.1)
+            iso_list.append(Isophote(sample, k, True, 0))
+
+        result = IsophoteList(iso_list)
+
+        intens = result.intens
+        self.assertEqual(type(intens), type(np.array([])))
+
+        samples = result.sample
+        self.assertIsInstance(samples, list)
+        self.assertIsInstance(samples[0], Sample)
+
 
 
