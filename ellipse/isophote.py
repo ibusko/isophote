@@ -276,8 +276,84 @@ class IsophoteList(Isophote):
         self._list = iso_list
 
     def as_list(self):
+        '''
+        Returns the contents of the instance as a list of
+        Isophote instances.
+
+        :return: list
+            list with Isophote instances.
+        '''
         return self._list
 
-    # @property
-    # def intens(self):
-    #     return self._collect('intens')
+    def _collect_as_array(self, attr_name):
+        result = []
+        for k in range(len(self._list)):
+            result.append(self._list[k].__dict__[attr_name])
+        return np.array(result)
+
+    def _collect_as_list(self, attr_name):
+        result = []
+        for k in range(len(self._list)):
+            result.append(self._list[k].__dict__[attr_name])
+        return result
+
+    @property
+    def intens(self):
+        return self._collect_as_array('intens')
+    @property
+    def rms(self):
+        return self._collect_as_array('rms')
+    @property
+    def int_err(self):
+        return self._collect_as_array('int_err')
+    @property
+    def pix_stddev(self):
+        return self._collect_as_array('pix_stddev')
+    @property
+    def grad(self):
+        return self._collect_as_array('grad')
+    @property
+    def grad_error(self):
+        return self._collect_as_array('grad_error')
+    @property
+    def grad_r_error(self):
+        return self._collect_as_array('grad_r_error')
+    @property
+    def sarea(self):
+        return self._collect_as_array('sarea')
+    @property
+    def ndata(self):
+        return self._collect_as_array('ndata')
+    @property
+    def nflag(self):
+        return self._collect_as_array('nflag')
+    @property
+    def tflux_e(self):
+        return self._collect_as_array('tflux_e')
+    @property
+    def tflux_c(self):
+        return self._collect_as_array('tflux_c')
+    @property
+    def npix_e(self):
+        return self._collect_as_array('npix_e')
+    @property
+    def npix_c(self):
+        return self._collect_as_array('npix_c')
+    @property
+    def a3(self):
+        return self._collect_as_array('a3')
+    @property
+    def b3(self):
+        return self._collect_as_array('b3')
+    @property
+    def a4(self):
+        return self._collect_as_array('a4')
+    @property
+    def b4(self):
+        return self._collect_as_array('b4')
+
+    @property
+    def sample(self):
+        return self._collect_as_list('sample')
+
+
