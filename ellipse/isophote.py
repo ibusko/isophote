@@ -295,6 +295,10 @@ class IsophoteList(Isophote):
         return result
 
     @property
+    def sample(self):
+        return self._collect_as_list('sample')
+
+    @property
     def intens(self):
         return self._collect_as_array('intens')
     @property
@@ -325,6 +329,15 @@ class IsophoteList(Isophote):
     def nflag(self):
         return self._collect_as_array('nflag')
     @property
+    def niter(self):
+        return self._collect_as_array('niter')
+    @property
+    def valid(self):
+        return self._collect_as_array('valid')
+    @property
+    def stop_code(self):
+        return self._collect_as_array('stop_code')
+    @property
     def tflux_e(self):
         return self._collect_as_array('tflux_e')
     @property
@@ -348,9 +361,5 @@ class IsophoteList(Isophote):
     @property
     def b4(self):
         return self._collect_as_array('b4')
-
-    @property
-    def sample(self):
-        return self._collect_as_list('sample')
 
 

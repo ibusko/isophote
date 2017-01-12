@@ -114,8 +114,28 @@ class TestIsophoteList(unittest.TestCase):
 
         result = IsophoteList(iso_list)
 
-        intens = result.intens
-        self.assertEqual(type(intens), type(np.array([])))
+        array = np.array([])
+        self.assertEqual(type(result.intens), type(array))
+        self.assertEqual(type(result.rms), type(array))
+        self.assertEqual(type(result.int_err), type(array))
+        self.assertEqual(type(result.pix_stddev), type(array))
+        self.assertEqual(type(result.grad), type(array))
+        self.assertEqual(type(result.grad_error), type(array))
+        self.assertEqual(type(result.grad_r_error), type(array))
+        self.assertEqual(type(result.sarea), type(array))
+        self.assertEqual(type(result.niter), type(array))
+        self.assertEqual(type(result.ndata), type(array))
+        self.assertEqual(type(result.nflag), type(array))
+        self.assertEqual(type(result.valid), type(array))
+        self.assertEqual(type(result.stop_code), type(array))
+        self.assertEqual(type(result.tflux_c), type(array))
+        self.assertEqual(type(result.tflux_e), type(array))
+        self.assertEqual(type(result.npix_c), type(array))
+        self.assertEqual(type(result.npix_e), type(array))
+        self.assertEqual(type(result.a3), type(array))
+        self.assertEqual(type(result.a4), type(array))
+        self.assertEqual(type(result.b3), type(array))
+        self.assertEqual(type(result.b4), type(array))
 
         samples = result.sample
         self.assertIsInstance(samples, list)
