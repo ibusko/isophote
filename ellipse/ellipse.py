@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 from ellipse.sample import Sample, CentralSample
 from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED
-from ellipse.isophote import Isophote
+from ellipse.isophote import Isophote, print_header
 
 from ellipse.integrator import BI_LINEAR
 
@@ -67,6 +67,8 @@ class Ellipse():
 
         # multiple fitted isophotes will be stored here
         isophote_list = []
+
+        print_header(verbose)
 
         # first, go from initial sma outwards until
         # hitting one of several stopping criteria.

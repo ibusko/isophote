@@ -5,6 +5,16 @@ import numpy as np
 from ellipse.harmonics import fit_upper_harmonic
 
 
+def print_header(verbose=False):
+    if verbose:
+        print('#')
+        print('# Semi-    Isophote      Ellipticity   Position    Grad.  Data  Flag  Iter. Stop')
+        print('# major      mean                       Angle       rel.                    code')
+        print('# axis     intensity                               error')
+        print('#(pixel)                               (degree)')
+        print('#')
+
+
 class Isophote:
 
     def __init__(self, sample, niter, valid, stop_code):
@@ -154,7 +164,7 @@ class Isophote:
     def print(self, verbose=False):
         if verbose:
             if self.grad_r_error:
-                s = " %7.2f  %9.2f   % 5.3f  %6.2f    %5.3f  %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
+                s = "%7.2f   %9.2f       % 5.3f       %6.2f      %5.3f  %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
                                                        self.intens,
                                                        self.sample.geometry.eps,
                                                        self.sample.geometry.pa / np.pi * 180.,
@@ -164,7 +174,7 @@ class Isophote:
                                                        self.niter,
                                                        self.stop_code)
             else:
-                s = " %7.2f  %9.2f   % 5.3f  %6.2f    None   %4i  %4i  %4i  %4i"% (self.sample.geometry.sma,
+                s = "%7.2f   %9.2f       % 5.3f       %6.2f      None   %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
                                                        self.intens,
                                                        self.sample.geometry.eps,
                                                        self.sample.geometry.pa / np.pi * 180.,
@@ -243,7 +253,7 @@ class CentralPixel(Isophote):
 
     def print(self, verbose=False):
         if verbose:
-            s = "    0.00  %9.2f"% (self.intens)
+            s = "   0.00   %9.2f"% (self.intens)
             print(s)
 
 
