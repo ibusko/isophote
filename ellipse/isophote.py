@@ -299,6 +299,9 @@ class IsophoteList(Isophote):
         return self._collect_as_list('sample')
 
     @property
+    def sma(self):
+        return self._collect_as_array('sma')
+    @property
     def intens(self):
         return self._collect_as_array('intens')
     @property
