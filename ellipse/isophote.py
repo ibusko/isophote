@@ -291,7 +291,7 @@ class IsophoteList(Isophote):
     def _collect_as_list(self, attr_name):
         result = []
         for k in range(len(self._list)):
-            result.append(self._list[k].__dict__[attr_name])
+            result.append(getattr(self._list[k], attr_name))
         return result
 
     @property

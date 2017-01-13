@@ -115,7 +115,15 @@ class TestIsophoteList(unittest.TestCase):
         result = IsophoteList(iso_list)
 
         array = np.array([])
+        # make sure the important arrays contain floats.
+        # especially the sma array, which is derived
+        # from a property in the Isophote class.
+        self.assertEqual(type(result.sma), type(array))
+        self.assertIsInstance(result.sma[0], float)
+
         self.assertEqual(type(result.intens), type(array))
+        self.assertIsInstance(result.intens[0], float)
+
         self.assertEqual(type(result.rms), type(array))
         self.assertEqual(type(result.int_err), type(array))
         self.assertEqual(type(result.pix_stddev), type(array))

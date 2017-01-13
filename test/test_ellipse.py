@@ -44,6 +44,15 @@ class TestEllipse(unittest.TestCase):
         self.assertEqual(len(isophote_list.as_list()), 67)
         self.assertEqual(isophote_list.as_list()[-1].stop_code, FAILED_FIT)
 
+    def test_fit_one_ellipse(self):
+        test_data = build_test_data.build(pa=PA)
+
+        ellipse = Ellipse(test_data)
+        isophote = ellipse.fit_isophote(40.)
+
+        self.assertIsInstance(isophote, Isophote)
+        self.assertTrue(isophote.valid)
+
     def test_offcenter_fail(self):
         # A first guess ellipse that is centered in the image frame.
         # This should result in failure since the real galaxy

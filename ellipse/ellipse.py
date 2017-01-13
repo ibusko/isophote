@@ -75,7 +75,8 @@ class Ellipse():
         sma = sma0
         noiter = False
         while True:
-            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit, noniterate=noiter)
+            isophote = self.fit_isophote(sma, step, integrmode, linear, maxrit,
+                                         noniterate=noiter, isophote_list=isophote_list)
 
             # check for failed fit.
             if isophote.stop_code < 0 or isophote.stop_code == TOO_MANY_FLAGGED:
@@ -128,7 +129,8 @@ class Ellipse():
 
         # now, go from initial sma inwards towards center.
         while True:
-            isophote = self.fit_isophote(isophote_list, sma, step, integrmode, linear, maxrit, going_inwards=True)
+            isophote = self.fit_isophote(sma, step, integrmode, linear, maxrit,
+                                         going_inwards=True, isophote_list=isophote_list)
 
             # if abnormal condition, fix isophote but keep going.
             if isophote.stop_code < 0:
@@ -147,7 +149,8 @@ class Ellipse():
 
         # if user asked for minsma=0, extract special isophote there
         if minsma == 0.0:
-            isophote = self.fit_isophote(isophote_list, 0.0, step, integrmode, linear)
+            isophote = self.fit_isophote(0.0, step, integrmode, linear,
+                                         isophote_list=isophote_list)
             isophote.print(verbose)
 
         # sort list of isophotes according to sma
@@ -155,8 +158,9 @@ class Ellipse():
 
         return IsophoteList(isophote_list)
 
-    def fit_isophote(self, isophote_list, sma, step=DEFAULT_STEP, integrmode=BI_LINEAR,
-                     linear=False, maxrit=None, noniterate=False, going_inwards=False):
+    def fit_isophote(self, sma, step=DEFAULT_STEP, integrmode=BI_LINEAR,
+                     linear=False, maxrit=None, noniterate=False,
+                     going_inwards=False, isophote_list=None):
         '''
         Fit one isophote with a given semi-major axis length.
 
@@ -167,9 +171,6 @@ class Ellipse():
         how to compute the elliptical sector areas (when area
         integration mode is selected).
 
-        :param isophote_list: list
-            fitted Isophote instance is appended to this list. Must
-            be created and managed by the caller.
         :param sma: float
             the semi-major axis length (pixels)
         :param step: float, default = DEFAULT_STEP
@@ -198,6 +199,9 @@ class Ellipse():
         :param going_inwards: boolean, default False
             defines the sense of SMA growth. This is used by stopping
             criteria that depend on the gradient relative error.
+        :param isophote_list: list, default = None
+            fitted Isophote instance is appended to this list. Must
+            be created and managed by the caller.
         :return: Isophote instance
             the fitted isophote. The fitted isophote is also appended
             to the input list passed via parameter 'isophote_list'.
@@ -205,7 +209,7 @@ class Ellipse():
         # if available, geometry from last fitted isophote will be
         # used as initial guess for next isophote.
         geometry = self._geometry
-        if len(isophote_list) > 0:
+        if isophote_list is not None and len(isophote_list) > 0:
             geometry = isophote_list[-1].sample.geometry
 
         # do the fit.
@@ -215,11 +219,8 @@ class Ellipse():
             isophote = self._iterative(sma, step, linear, geometry, integrmode, going_inwards)
 
         # store result in list
-        if isophote.valid:
+        if isophote_list is not None and isophote.valid:
             isophote_list.append(isophote)
-        # For now, to facilitate regression comparisons, we
-        # store all, and not just valid, isophotes in the list.
-        # isophote_list.append(isophote)
 
         return isophote
 
