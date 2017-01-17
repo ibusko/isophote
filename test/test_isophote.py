@@ -149,5 +149,10 @@ class TestIsophoteList(unittest.TestCase):
         self.assertIsInstance(samples, list)
         self.assertIsInstance(samples[0], Sample)
 
+        iso = result.get_closest(13.6)
+        self.assertIsInstance(iso, Isophote)
+        self.assertEqual(iso.sma, 14.)
+
+
 
 

@@ -2,10 +2,15 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import unittest
 
+import numpy as np
+
 from util import build_test_data
 from ellipse.integrator import MEDIAN, MEAN, BI_LINEAR, NEAREST_NEIGHBOR
 from ellipse.sample import Sample
 from ellipse.isophote import Isophote
+
+
+test_data = build_test_data.build(background=100., i0=0., noise=10.)
 
 
 class TestSample(unittest.TestCase):
@@ -19,21 +24,25 @@ class TestSample(unittest.TestCase):
         the noise rms and then compare how close the pixel std dev estimated 
         at extraction matches this input noise.
         '''
-
-        self.test_data = build_test_data.build(background=100., i0=0., noise=10.)
-
-        self._doit(NEAREST_NEIGHBOR, 8., 12.)
-        self._doit(BI_LINEAR,        8., 12.)
-        self._doit(MEAN,             8., 12.)
-        self._doit(MEDIAN,           7., 14.) # the median is not so good at estimating rms
+        self._doit(NEAREST_NEIGHBOR, 7., 12.)
+        self._doit(BI_LINEAR,        7., 12.)
+        self._doit(MEAN,             7., 12.)
+        self._doit(MEDIAN,           6., 15.) # the median is not so good at estimating rms
 
     def _doit(self, integrmode, amin, amax):
-        sample = Sample(self.test_data, 50., astep=0.2, integrmode=integrmode)
+        sample = Sample(test_data, 50., astep=0.2, integrmode=integrmode)
         sample.update()
         iso = Isophote(sample, 0, True, 0)
 
         self.assertLess(iso.pix_stddev, amax)
         self.assertGreater(iso.pix_stddev, amin)
 
+    def test_coordinates(self):
+        sample = Sample(test_data, 50.)
+        sample.update()
 
+        x, y = sample.coordinates()
 
+        array = np.array([])
+        self.assertEqual(type(x), type(array))
+        self.assertEqual(type(y), type(array))

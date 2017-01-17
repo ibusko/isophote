@@ -272,6 +272,24 @@ class Sample(object):
 
         return gradient, gradient_error
 
+    def coordinates(self):
+        '''
+        Returns the X-Y coordinates associated with each sampled point.
+
+        :return: 1-D numpy arrays
+            two arrays with the X and Y coordinates, respectively
+        '''
+        angles = self.values[0]
+        radii = self.values[1]
+        x = np.zeros(len(angles))
+        y = np.zeros(len(angles))
+
+        for i in range(len(x)):
+            x[i] = radii[i] * np.cos (angles[i] + self.geometry.pa) + self.geometry.x0
+            y[i] = radii[i] * np.sin (angles[i] + self.geometry.pa) + self.geometry.y0
+
+        return x, y
+
 
 class CentralSample(Sample):
 

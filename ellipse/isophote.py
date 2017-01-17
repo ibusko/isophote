@@ -205,6 +205,16 @@ class Isophote:
         self.sample.geometry.x0  = isophote.sample.geometry.x0
         self.sample.geometry.y0  = isophote.sample.geometry.y0
 
+    def sampled_coordinates(self):
+        '''
+        Returns the X-Y coordinates where the image was sampled in
+        order to get the intensities associated with this isophote.
+
+        :return: 1-D numpy arrays
+            two arrays with the X and Y coordinates, respectively
+        '''
+        return self.sample.coordinates()
+
     # These two methods are useful for sorting lists of instances. Note
     # that __lt__ is the python3 way of supporting sorting. This might
     # not work under python2.
@@ -284,6 +294,20 @@ class IsophoteList(Isophote):
             list with Isophote instances.
         '''
         return self._list
+
+    def get_closest(self, sma):
+        '''
+        Returns the Isophote instance that has the closest semi-major
+        axis length to the passed parameter
+
+
+        :param sma: float
+            a value for the semi-major axis length
+        :return: Isophote instance
+            the instance with the closest sma value
+        '''
+        index = (np.abs(self.sma - sma)).argmin()
+        return self._list[index]
 
     def _collect_as_array(self, attr_name):
         return np.array(self._collect_as_list(attr_name))

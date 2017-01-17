@@ -4,9 +4,10 @@ from ellipse.sample import Sample, CentralSample
 from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED
 from ellipse.isophote import Isophote, IsophoteList, print_header
 
+from ellipse.geometry import DEFAULT_STEP
 from ellipse.integrator import BI_LINEAR
 
-DEFAULT_STEP = 0.1
+
 FIXED_ELLIPSE = 4
 FAILED_FIT = 5
 

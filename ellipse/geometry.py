@@ -4,6 +4,8 @@ import math
 
 import numpy as np
 
+DEFAULT_STEP = 0.1
+
 # limits for sector angular width
 PHI_MAX = 0.2
 PHI_MIN = 0.05
@@ -42,7 +44,7 @@ def _area(sma, eps, phi, r):
 
 class Geometry(object):
 
-    def __init__(self, x0, y0, sma, eps, pa, astep, linear_growth):
+    def __init__(self, x0, y0, sma, eps, pa, astep=DEFAULT_STEP, linear_growth=False):
         '''
         This is basically a container that allows storage of all parameters
         associated with a given ellipse's geometry.
@@ -69,12 +71,12 @@ class Geometry(object):
         :param pa: float
              position angle of ellipse in relation
              to the +X axis of the image array.
-        :param astep: float
+        :param astep: float, default = 0.1
             step value for growing/shrinking the semi-
             major axis. It can be expressed either in
             pixels (when 'linear_growth'=True) or in
             relative value (when 'linear_growth=False')
-        :param linear_growth: boolean
+        :param linear_growth: boolean, default = False
             semi-major axis growing/shrinking mode
         '''
         self.x0  = x0
