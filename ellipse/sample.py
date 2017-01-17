@@ -251,15 +251,12 @@ class Sample(object):
 
         return r_angles, r_radii, r_intensities
 
-    def update(self, step=0.1):
+    def update(self):
         ''' Update this Sample instance with the mean intensity and
             local gradient values.
-
-        :param step: float
-            by how much to increment/decrement the semi-major axis in
-            order to get a second sample that will enable estimation
-            of the local gradient.
         '''
+        step = self.geometry.astep
+
         # Update the mean value first, using extraction from main sample.
         s = self.extract()
         self.mean = np.mean(s[2])

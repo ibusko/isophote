@@ -109,7 +109,7 @@ class TestIsophoteList(unittest.TestCase):
         iso_list = []
         for k in range(10):
             sample = Sample(test_data, float(k+10.))
-            sample.update(0.1)
+            sample.update()
             iso_list.append(Isophote(sample, k, True, 0))
 
         result = IsophoteList(iso_list)
