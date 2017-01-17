@@ -226,9 +226,10 @@ class Sample(object):
 
     def _iter_sigma_clip(self, angles, radii, intensities):
         # Can't use scipy or astropy tools because they use masked arrays.
-        # We need something that physically removes the clipped points from
-        # the arrays, since that is what the remaining of the 'ellipse' code
-        # expects.
+        # Also, they operate on a single array, and we need to operate on
+        # three arrays simultaneously. We need something that physically
+        # removes the clipped points from the arrays, since that is what
+        # the remaining of the 'ellipse' code expects.
         r_angles = []
         r_radii = []
         r_intensities = []
