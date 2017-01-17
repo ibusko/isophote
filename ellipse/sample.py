@@ -78,7 +78,8 @@ class Sample(object):
             the actual number of sample values that were
             taken from the image. It can be smaller than
             total_points when the ellipse encompasses
-            regions outside the image.
+            regions outside the image, or when signa-clipping
+            removed some of the points.
         '''
         self.image = image
         self.integrmode = integrmode
