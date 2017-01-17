@@ -11,7 +11,7 @@ from ellipse.integrator import integrators, BI_LINEAR
 class Sample(object):
 
     def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
-                 linear_growth=False, integrmode=BI_LINEAR, geometry=None):
+                 sclip=3., nclip=0, linear_growth=False, integrmode=BI_LINEAR, geometry=None):
         '''
         A Sample instance describes an elliptical path over the image, over which
         intensities can be extracted using a selection of integration algorithms.
@@ -37,6 +37,10 @@ class Sample(object):
         :param pa: float, default=0.0
              position angle of ellipse in relation
              to the +X axis of the image array.
+        :param sclip: float, default=3.0
+             sigma-clip value
+        :param nclip: int, default=0
+             number of sigma-clip interations. If 0, skip sigma-clipping.
         :param linear_growth: boolean, default=False
             semi-major axis growing/shrinking mode
         :param integrmode: string, default=BI_LINEAR
@@ -95,6 +99,10 @@ class Sample(object):
                 _y0 = image.shape[1] / 2
 
             self.geometry = Geometry(_x0, _y0, sma, eps, position_angle, astep, linear_growth)
+
+        # sigma-clip parameters
+        self.sclip = sclip
+        self.nclip = nclip
 
         # extracted values associated with this sample.
         self.values = None
@@ -197,13 +205,49 @@ class Sample(object):
         # the opportunity to step over the entire elliptical path.
         self.sector_area = np.mean(np.array(sector_areas))
 
-        # actual number of sampled points
+        # apply sigma-clipping.
+        angles, radii, intensities = self._sigma_clip(angles, radii, intensities)
+
+        # actual number of sampled points, after sigma-clip removed outliers.
         self.actual_points = len(angles)
 
         # pack results in 2-d array
         result = np.array([np.array(angles), np.array(radii), np.array(intensities)])
 
         return result
+
+    def _sigma_clip(self, angles, radii, intensities):
+        if self.nclip > 0:
+
+            for iter in range(self.nclip):
+                angles, radii, intensities = self._iter_sigma_clip(angles.copy(), radii.copy(), intensities.copy())
+
+        return np.array(angles), np.array(radii), np.array(intensities)
+
+    def _iter_sigma_clip(self, angles, radii, intensities):
+        # Can't use scipy or astropy tools because they use masked arrays.
+        # We need something that physically removes the clipped points from
+        # the arrays, since that is what the remaining of the 'ellipse' code
+        # expects.
+        r_angles = []
+        r_radii = []
+        r_intensities = []
+
+        values = np.array(intensities)
+        mean = np.mean(values)
+        sig = np.std(values)
+        lower = mean - self.sclip * sig
+        upper = mean + self.sclip * sig
+
+        count = 0
+        for k in range(len(intensities)):
+            if intensities[k] >= lower and intensities[k] < upper:
+                r_angles.append(angles[k])
+                r_radii.append(radii[k])
+                r_intensities.append(intensities[k])
+                count += 1
+
+        return r_angles, r_radii, r_intensities
 
     def update(self, step=0.1):
         ''' Update this Sample instance with the mean intensity and
