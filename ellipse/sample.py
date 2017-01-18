@@ -4,14 +4,16 @@ import copy
 
 import numpy as np
 
-from ellipse.geometry import Geometry
+from ellipse.geometry import Geometry, DEFAULT_EPS, DEFAULT_STEP
 from ellipse.integrator import integrators, BI_LINEAR
+
+DEFAULT_SCLIP = 3.
 
 
 class Sample(object):
 
-    def __init__(self, image, sma, x0=None, y0=None, astep=0.1, eps=0.2, position_angle=0.0,
-                 sclip=3., nclip=0, linear_growth=False, integrmode=BI_LINEAR, geometry=None):
+    def __init__(self, image, sma, x0=None, y0=None, astep=DEFAULT_STEP, eps=DEFAULT_EPS, position_angle=0.0,
+                 sclip=DEFAULT_SCLIP, nclip=0, linear_growth=False, integrmode=BI_LINEAR, geometry=None):
         '''
         A Sample instance describes an elliptical path over the image, over which
         intensities can be extracted using a selection of integration algorithms.

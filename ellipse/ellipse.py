@@ -1,11 +1,11 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-from ellipse.sample import Sample, CentralSample
-from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED
-from ellipse.isophote import Isophote, IsophoteList, print_header
-
 from ellipse.geometry import DEFAULT_STEP
 from ellipse.integrator import BI_LINEAR
+from ellipse.sample import Sample, CentralSample, DEFAULT_SCLIP
+from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED, \
+    DEFAULT_CONVERT, DEFAULT_MINIT, DEFAULT_MAXIT, DEFAULT_FFLAG, DEFAULT_MAXGERR
+from ellipse.isophote import Isophote, IsophoteList, print_header
 
 
 FIXED_ELLIPSE = 4
@@ -15,6 +15,79 @@ FAILED_FIT = 5
 class Ellipse():
     '''
     This class provides the main access point to the isophote fitting algorithm.
+
+    This algorithm is designed to fit elliptical isophotes to galaxy images. Its main input
+    is a 2-dimensional numpy array with the image. The output is a list of instances of class
+    Isophote. See the documentation for this class for details. For convenience, this list is
+    packaged in an instance of class IsophoteList, which augments the list with isophote-specific
+    features.
+
+    During the fitting process, some of the isophote parameters can be displayed in tabular form
+    at the standard output. These parameters allow the user to monitor the fitting process.
+
+    The image is measured using an iterative method described by Jedrzejewski (Mon.Not.R.Astr.Soc.,
+    226, 747, 1987). Each isophote is fitted at a pre-defined, fixed semi-major axis length.
+    The task starts from a first guess elliptical isophote defined by approximate values for
+    the X and Y center coordinates, ellipticity and position angle. Using these values, the
+    image is sampled along an elliptical path, producing a 1-dimensional intensity distribution
+    as a function of angle E. The harmonic content of this distribution is analyzed by
+    least-squares fitting to the function:
+
+    y  =  y0 + A1 * sin(E) + B1 * cos(E) + A2 * sin(2 * E) + B2 * cos (2 * E)
+
+    Each one of the harmonic amplitudes A1, B1, A2, B2 is related to a specific ellipse
+    geometric parameter, in the sense that it conveys information regarding how much the current
+    parameter value deviates from the "true" one. To compute this deviation, the image's local
+    radial gradient has to be taken into account too. The algorithm picks up the largest amplitude
+    among the four, estimates the local gradient and computes the corresponding increment in the
+    associated ellipse parameter. That parameter is updated, and the image is resampled. This
+    process is repeated until any one of the following criteria are met:
+
+    1 - the largest harmonic amplitude is less than a given fraction of the rms residual of the
+        intensity data around the harmonic fit.
+
+    2 - a user-specified maximum number of iterations is reached.
+
+    3 - more than a given fraction of the elliptical sample points have no valid data in then,
+        either because they lie outside the image boundaries or because they where flagged out from
+        the fit (see below).
+
+    In any case, a minimum number of iterations is always performed. If iterations stop because
+    of reasons 2 or 3 above, then those ellipse parameters that generated the lowest absolute
+    values for harmonic amplitudes will be used. At this point, the image data sample coming from
+    the best fit ellipse is fitted by the following function:
+
+    y  =  y0  +  An * sin(n * E)  +  Bn * cos(n * E)
+
+    with n = 3 and n = 4. The corresponding amplitudes (A3, B3, A4, B4), divided by the semi-major
+    axis length and local intensity gradient, measure the isophote's deviations from perfect
+    ellipticity (the amplitudes divided by semi-major axis and gradient, are the actual quantities
+    stored in the output Isophote instance).
+
+    The task then measures the integrated intensity and the number of non-flagged pixels inside
+    the elliptical isophote, and also inside the corresponding circle with same center and radius
+    equal to the semi-major axis length. These parameters, some other associated parameters, and
+    some auxiliary information, are stored in the Isophote instance.
+
+    It must be emphasized that the algorithm was designed explicitly with a (elliptical) galaxy
+    brightness distribution in mind. In particular, a well defined negative radial intensity
+    gradient across the region being fitted is paramount for the achievement of stable solutions.
+    Use of the algorithm in other types of images (e.g., planetary nebulae) may lead to inability
+    to converge to any acceptable solution.
+
+    After fitting the ellipse that corresponds to a given value of the semi-major axis (by the
+    process described above), the axis length is incremented/decremented following a pre-defined
+    rule. At each step, the starting, first guess ellipse parameters are taken from the previously
+    fitted ellipse that has the closest semi-major axis length to the current one. On low surface
+    brightness regions (i.e., those having large radii), the small values of the image radial
+    gradient can induce large corrections and meaningless values for the ellipse parameters. The
+    algorithm has capabilities to stop increasing semi-major axis based on several criteria, including
+    signal-to-noise ratio.
+
+    The 'ellipse' algorithm also provides a k-sigma clipping algorithm for cleaning deviant sample
+    points at each isophote, thus improving convergency stability against any non-elliptical structure
+    such as stars, spiral arms, HII regions, defects, etc.
+
     '''
     def __init__(self, image, geometry=None):
         '''
@@ -28,9 +101,10 @@ class Ellipse():
         self.image = image
         self._geometry = geometry
 
-    def fit_image(self, sma0=10., minsma=0., maxsma=None, step=DEFAULT_STEP,
-                   sclip=3.0, nclip=0, integrmode=BI_LINEAR, linear=False,
-                   maxrit=None, verbose=True):
+    def fit_image(self, sma0=10., minsma=10., maxsma=None, step=DEFAULT_STEP,
+                  minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT, sclip=DEFAULT_SCLIP,
+                  nclip=0, integrmode=BI_LINEAR, linear=False, maxrit=None,
+                  verbose=True):
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
         to the constructor. This method basically loops over each one of the
@@ -39,9 +113,17 @@ class Ellipse():
         a sorted IsophoteList instance.
 
         :param sma0: float, default = 10.
-            starting value for the semi-major axis length (pixels)
+            starting value for the semi-major axis length (pixels). This can't be
+            neither the minimum or the maximum, but something in between. The
+            algorithm can't start from the very center of the galaxy image because
+            the modelling of elliptical isophotes on that region is poor and it will
+            diverge very easily if not tied to other previously fit isophotes. It can't
+            start from the maximum value either because the maximum is not known
+            beforehand, depending on signal-to-noise. The sma0 value should be selected
+            such that the corresponding isophote has a good signal-to-noise ratio and
+            a clear geometry.
         :param minsma:  float, default = 0.
-            minimum value for the semi-major axis length (pixels)
+            minimum value for the semi-major axis length (pixels).
         :param maxsma: float, default = None.
             maximum value for the semi-major axis length (pixels).
             When set to None, the algorithm will increase the semi
@@ -51,6 +133,10 @@ class Ellipse():
             the step value being used to grow/shrink the semi-major
             axis length (pixels if 'linear=True', or relative value
             if 'linear=False')
+        :param minit: int, default = 10
+            minimum number of iterations to perform
+        :param maxit: int, default = 50
+            maximum number of iterations to perform
         :param sclip: float, default = 3.0
             sigma-cliping criterion
         :param nclip: int, default = 0
@@ -169,7 +255,14 @@ class Ellipse():
 
         return IsophoteList(isophote_list)
 
-    def fit_isophote(self, sma, step=DEFAULT_STEP, sclip=3.0, nclip=0,
+
+
+
+    #TODO got to fix the calls to this
+
+    def fit_isophote(self, sma, step=DEFAULT_STEP, conver=DEFAULT_CONVERT,
+                     minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT, fflag=DEFAULT_FFLAG,
+                     maxgerr=DEFAULT_MAXGERR, sclip=DEFAULT_SCLIP, nclip=0,
                      integrmode=BI_LINEAR, linear=False, maxrit=None,
                      noniterate=False, going_inwards=False,
                      isophote_list=None):
@@ -234,9 +327,9 @@ class Ellipse():
             isophote = self._non_iterative(sma, step, linear, geometry,
                                            sclip, nclip)
         else:
-            isophote = self._iterative(sma, step, linear, geometry,
-                                       sclip, nclip,
-                                       integrmode, going_inwards)
+            isophote = self._iterative(sma, step, linear, geometry, sclip, nclip,
+                                       integrmode, conver, minit, maxit, fflag,
+                                       maxgerr, going_inwards)
 
         # store result in list
         if isophote_list is not None and isophote.valid:
@@ -244,7 +337,8 @@ class Ellipse():
 
         return isophote
 
-    def _iterative(self, sma, step, linear, geometry, sclip, nclip, integrmode, going_inwards=False):
+    def _iterative(self, sma, step, linear, geometry, sclip, nclip, integrmode,
+                   conver, minit, maxit, fflag, maxgerr, going_inwards=False):
         if sma > 0.:
             # iterative fitter
             sample = Sample(self.image, sma,
@@ -260,7 +354,7 @@ class Ellipse():
             sample = CentralSample(self.image, 0.0, geometry=geometry)
             fitter = CentralFitter(sample)
 
-        isophote = fitter.fit(going_inwards=going_inwards)
+        isophote = fitter.fit(conver, minit, maxit, fflag, maxgerr, going_inwards)
 
         return isophote
 

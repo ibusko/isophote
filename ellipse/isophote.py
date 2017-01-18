@@ -19,9 +19,11 @@ class Isophote:
 
     def __init__(self, sample, niter, valid, stop_code):
         '''
-        Container that helps in segregating information directly related to
-        the sample (sampled intensities along an elliptical path on the image),
-        from isophote-specific information.
+        This class is basically a container that holds the results of a single isophote
+        fit. The actual extracted sample at the given isophote (sampled intensities along
+        the elliptical path on the image) is kept as an attribute of this class. The
+        container concept helps in segregating information directly related to this sample,
+        from information that more closely relates to the fitting process.
 
         Parameters:
         ----------
@@ -79,12 +81,16 @@ class Isophote:
         :param sarea: float
             average sector area on isophote (pixel)
         :param ndata: int
-            number of valid data points on isophote
+            number of actual (extracted) data points
         :param nflag: int
-            number of flagged data points on isophote
+            number of discarded data points. Data points can be discarded either
+            because they are physically outside the image frame boundaries, or
+            because they were rejected by sigma-clipping.
         :param a3, b3, a4, b4: float
-            higher order harmonics that measure the deviations
-            from a perfect ellipse.
+            higher order harmonics that measure the deviations from a perfect ellipse.
+            These values ar actually the raw harmonic amplitude divided by the local
+            radial gradient and the semi-major axis length, so they can directly be
+            compared with each other.
         '''
         self.sample = sample
         self.niter = niter

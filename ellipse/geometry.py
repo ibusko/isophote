@@ -4,6 +4,7 @@ import math
 
 import numpy as np
 
+DEFAULT_EPS = 0.2
 DEFAULT_STEP = 0.1
 
 # limits for sector angular width
