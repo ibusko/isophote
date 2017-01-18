@@ -299,6 +299,8 @@ class Sample(object):
         gradient_sample = Sample(self.image, gradient_sma,
                                  x0=self.geometry.x0, y0=self.geometry.y0,
                                  astep=self.geometry.astep,
+                                 sclip=self.sclip,
+                                 nclip=self.nclip,
                                  eps=self.geometry.eps, position_angle=self.geometry.pa,
                                  linear_growth=self.geometry.linear_growth,
                                  integrmode=self.integrmode)

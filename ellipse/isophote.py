@@ -68,8 +68,12 @@ class Isophote:
             measurement error of local radial intensity gradient
         :param grad_r_error: float
             relative error of local radial intensity gradient
+        :param tflux_e: float
+            sum of all pixels inside ellipse
         :param npix_e: int
             total number of valid pixels inside ellipse
+        :param tflux_c: float
+            sum of all pixels inside circle with same 'sma' as ellipse
         :param npix_c: int
             total number of valid pixels inside circle
         :param sarea: float
@@ -78,6 +82,9 @@ class Isophote:
             number of valid data points on isophote
         :param nflag: int
             number of flagged data points on isophote
+        :param a3, b3, a4, b4: float
+            higher order harmonics that measure the deviations
+            from a perfect ellipse.
         '''
         self.sample = sample
         self.niter = niter

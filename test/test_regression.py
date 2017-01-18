@@ -63,10 +63,10 @@ class TestRegression(unittest.TestCase):
         self.integrmode = BI_LINEAR
         # self.integrmode = MEAN
 
-        # self._do_regression("M51")
+        self._do_regression("M51")
         # self._do_regression("synth")
         # self._do_regression("synth_lowsnr")
-        self._do_regression("synth_highsnr")
+        # self._do_regression("synth_highsnr")
 
     def _do_regression(self, name):
 
@@ -84,7 +84,7 @@ class TestRegression(unittest.TestCase):
         test_data = image[0].data
         ellipse = Ellipse(test_data)
         # isophote_list = ellipse.fit_image(verbose=True)
-        isophote_list = ellipse.fit_image(verbose=True, integrmode=self.integrmode)
+        isophote_list = ellipse.fit_image(verbose=True, integrmode=self.integrmode, sclip=2., nclip=3)
 
         format = "%5.2f  %6.1f    %8.3f %8.3f %8.3f        %9.5f  %6.2f   %6.2f %6.2f   %5.2f   %4d  %3d  %3d  %2d"
 
