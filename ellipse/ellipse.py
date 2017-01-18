@@ -30,7 +30,7 @@ class Ellipse():
 
     def fit_image(self, sma0=10., minsma=0., maxsma=None, step=DEFAULT_STEP,
                    sclip=3.0, nclip=0, integrmode=BI_LINEAR, linear=False,
-                   maxrit=None, verbose=False):
+                   maxrit=None, verbose=True):
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
         to the constructor. This method basically loops over each one of the
@@ -65,7 +65,7 @@ class Ellipse():
             Whenever the current semi-major axis length is larger than
             maxrit, the isophotes wil be just extracted using the current
             geometry, without being fitted. Ignored if None.
-        :param verbose: boolean, default False
+        :param verbose: boolean, default True
             print iteration info
         :return: IsophoteList instance
             this list stores fitted Isophote instances, sorted according
