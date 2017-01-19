@@ -35,8 +35,13 @@ class Fitter(object):
         '''
         self._sample = sample
 
-    def fit(self, conver=DEFAULT_CONVERGENCY, minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT,
-            fflag=DEFAULT_FFLAG, maxgerr=DEFAULT_MAXGERR, going_inwards=False):
+    def fit(self,
+            conver        = DEFAULT_CONVERGENCY,
+            minit         = DEFAULT_MINIT,
+            maxit         = DEFAULT_MAXIT,
+            fflag         = DEFAULT_FFLAG,
+            maxgerr       = DEFAULT_MAXGERR,
+            going_inwards = False):
         '''
         Perform the actual fit, returning an Isophote instance:
 
@@ -44,24 +49,24 @@ class Fitter(object):
             isophote = fitter.fit()
 
 
-        :param conver: float
+        :param conver: float, default = 0.05
             main convergency criterion. Largest harmonic amplitude
             must be smaller than 'conver' times the fit rms.
-        :param minit: int
+        :param minit: int, default = 10
             minimum number of iterations to perform
-        :param maxit: int
+        :param maxit: int, default = 50
             maximum number of iterations to perform
-        :param fflag: float
+        :param fflag: float, default = 0.7
             acceptable fraction of flagged data points in sample.
             If the actual number of valid data points is smaller
             than this, stop iterating and return current Isophote.
             For now, flagged data points are points that lie outside
             the image frame. In the future, it may include masked
             pixels as well.
-        :param maxgerr: float
+        :param maxgerr: float, default = 0.5
             maximum acceptable relative error in the local radial
             intensity gradient.
-        :param going_inwards: boolean, default False
+        :param going_inwards: boolean, default = False
             defines the sense of SMA growth. This is used by stopping
             criteria that depend on the gradient relative error.
         :return: instance of Isophote

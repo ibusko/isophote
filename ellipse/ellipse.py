@@ -101,21 +101,21 @@ class Ellipse():
         self.image = image
         self._geometry = geometry
 
-    def fit_image(self, sma0=10.,
-                  minsma=0.,
-                  maxsma=None,
-                  step=DEFAULT_STEP,
-                  conver=DEFAULT_CONVERGENCY,
-                  minit=DEFAULT_MINIT,
-                  maxit=DEFAULT_MAXIT,
-                  fflag=DEFAULT_FFLAG,
-                  maxgerr=DEFAULT_MAXGERR,
-                  sclip=DEFAULT_SCLIP,
-                  nclip=0,
-                  integrmode=BI_LINEAR,
-                  linear=False,
-                  maxrit=None,
-                  verbose=True):
+    def fit_image(self, sma0 = 10.,
+                          minsma     = 0.,
+                          maxsma     = None,
+                          step       = DEFAULT_STEP,
+                          conver     = DEFAULT_CONVERGENCY,
+                          minit      = DEFAULT_MINIT,
+                          maxit      = DEFAULT_MAXIT,
+                          fflag      = DEFAULT_FFLAG,
+                          maxgerr    = DEFAULT_MAXGERR,
+                          sclip      = DEFAULT_SCLIP,
+                          nclip      = 0,
+                          integrmode = BI_LINEAR,
+                          linear     = False,
+                          maxrit     = None,
+                          verbose    = True):
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
         to the constructor. This method basically loops over each one of the
@@ -140,25 +140,25 @@ class Ellipse():
             When set to None, the algorithm will increase the semi
             major axis until one of several conditions will cause
             it to stop and revert to fit ellipses with sma < sma0.
-        :param step: float, default = DEFAULT_STEP
+        :param step: float, default = 0.1
             the step value being used to grow/shrink the semi-major
             axis length (pixels if 'linear=True', or relative value
             if 'linear=False')
-        :param conver: float
+        :param conver: float, default = 0.05
             main convergency criterion. Largest harmonic amplitude
             must be smaller than 'conver' times the fit rms.
         :param minit: int, default = 10
             minimum number of iterations to perform
         :param maxit: int, default = 50
             maximum number of iterations to perform
-        :param fflag: float
+        :param fflag: float, default = 0.7
             acceptable fraction of flagged data points in sample.
             If the actual number of valid data points is smaller
             than this, stop iterating and return current Isophote.
-            For now, flagged data points are points that lie outside
-            the image frame. In the future, it may include masked
-            pixels as well.
-        :param maxgerr: float
+            Flagged data points include points that lie outside
+            the image frame, as well as points removed by sigma
+            clipping.
+        :param maxgerr: float, default = 0.5
             maximum acceptable relative error in the local radial
             intensity gradient.
         :param sclip: float, default = 3.0
@@ -166,7 +166,7 @@ class Ellipse():
         :param nclip: int, default = 0
             number of iterations in sigma-cliping algorithm.
             If zero, ignore sigma-clip.
-        :param integrmode: string, default = BI_LINEAR
+        :param integrmode: string, default = 'bi-linear'
             integration mode, as defined in module integrator.py
         :param linear: boolean, default False
             semi-major axis growing/shrinking mode
@@ -279,13 +279,6 @@ class Ellipse():
 
         return IsophoteList(isophote_list)
 
-
-
-
-    #TODO got to fix the calls to this
-
-
-
     def fit_isophote(self, sma,
                             step          = DEFAULT_STEP,
                             conver        = DEFAULT_CONVERGENCY,
@@ -313,24 +306,24 @@ class Ellipse():
 
         :param sma: float
             the semi-major axis length (pixels)
-        :param step: float, default = DEFAULT_STEP
+        :param step: float, default = 0.1
             the step value being used to grow/shrink the semi-major
             axis length (pixels)
-        :param conver: float
+        :param conver: float, default = 0.05
             main convergency criterion. Largest harmonic amplitude
             must be smaller than 'conver' times the fit rms.
-        :param minit: int
+        :param minit: int, default = 10
             minimum number of iterations to perform
-        :param maxit: int
+        :param maxit: int, default = 50
             maximum number of iterations to perform
-        :param fflag: float
+        :param fflag: float, default = 0.7
             acceptable fraction of flagged data points in sample.
             If the actual number of valid data points is smaller
             than this, stop iterating and return current Isophote.
-            For now, flagged data points are points that lie outside
-            the image frame. In the future, it may include masked
-            pixels as well.
-        :param maxgerr: float
+            Flagged data points include points that lie outside
+            the image frame, as well as points removed by sigma
+            clipping.
+        :param maxgerr: float, default = 0.5
             maximum acceptable relative error in the local radial
             intensity gradient.
         :param sclip: float, default = 3.0
@@ -338,7 +331,7 @@ class Ellipse():
         :param nclip: int, default = 0
             number of iterations in sigma-cliping algorithm.
             If zero, ignore sigma-clip.
-        :param integrmode: string, default = BI_LINEAR
+        :param integrmode: string, default = 'bi-linear'
             integration mode, as defined in module integrator.py
         :param linear: boolean, default = False
             semi-major axis growing/shrinking mode
