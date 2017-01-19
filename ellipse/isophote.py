@@ -280,7 +280,7 @@ class CentralPixel(Isophote):
             print(s)
 
 
-class IsophoteList(Isophote):
+class IsophoteList(Isophote, list):
     '''
     This class is a convenience container that provides the same attributes
     that the Isophote class offers, except that scalar attributes are replaced
@@ -298,15 +298,8 @@ class IsophoteList(Isophote):
         '''
         self._list = iso_list
 
-    def as_list(self):
-        '''
-        Returns the contents of the instance as a list of
-        Isophote instances.
-
-        :return: list
-            list with Isophote instances.
-        '''
-        return self._list
+    def __getitem__(self, index):
+            return self._list.__getitem__(index)
 
     def get_closest(self, sma):
         '''

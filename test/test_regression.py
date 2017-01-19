@@ -90,7 +90,7 @@ class TestRegression(unittest.TestCase):
 
         for row in range(nrows):
             try:
-                iso = isophote_list.as_list()[row]
+                iso = isophote_list[row]
             except IndexError:
                 # skip non-existent rows in isophote list, if that's the case.
                 break

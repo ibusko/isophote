@@ -260,6 +260,8 @@ class Ellipse():
 
     #TODO got to fix the calls to this
 
+
+
     def fit_isophote(self, sma, step=DEFAULT_STEP, conver=DEFAULT_CONVERT,
                      minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT, fflag=DEFAULT_FFLAG,
                      maxgerr=DEFAULT_MAXGERR, sclip=DEFAULT_SCLIP, nclip=0,
