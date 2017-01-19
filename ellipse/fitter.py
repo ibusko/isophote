@@ -75,9 +75,17 @@ class Fitter(object):
         '''
         sample = self._sample
 
-        # flag signals that limiting gradient error ('maxgerr') wasn't
-        # exceeded yet.
+        # this flag signals that limiting gradient error ('maxgerr')
+        # wasn't exceeded yet.
         lexceed = False
+
+        # here we keep track of the sample that caused the minimum harmonic
+        # amplitude(in absolute value). This will eventually be used to
+        # build the resulting Isophote in cases where iterations run to
+        # the maximum allowed (maxit), or the maximum number of flagged
+        # data points (fflag) is reached.
+        minimum_amplitude_value = np.Inf
+        minimum_amplitude_sample = None
 
         for iter in range(maxit):
 
@@ -104,6 +112,12 @@ class Fitter(object):
             largest_harmonic_index = np.argmax(np.abs(coeffs[1:]))
             largest_harmonic = coeffs[1:][largest_harmonic_index]
 
+            # see if the amplitude decreased; if yes, keep the
+            # corresponding sample for eventual later use.
+            if abs(largest_harmonic) < minimum_amplitude_value:
+                minimum_amplitude_value = abs(largest_harmonic)
+                minimum_amplitude_sample = sample
+
             # check if converged
             model = first_and_2nd_harmonic_function(values[0], coeffs)
             residual = values[2] - model
@@ -118,7 +132,10 @@ class Fitter(object):
             # it may not have converged yet, but the sample contains too
             # many invalid data points: return.
             if sample.actual_points < (sample.total_points * fflag):
-                return Isophote(sample, iter+1, True, TOO_MANY_FLAGGED)
+                # when too many data points were flagged, return the
+                # best fit sample instead of the current one.
+                minimum_amplitude_sample.update()
+                return Isophote(minimum_amplitude_sample, iter+1, True, TOO_MANY_FLAGGED)
 
             # pick appropriate corrector code.
             corrector = _correctors[largest_harmonic_index]
@@ -141,9 +158,10 @@ class Fitter(object):
                 return Isophote(sample, iter+1, True, -1)
 
         # Got to the maximum number of iterations. Return with
-        # code 2, and handle it as a valid isophote.
-        sample.update()
-        return Isophote(sample, maxit, True, 2)
+        # code 2, and handle it as a valid isophote. Use the
+        # best fit sample instead of the current one.
+        minimum_amplitude_sample.update()
+        return Isophote(minimum_amplitude_sample, maxit, True, 2)
 
     def _is_good_to_go(self, sample, maxgerr, going_inwards, lexceed):
         good_to_go = True

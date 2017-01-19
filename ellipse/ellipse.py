@@ -22,16 +22,17 @@ class Ellipse():
     packaged in an instance of class IsophoteList, which augments the list with isophote-specific
     features.
 
-    During the fitting process, some of the isophote parameters can be displayed in tabular form
+    During the fitting process, some of the isophote parameters are displayed in tabular form
     at the standard output. These parameters allow the user to monitor the fitting process.
 
     The image is measured using an iterative method described by Jedrzejewski (Mon.Not.R.Astr.Soc.,
     226, 747, 1987). Each isophote is fitted at a pre-defined, fixed semi-major axis length.
-    The task starts from a first guess elliptical isophote defined by approximate values for
+    The algorithm starts from a first guess elliptical isophote defined by approximate values for
     the X and Y center coordinates, ellipticity and position angle. Using these values, the
-    image is sampled along an elliptical path, producing a 1-dimensional intensity distribution
-    as a function of angle E. The harmonic content of this distribution is analyzed by
-    least-squares fitting to the function:
+    image is sampled along an elliptical path, producing a 1-dimensional function that describes
+    the dependency of intensity (pixel value) with angle (E). The function is stored as a set of
+    1-D numpy arrays. The harmonic content of this function is analyzed by least-squares fitting
+    to the function:
 
     y  =  y0 + A1 * sin(E) + B1 * cos(E) + A2 * sin(2 * E) + B2 * cos (2 * E)
 
@@ -64,7 +65,7 @@ class Ellipse():
     ellipticity (the amplitudes divided by semi-major axis and gradient, are the actual quantities
     stored in the output Isophote instance).
 
-    The task then measures the integrated intensity and the number of non-flagged pixels inside
+    The algorithm then measures the integrated intensity and the number of non-flagged pixels inside
     the elliptical isophote, and also inside the corresponding circle with same center and radius
     equal to the semi-major axis length. These parameters, some other associated parameters, and
     some auxiliary information, are stored in the Isophote instance.
