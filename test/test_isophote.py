@@ -114,12 +114,8 @@ class TestIsophoteList(unittest.TestCase):
 
         result = IsophoteList(iso_list)
 
-
-        # print("@@@@@@  file test_isophote.py; line 118 - ",  result)
-
-        self.assertIsInstance(result, list)
+        # make sure it can be indexed as a list.
         self.assertIsInstance(result[0], Isophote)
-
 
         array = np.array([])
         # make sure the important arrays contain floats.

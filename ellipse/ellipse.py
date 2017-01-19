@@ -4,7 +4,7 @@ from ellipse.geometry import DEFAULT_STEP
 from ellipse.integrator import BI_LINEAR
 from ellipse.sample import Sample, CentralSample, DEFAULT_SCLIP
 from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED, \
-    DEFAULT_CONVERT, DEFAULT_MINIT, DEFAULT_MAXIT, DEFAULT_FFLAG, DEFAULT_MAXGERR
+    DEFAULT_CONVERGENCY, DEFAULT_MINIT, DEFAULT_MAXIT, DEFAULT_FFLAG, DEFAULT_MAXGERR
 from ellipse.isophote import Isophote, IsophoteList, print_header
 
 
@@ -101,9 +101,20 @@ class Ellipse():
         self.image = image
         self._geometry = geometry
 
-    def fit_image(self, sma0=10., minsma=10., maxsma=None, step=DEFAULT_STEP,
-                  minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT, sclip=DEFAULT_SCLIP,
-                  nclip=0, integrmode=BI_LINEAR, linear=False, maxrit=None,
+    def fit_image(self, sma0=10.,
+                  minsma=0.,
+                  maxsma=None,
+                  step=DEFAULT_STEP,
+                  conver=DEFAULT_CONVERGENCY,
+                  minit=DEFAULT_MINIT,
+                  maxit=DEFAULT_MAXIT,
+                  fflag=DEFAULT_FFLAG,
+                  maxgerr=DEFAULT_MAXGERR,
+                  sclip=DEFAULT_SCLIP,
+                  nclip=0,
+                  integrmode=BI_LINEAR,
+                  linear=False,
+                  maxrit=None,
                   verbose=True):
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
@@ -133,10 +144,23 @@ class Ellipse():
             the step value being used to grow/shrink the semi-major
             axis length (pixels if 'linear=True', or relative value
             if 'linear=False')
+        :param conver: float
+            main convergency criterion. Largest harmonic amplitude
+            must be smaller than 'conver' times the fit rms.
         :param minit: int, default = 10
             minimum number of iterations to perform
         :param maxit: int, default = 50
             maximum number of iterations to perform
+        :param fflag: float
+            acceptable fraction of flagged data points in sample.
+            If the actual number of valid data points is smaller
+            than this, stop iterating and return current Isophote.
+            For now, flagged data points are points that lie outside
+            the image frame. In the future, it may include masked
+            pixels as well.
+        :param maxgerr: float
+            maximum acceptable relative error in the local radial
+            intensity gradient.
         :param sclip: float, default = 3.0
             sigma-cliping criterion
         :param nclip: int, default = 0
@@ -168,7 +192,8 @@ class Ellipse():
         sma = sma0
         noiter = False
         while True:
-            isophote = self.fit_isophote(sma, step, sclip, nclip, integrmode,
+            isophote = self.fit_isophote(sma, step, conver, minit, maxit, fflag, maxgerr,
+                                         sclip, nclip, integrmode,
                                          linear, maxrit, noniterate=noiter,
                                          isophote_list=isophote_list)
 
@@ -223,7 +248,8 @@ class Ellipse():
 
         # now, go from initial sma inwards towards center.
         while True:
-            isophote = self.fit_isophote(sma, step, sclip, nclip,
+            isophote = self.fit_isophote(sma, step, conver, minit, maxit, fflag, maxgerr,
+                                         sclip, nclip,
                                          integrmode, linear, maxrit,
                                          going_inwards=True,
                                          isophote_list=isophote_list)
@@ -245,9 +271,7 @@ class Ellipse():
 
         # if user asked for minsma=0, extract special isophote there
         if minsma == 0.0:
-            isophote = self.fit_isophote(0.0, step, sclip, nclip,
-                                         integrmode, linear,
-                                         isophote_list=isophote_list)
+            isophote = self.fit_isophote(0.0, isophote_list=isophote_list)
             isophote.print(verbose)
 
         # sort list of isophotes according to sma
@@ -262,12 +286,21 @@ class Ellipse():
 
 
 
-    def fit_isophote(self, sma, step=DEFAULT_STEP, conver=DEFAULT_CONVERT,
-                     minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT, fflag=DEFAULT_FFLAG,
-                     maxgerr=DEFAULT_MAXGERR, sclip=DEFAULT_SCLIP, nclip=0,
-                     integrmode=BI_LINEAR, linear=False, maxrit=None,
-                     noniterate=False, going_inwards=False,
-                     isophote_list=None):
+    def fit_isophote(self, sma,
+                            step          = DEFAULT_STEP,
+                            conver        = DEFAULT_CONVERGENCY,
+                            minit         = DEFAULT_MINIT,
+                            maxit         = DEFAULT_MAXIT,
+                            fflag         = DEFAULT_FFLAG,
+                            maxgerr       = DEFAULT_MAXGERR,
+                            sclip         = DEFAULT_SCLIP,
+                            nclip         = 0,
+                            integrmode    = BI_LINEAR,
+                            linear        = False,
+                            maxrit        = None,
+                            noniterate    = False,
+                            going_inwards = False,
+                            isophote_list = None):
         '''
         Fit one isophote with a given semi-major axis length.
 
@@ -283,6 +316,23 @@ class Ellipse():
         :param step: float, default = DEFAULT_STEP
             the step value being used to grow/shrink the semi-major
             axis length (pixels)
+        :param conver: float
+            main convergency criterion. Largest harmonic amplitude
+            must be smaller than 'conver' times the fit rms.
+        :param minit: int
+            minimum number of iterations to perform
+        :param maxit: int
+            maximum number of iterations to perform
+        :param fflag: float
+            acceptable fraction of flagged data points in sample.
+            If the actual number of valid data points is smaller
+            than this, stop iterating and return current Isophote.
+            For now, flagged data points are points that lie outside
+            the image frame. In the future, it may include masked
+            pixels as well.
+        :param maxgerr: float
+            maximum acceptable relative error in the local radial
+            intensity gradient.
         :param sclip: float, default = 3.0
             sigma-cliping criterion
         :param nclip: int, default = 0

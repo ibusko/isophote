@@ -14,7 +14,7 @@ MAX_EPS = 0.95
 MIN_EPS = 0.05
 TOO_MANY_FLAGGED = 1
 
-DEFAULT_CONVERT = 0.05
+DEFAULT_CONVERGENCY = 0.05
 DEFAULT_MINIT = 10
 DEFAULT_MAXIT = 50
 DEFAULT_FFLAG = 0.7
@@ -35,7 +35,7 @@ class Fitter(object):
         '''
         self._sample = sample
 
-    def fit(self, conver=DEFAULT_CONVERT, minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT,
+    def fit(self, conver=DEFAULT_CONVERGENCY, minit=DEFAULT_MINIT, maxit=DEFAULT_MAXIT,
             fflag=DEFAULT_FFLAG, maxgerr=DEFAULT_MAXGERR, going_inwards=False):
         '''
         Perform the actual fit, returning an Isophote instance:

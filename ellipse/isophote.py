@@ -1,5 +1,6 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import collections
 import numpy as np
 
 from ellipse.harmonics import fit_upper_harmonic
@@ -280,7 +281,7 @@ class CentralPixel(Isophote):
             print(s)
 
 
-class IsophoteList(Isophote, list):
+class IsophoteList(Isophote, collections.MutableSequence):
     '''
     This class is a convenience container that provides the same attributes
     that the Isophote class offers, except that scalar attributes are replaced
@@ -298,8 +299,23 @@ class IsophoteList(Isophote, list):
         '''
         self._list = iso_list
 
+    def __len__(self):
+        return len(self._list)
+
+    def __delitem__(self, index):
+        self._list.__delitem__(index)
+
+    def insert(self, index, value):
+        self._list.insert(index, value)
+
+    def __setitem__(self, index, value):
+        self._list.__setitem__(index, value)
+
     def __getitem__(self, index):
-            return self._list.__getitem__(index)
+        return self._list.__getitem__(index)
+
+    def append(self, value):
+        self.insert(len(self) + 1, value)
 
     def get_closest(self, sma):
         '''
