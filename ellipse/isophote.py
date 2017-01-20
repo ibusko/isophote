@@ -115,12 +115,16 @@ class Isophote:
         # deviations from perfect ellipticity
         try:
             c = fit_upper_harmonic(sample.values[0], sample.values[2], 3)
+            covariance = c[1]
+            c = c[0]
             self.a3 = c[1] / sample.geometry.sma /sample.gradient
             self.b3 = c[2] / sample.geometry.sma /sample.gradient
         except Exception as e: # we want to catch everything
             self.a3 = self.b3 = None
         try:
             c = fit_upper_harmonic(sample.values[0], sample.values[2], 4)
+            covariance = c[1]
+            c = c[0]
             self.a4 = c[1] / sample.geometry.sma /sample.gradient
             self.b4 = c[2] / sample.geometry.sma /sample.gradient
         except Exception as e: # we want to catch everything

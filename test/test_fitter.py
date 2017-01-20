@@ -42,7 +42,8 @@ class TestFitter(unittest.TestCase):
         sample.update()
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
+        harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = harmonics[0]
 
         # when eps is off, b2 is the largest (in absolute value).
         self.assertGreater(abs(b2), abs(a1))

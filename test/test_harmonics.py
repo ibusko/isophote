@@ -54,7 +54,8 @@ class TestHarmonics(unittest.TestCase):
         b2_0 = 2.
         data = y0_0 + a1_0 * np.sin(E) + b1_0 * np.cos(E) + a2_0 * np.sin(2*E) + b2_0 * np.cos(2*E) + 0.01 * np.random.randn(N)
 
-        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(E, data)
+        harmonics = fit_1st_and_2nd_harmonics(E, data)
+        y0, a1, b1, a2, b2 = harmonics[0]
         data_fit = y0 + a1*np.sin(E) + b1*np.cos(E) + a2*np.sin(2*E) + b2* np.cos(2*E) + 0.01 * np.random.randn(N)
         residual = data - data_fit
 
@@ -74,7 +75,8 @@ class TestHarmonics(unittest.TestCase):
         order = 3
         data = y0_0 + a1_0 * np.sin(order*E) + b1_0 * np.cos(order*E) + 0.01 * np.random.randn(N)
 
-        y0, a1, b1 = fit_upper_harmonic(E, data, order)
+        harmonic = fit_upper_harmonic(E, data, order)
+        y0, a1, b1 = harmonic[0]
         data_fit = y0 + a1*np.sin(order*E) + b1*np.cos(order*E) + 0.01 * np.random.randn(N)
         residual = data - data_fit
 
@@ -89,7 +91,8 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, 40.)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
+        harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = harmonics[0]
 
         self.assertAlmostEqual(y0, 200.019, 3)
         self.assertAlmostEqual(a1, -0.000138, 3)
@@ -112,7 +115,8 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, 40., eps=0.4)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
+        harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = harmonics[0]
 
         self.assertAlmostEqual(y0, 245.136, 3)
         self.assertAlmostEqual(a1, 0.000197, 3)
@@ -129,7 +133,8 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, 40., eps=0.1)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
+        harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = harmonics[0]
 
         self.assertAlmostEqual(y0, 188.677, 3)
         self.assertAlmostEqual(a1, 0.000283, 3)
@@ -146,7 +151,8 @@ class TestHarmonics(unittest.TestCase):
         sample = Sample(test_data, x0=220., y0=210., sma=40.)
         s = sample.extract()
 
-        y0, a1, b1, a2, b2 = fit_1st_and_2nd_harmonics(s[0], s[2])
+        harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
+        y0, a1, b1, a2, b2 = harmonics[0]
 
         self.assertAlmostEqual(y0, 152.857, 3)
         self.assertAlmostEqual(a1, 55.348, 3)

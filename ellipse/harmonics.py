@@ -7,12 +7,13 @@ from scipy.optimize import leastsq
 def _dofit(optimize_func, parameters):
     # call the least squares fitting
     # function and handle the result.
-    solution = leastsq(optimize_func, parameters)
+    solution = leastsq(optimize_func, parameters, full_output=True)
 
-    if solution[1] > 4:
-        raise RuntimeError("Error in least squares fit: " + solution[1])
+    if solution[4] > 4:
+        raise RuntimeError("Error in least squares fit: " + solution[3])
 
-    return solution[0]
+    # return coefficients and covariance matrix
+    return (solution[0], solution[1])
 
 
 def first_and_2nd_harmonic_function(phi, c):

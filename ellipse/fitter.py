@@ -108,6 +108,9 @@ class Fitter(object):
                 print(e)
                 return Isophote(sample, iter+1, False, 3)
 
+            covariance = coeffs[1]
+            coeffs = coeffs[0]
+
             # largest harmonic in absolute value drives the correction.
             largest_harmonic_index = np.argmax(np.abs(coeffs[1:]))
             largest_harmonic = coeffs[1:][largest_harmonic_index]
