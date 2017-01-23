@@ -8,10 +8,10 @@ from ellipse.harmonics import fit_1st_and_2nd_harmonics, first_and_2nd_harmonic_
 def print_header(verbose=False):
     if verbose:
         print('#')
-        print('# Semi-      Isophote         Ellipticity   Position     Grad.   Data  Flag Iter. Stop')
-        print('# major        mean                          Angle        rel.                    code')
-        print('# axis       intensity                                   error')
-        print('#(pixel)                                    (degree)')
+        print('# Semi-      Isophote         Ellipticity    Position     Grad.   Data  Flag Iter. Stop')
+        print('# major        mean                           Angle        rel.                    code')
+        print('# axis       intensity                                    error')
+        print('#(pixel)                                     (degree)')
         print('#')
 
 
@@ -226,7 +226,7 @@ class Isophote:
     def print(self, verbose=False):
         if verbose:
             if self.grad_r_error:
-                s = "%7.2f   %9.2f (%5.2f) % 5.3f (%5.3f) %6.2f (%4.2f) %5.3f  %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
+                s = "%7.2f   %9.2f (%5.2f) % 5.3f (%5.3f) %6.2f (%4.1f)  %5.3f  %4i  %4i %4i  %4i"% (self.sample.geometry.sma,
                                                        self.intens,
                                                        self.int_err,
                                                        self.sample.geometry.eps,
@@ -239,7 +239,7 @@ class Isophote:
                                                        self.niter,
                                                        self.stop_code)
             else:
-                s = "%7.2f   %9.2f (%5.2f) % 5.3f (%5.3f) %6.2f (%4.2f) None   %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
+                s = "%7.2f   %9.2f (%5.2f) % 5.3f (%5.3f) %6.2f (%4.1f)  None   %4i  %4i %4i  %4i"% (self.sample.geometry.sma,
                                                        self.intens,
                                                        self.int_err,
                                                        self.sample.geometry.eps,
