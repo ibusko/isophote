@@ -2,16 +2,16 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import numpy as np
 
-from ellipse.harmonics import fit_upper_harmonic
+from ellipse.harmonics import fit_1st_and_2nd_harmonics, first_and_2nd_harmonic_function, fit_upper_harmonic
 
 
 def print_header(verbose=False):
     if verbose:
         print('#')
-        print('# Semi-    Isophote      Ellipticity   Position    Grad.  Data  Flag  Iter. Stop')
-        print('# major      mean                       Angle       rel.                    code')
-        print('# axis     intensity                               error')
-        print('#(pixel)                               (degree)')
+        print('# Semi-      Isophote         Ellipticity   Position     Grad.   Data  Flag Iter. Stop')
+        print('# major        mean                          Angle        rel.                    code')
+        print('# axis       intensity                                   error')
+        print('#(pixel)                                    (degree)')
         print('#')
 
 
@@ -19,11 +19,12 @@ class Isophote:
 
     def __init__(self, sample, niter, valid, stop_code):
         '''
-        This class is basically a container that holds the results of a single isophote
-        fit. The actual extracted sample at the given isophote (sampled intensities along
-        the elliptical path on the image) is kept as an attribute of this class. The
-        container concept helps in segregating information directly related to this sample,
-        from information that more closely relates to the fitting process.
+        This class is basically a container that holds the results of a single isophote fit.
+        The actual extracted sample at the given isophote (sampled intensities along the
+        elliptical path on the image) is kept as an attribute of this class. The container
+        concept helps in segregating information directly related to the sample, from
+        information that more closely relates to the fitting process, such as status codes,
+        errors for isophote parameters (as defined by the old STSDAS code), and the like.
 
         Parameters:
         ----------
@@ -91,6 +92,8 @@ class Isophote:
             These values ar actually the raw harmonic amplitude divided by the local
             radial gradient and the semi-major axis length, so they can directly be
             compared with each other.
+        :param a3_err, b3_err, a4_err, b4_err: float
+            errors of the a3, b3, a4, b4 attributes
         '''
         self.sample = sample
         self.niter = niter
@@ -112,23 +115,11 @@ class Isophote:
         # flux contained inside ellipse and circle
         self.tflux_e, self.tflux_c, self.npix_e, self.npix_c = self._compute_fluxes()
 
-        # deviations from perfect ellipticity
-        try:
-            c = fit_upper_harmonic(sample.values[0], sample.values[2], 3)
-            covariance = c[1]
-            c = c[0]
-            self.a3 = c[1] / sample.geometry.sma /sample.gradient
-            self.b3 = c[2] / sample.geometry.sma /sample.gradient
-        except Exception as e: # we want to catch everything
-            self.a3 = self.b3 = None
-        try:
-            c = fit_upper_harmonic(sample.values[0], sample.values[2], 4)
-            covariance = c[1]
-            c = c[0]
-            self.a4 = c[1] / sample.geometry.sma /sample.gradient
-            self.b4 = c[2] / sample.geometry.sma /sample.gradient
-        except Exception as e: # we want to catch everything
-            self.a4 = self.b4 = None
+        self._compute_errors()
+
+        # deviations from a perfect ellipse
+        self.a3, self.b3, self.a3_err, self.b3_err = self._compute_deviations(sample, 3)
+        self.a4, self.b4, self.a4_err, self.b4_err = self._compute_deviations(sample, 4)
 
     def _compute_fluxes(self):
         # Compute integrated flux inside ellipse, as well as inside
@@ -175,26 +166,86 @@ class Isophote:
 
         return tflux_e, tflux_c, npix_e, npix_c
 
+    def _compute_deviations(self, sample, n):
+        # compute deviations from a perfect ellipse, based on the
+        # amplitudes and errors for harmonic 'n'
+        try:
+            c = fit_upper_harmonic(sample.values[0], sample.values[2], n)
+            covariance = c[1]
+            ce = np.diagonal(covariance)
+            c = c[0]
+
+            a = c[1] / self.sma /sample.gradient
+            b = c[2] / self.sma /sample.gradient
+
+            # this comes from the old code. Likely it was based on
+            # empirical experience with the STSDAS task, so we leave
+            # it here without too much thought.
+            gre = self.grad_r_error if self.grad_r_error is not None else 0.64
+
+            a_err = abs(a) * np.sqrt((ce[1] / c[1])**2 + gre**2)
+            b_err = abs(b) * np.sqrt((ce[2] / c[2])**2 + gre**2)
+
+        except Exception as e: # we want to catch everything
+            a = b = a_err = b_err = None
+
+        return a, b, a_err, b_err
+
+    def _compute_errors(self):
+        # compute parameter errors based on the diagonal of the
+        # covariance matrix of the four harmonic coefficients for
+        # harmonics n=1 and n=2.
+
+        # fit 1st and 2nd harmonics to current sample and get their errors.
+        coeffs = fit_1st_and_2nd_harmonics(self.sample.values[0], self.sample.values[2])
+        covariance = coeffs[1]
+        coeffs = coeffs[0]
+        model = first_and_2nd_harmonic_function(self.sample.values[0], coeffs)
+        residual_rms = np.std(self.sample.values[2] - model)
+        errors = np.diagonal(covariance) * residual_rms
+
+        eps = self.sample.geometry.eps
+        pa = self.sample.geometry.pa
+
+        # parameter errors result from direct projection of coefficient errors.
+        # These showed to be the error estimators that best convey the errors
+        # measured in Monte Carlo experiments (see reference in ellipse help page).
+        ea = abs(errors[2] / self.grad)
+        eb = abs(errors[1] * (1. - eps) / self.grad)
+        self.x0_err = np.sqrt((ea * np.cos(pa))**2 + (eb * np.sin(pa))**2)
+        self.y0_err = np.sqrt((ea * np.sin(pa))**2 + (eb * np.cos(pa))**2)
+        self.ellip_err = abs (2. * errors[4] * (1. - eps) / self.sma / self.grad)
+        if (abs (eps) > np.finfo(float).resolution):
+            self.pa_err = abs(2. * errors[3] * (1. - eps) / self.sma / self.grad / (1. - (1. - eps)**2))
+        else :
+            self.pa_err = 0.
+
     def __repr__(self):
         return "sma=%7.2f" % (self.sma)
 
     def print(self, verbose=False):
         if verbose:
             if self.grad_r_error:
-                s = "%7.2f   %9.2f       % 5.3f       %6.2f      %5.3f  %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
+                s = "%7.2f   %9.2f (%5.2f) % 5.3f (%5.3f) %6.2f (%4.2f) %5.3f  %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
                                                        self.intens,
+                                                       self.int_err,
                                                        self.sample.geometry.eps,
+                                                       self.ellip_err,
                                                        self.sample.geometry.pa / np.pi * 180.,
+                                                       self.pa_err,
                                                        self.grad_r_error,
                                                        self.ndata,
                                                        self.nflag,
                                                        self.niter,
                                                        self.stop_code)
             else:
-                s = "%7.2f   %9.2f       % 5.3f       %6.2f      None   %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
+                s = "%7.2f   %9.2f (%5.2f) % 5.3f (%5.3f) %6.2f (%4.2f) None   %4i %4i  %4i  %4i"% (self.sample.geometry.sma,
                                                        self.intens,
+                                                       self.int_err,
                                                        self.sample.geometry.eps,
+                                                       self.ellip_err,
                                                        self.sample.geometry.pa / np.pi * 180.,
+                                                       self.pa_err,
                                                        self.ndata,
                                                        self.nflag,
                                                        self.niter,
