@@ -78,12 +78,6 @@ class Ellipse():
     Analysis Software and Systems Conference, Tucson, PASP Conference Series v.101, ed. G.H. Jacoby
     and J. Barnes, p.139-142.
 
-    A note of caution: the algorithm was designed explicitly with a (elliptical) galaxy brightness
-    distribution in mind. In particular, a well defined negative radial intensity gradient across
-    the region being fitted is paramount for the achievement of stable solutions. Use of the
-    algorithm in other types of images (e.g., planetary nebulae) may lead to inability to converge
-    to any acceptable solution.
-
     After fitting the ellipse that corresponds to a given value of the semi-major axis (by the
     process described above), the axis length is incremented/decremented following a pre-defined
     rule. At each step, the starting, first guess ellipse parameters are taken from the previously
@@ -98,6 +92,12 @@ class Ellipse():
     as stars, spiral arms, HII regions, defects, etc.
 
     See documentation of class Isophote for the meaning of the stop code reported after each fit.
+
+    A note of caution: the algorithm was designed explicitly with a (elliptical) galaxy brightness
+    distribution in mind. In particular, a well defined negative radial intensity gradient across
+    the region being fitted is paramount for the achievement of stable solutions. Use of the
+    algorithm in other types of images (e.g., planetary nebulae) may lead to inability to converge
+    to any acceptable solution.
 
     '''
     def __init__(self, image, geometry=None):
@@ -127,6 +127,10 @@ class Ellipse():
                           linear     = False,
                           maxrit     = None,
                           verbose    = True):
+        # This parameter list is quite large and should in principle be simplified
+        # by re-distributing these controls to somewhere else. We keep this design
+        # though because it better mimics the flat architecture used in the original
+        # STSDAS task 'ellipse'.
         '''
         Main fitting method. Fits multiple isophotes on the image array passed
         to the constructor. This method basically loops over each one of the
@@ -446,6 +450,11 @@ class Ellipse():
         '''
         # if available, geometry from last fitted isophote will be
         # used as initial guess for next isophote.
+
+
+#TODO add obj locator and modify geometry
+
+
         geometry = self._geometry
         if isophote_list is not None and len(isophote_list) > 0:
             geometry = isophote_list[-1].sample.geometry
@@ -526,5 +535,57 @@ class Ellipse():
             isophote_list.append(new_isophote)
 
 
+class Locator(object):
+    '''
+The algorithm has no ways of finding where, in the input image section,
+the galaxy to be measured sits in. That is, 'x0' and 'y0' must be properly
+set from start. Since they are set by default to INDEF, the task has a number
+of options to set them properly. First, an object locator routine is run,
+scanning a 10X10 window centered either on the input 'x0', 'y0' coordinates
+or, if any one of them, or both, are set to INDEF, on the input image section
+center. A number of actions are possible depending on the successful (or not)
+acquisition of an object. Below it is shown what takes place
+depending on the
+values of parameters 'interactive', 'recenter' and 'xylearn':
+.ls Successful acquisition:
+.ls Starting 'x0','y0' set to INDEF or outside image section boundaries:
+Task begins at once to fit at position found by object locator.
+.le
+.ls Valid starting 'x0','y0':
+Task looks to 'recenter' parameter. If 'yes', fit at position found by
+object locator. If 'no', fit at original 'x0','y0' position.
+.le
+.le
+.ls Not successful acquisition:
+.ls Starting 'x0','y0' set to INDEF or outside image section boundaries:
+.ls Interactive mode:
+Task issues a warning message and turns cursor on at once. User is supposed
+to identify galaxy center in the displayed image (using 'x' cursor keystroke).
+.le
+.ls Non-interactive mode:
+If 'xylearn' is set to 'yes', task prompts user at STDIN for 'x0','y0',
+even if it is being run with mode=h. If 'xylearn' is set to 'no', aborts.
+.le
+.le
+.ls Valid starting 'x0','y0':
+Atempts to fit at 'x0','y0' position anyway.
+.le
+.le
 
+Parameter 'xylearn' is used to automatically update the pset when valid
+center coordinates become available. If 'xylearn' is set to 'yes' and
+'x0','y0' are set to INDEF, the task will write to the 'geompar' pset the
+valid values that will come either from the object locator or the
+cursor/STDIN input. If 'xylearn' is set to 'no', nothing happens. This
+feature is useful when trying several runs of 'ellipse' on the same
+object. The first time the task is run, the object center must be
+defined by the user, but in subsequent runs this step is skipped.
+
+In some cases the object locator algorithm mail fail, even though there
+is enough signal-to-noise to start a fit (e.g. in objects with very
+high ellipticity). In those cases the sensitivity of the algorithm
+can be decreased. See the 'controlpar' pset.
+
+    '''
+    pass
 
