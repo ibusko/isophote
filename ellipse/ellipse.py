@@ -51,7 +51,7 @@ class Ellipse():
 
     3 - more than a given fraction of the elliptical sample points have no valid data in then,
         either because they lie outside the image boundaries or because they where flagged out from
-        the fit (see below).
+        the fit by sigma-clipping.
 
     In any case, a minimum number of iterations is always performed. If iterations stop because
     of reasons 2 or 3 above, then those ellipse parameters that generated the lowest absolute
@@ -67,14 +67,22 @@ class Ellipse():
 
     The algorithm then measures the integrated intensity and the number of non-flagged pixels inside
     the elliptical isophote, and also inside the corresponding circle with same center and radius
-    equal to the semi-major axis length. These parameters, some other associated parameters, and
-    some auxiliary information, are stored in the Isophote instance.
+    equal to the semi-major axis length. These parameters, their errors, other associated parameters,
+    and auxiliary information, are stored in the Isophote instance.
 
-    It must be emphasized that the algorithm was designed explicitly with a (elliptical) galaxy
-    brightness distribution in mind. In particular, a well defined negative radial intensity
-    gradient across the region being fitted is paramount for the achievement of stable solutions.
-    Use of the algorithm in other types of images (e.g., planetary nebulae) may lead to inability
-    to converge to any acceptable solution.
+    Errors in intensity and local gradient are obtained directly from the rms scatter of intensity
+    data along the fitted ellipse. Ellipse geometry errors are obtained from the errors in the
+    coefficients of the 1st and 2nd simultaneous harmonic fit. 3rd and 4th harmonic amplitude errors
+    are obtained in the same way, but only after the 1st and 2nd harmonics are subtracted from the
+    raw data. See error analysis in Busko, I., 1996, Proceedings of the Fifth Astronomical Data
+    Analysis Software and Systems Conference, Tucson, PASP Conference Series v.101, ed. G.H. Jacoby
+    and J. Barnes, p.139-142.
+
+    A note of caution: the algorithm was designed explicitly with a (elliptical) galaxy brightness
+    distribution in mind. In particular, a well defined negative radial intensity gradient across
+    the region being fitted is paramount for the achievement of stable solutions. Use of the
+    algorithm in other types of images (e.g., planetary nebulae) may lead to inability to converge
+    to any acceptable solution.
 
     After fitting the ellipse that corresponds to a given value of the semi-major axis (by the
     process described above), the axis length is incremented/decremented following a pre-defined
@@ -85,9 +93,11 @@ class Ellipse():
     algorithm has capabilities to stop increasing semi-major axis based on several criteria, including
     signal-to-noise ratio.
 
-    The 'ellipse' algorithm also provides a k-sigma clipping algorithm for cleaning deviant sample
-    points at each isophote, thus improving convergency stability against any non-elliptical structure
-    such as stars, spiral arms, HII regions, defects, etc.
+    The 'ellipse' algorithm provides a k-sigma clipping algorithm for cleaning deviant sample points
+    at each isophote, thus improving convergency stability against any non-elliptical structure such
+    as stars, spiral arms, HII regions, defects, etc.
+
+    See documentation of class Isophote for the meaning of the stop code reported after each fit.
 
     '''
     def __init__(self, image, geometry=None):
@@ -144,7 +154,7 @@ class Ellipse():
         :param step: float, default = 0.1
             the step value being used to grow/shrink the semi-major
             axis length (pixels if 'linear=True', or relative value
-            if 'linear=False')
+            if 'linear=False'). See 'linear' parameter.
         :param conver: float, default = 0.05
             main convergency criterion. Iterations stop when the
             largest harmonic amplitude becomes smaller (in absolute
@@ -189,7 +199,7 @@ class Ellipse():
             the algorithm proceeds inwards to the galaxy image center. If
             'maxsma' is set to some finite value, and this value is larger
             than the current semi-major axis length, the algorithm enters
-            non-iterative mode and proceeds outwards until reaching '.maxsma'.
+            non-iterative mode and proceeds outwards until reaching 'maxsma'.
         :param sclip: float, default = 3.0
             sigma-cliping criterion
         :param nclip: int, default = 0
@@ -198,7 +208,18 @@ class Ellipse():
         :param integrmode: string, default = 'bi-linear'
             area integration mode, as defined in module integrator.py
         :param linear: boolean, default False
-            semi-major axis growing/shrinking mode
+            semi-major axis growing/shrinking mode. If False, geometric
+            growing mode is chosen, thus the semi-major axis length is
+            increased by a factor of (1.+'step'), and the process is repeated
+            until either the semi-major axis value reaches the value of
+            parameter 'maxsma', or the last fitted ellipse has more than a
+            given fraction of its sampled points flagged out (see 'fflag').
+            The process then resumes from the first fitted ellipse (at 'sma0')
+            inwards, in steps of (1./(1.+'step')), until the semi- major axis
+            length reaches the value 'minsma'. In case of linear growing, the
+            increment or decrement value is given directly by 'step' in pixels.
+            If 'maxsma' is set to None, the semi-major axis will grow until a
+            low signal-to-noise criterion is met. See 'maxgerr'.
         :param maxrit: float, default None
             maximum value of semi-major axis to perform an actual fit.
             Whenever the current semi-major axis length is larger than
@@ -383,7 +404,11 @@ class Ellipse():
         :param integrmode: string, default = 'bi-linear'
             area integration mode, as defined in module integrator.py
         :param linear: boolean, default = False
-            semi-major axis growing/shrinking mode
+            semi-major axis growing/shrinking mode. When fitting just
+            one isophote, this parameter is used only by the code that
+            defines the details of how elliptical arc segments ("sectors")
+            are extracted from the image, when using area extraction modes
+            (see parameter 'integrmode')
         :param maxrit: float, default None
             maximum value of semi-major axis to perform an actual fit.
             If the passed 'sma' value is larger than 'maxrit', the

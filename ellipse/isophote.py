@@ -168,9 +168,15 @@ class Isophote:
 
     def _compute_deviations(self, sample, n):
         # compute deviations from a perfect ellipse, based on the
-        # amplitudes and errors for harmonic 'n'
+        # amplitudes and errors for harmonic 'n'. Note that we first
+        # subtract the 1st and 2nd harmonics from the raw data.
         try:
-            c = fit_upper_harmonic(sample.values[0], sample.values[2], n)
+            coeffs = fit_1st_and_2nd_harmonics(self.sample.values[0], self.sample.values[2])
+            coeffs = coeffs[0]
+            model = first_and_2nd_harmonic_function(self.sample.values[0], coeffs)
+            residual = self.sample.values[2] - model
+
+            c = fit_upper_harmonic(residual, sample.values[2], n)
             covariance = c[1]
             ce = np.diagonal(covariance)
             c = c[0]
@@ -195,30 +201,31 @@ class Isophote:
         # compute parameter errors based on the diagonal of the
         # covariance matrix of the four harmonic coefficients for
         # harmonics n=1 and n=2.
+        try:
+            coeffs = fit_1st_and_2nd_harmonics(self.sample.values[0], self.sample.values[2])
+            covariance = coeffs[1]
+            coeffs = coeffs[0]
+            model = first_and_2nd_harmonic_function(self.sample.values[0], coeffs)
+            residual_rms = np.std(self.sample.values[2] - model)
+            errors = np.diagonal(covariance) * residual_rms
 
-        # fit 1st and 2nd harmonics to current sample and get their errors.
-        coeffs = fit_1st_and_2nd_harmonics(self.sample.values[0], self.sample.values[2])
-        covariance = coeffs[1]
-        coeffs = coeffs[0]
-        model = first_and_2nd_harmonic_function(self.sample.values[0], coeffs)
-        residual_rms = np.std(self.sample.values[2] - model)
-        errors = np.diagonal(covariance) * residual_rms
+            eps = self.sample.geometry.eps
+            pa = self.sample.geometry.pa
 
-        eps = self.sample.geometry.eps
-        pa = self.sample.geometry.pa
-
-        # parameter errors result from direct projection of coefficient errors.
-        # These showed to be the error estimators that best convey the errors
-        # measured in Monte Carlo experiments (see reference in ellipse help page).
-        ea = abs(errors[2] / self.grad)
-        eb = abs(errors[1] * (1. - eps) / self.grad)
-        self.x0_err = np.sqrt((ea * np.cos(pa))**2 + (eb * np.sin(pa))**2)
-        self.y0_err = np.sqrt((ea * np.sin(pa))**2 + (eb * np.cos(pa))**2)
-        self.ellip_err = abs (2. * errors[4] * (1. - eps) / self.sma / self.grad)
-        if (abs (eps) > np.finfo(float).resolution):
-            self.pa_err = abs(2. * errors[3] * (1. - eps) / self.sma / self.grad / (1. - (1. - eps)**2))
-        else :
-            self.pa_err = 0.
+            # parameter errors result from direct projection of coefficient errors.
+            # These showed to be the error estimators that best convey the errors
+            # measured in Monte Carlo experiments (see reference in ellipse help page).
+            ea = abs(errors[2] / self.grad)
+            eb = abs(errors[1] * (1. - eps) / self.grad)
+            self.x0_err = np.sqrt((ea * np.cos(pa))**2 + (eb * np.sin(pa))**2)
+            self.y0_err = np.sqrt((ea * np.sin(pa))**2 + (eb * np.cos(pa))**2)
+            self.ellip_err = abs (2. * errors[4] * (1. - eps) / self.sma / self.grad)
+            if (abs (eps) > np.finfo(float).resolution):
+                self.pa_err = abs(2. * errors[3] * (1. - eps) / self.sma / self.grad / (1. - (1. - eps)**2))
+            else :
+                self.pa_err = 0.
+        except Exception as e: # we want to catch everything
+            self.x0_err = self.y0_err = self.pa_err = self.ellip_err = 0.
 
     def __repr__(self):
         return "sma=%7.2f" % (self.sma)
