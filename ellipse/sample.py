@@ -46,7 +46,7 @@ class Sample(object):
         :param linear_growth: boolean, default=False
             semi-major axis growing/shrinking mode
         :param integrmode: string, default=BI_LINEAR
-            algorithm used for area integration
+            area integration mode, as defined in module integrator.py
         :param geometry: Geometry instance, default=None
             the geometry that describes the ellipse. This can be used in
             lieu of the explicit specification of parameters 'sma', 'x0',

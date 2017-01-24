@@ -50,25 +50,58 @@ class Fitter(object):
 
 
         :param conver: float, default = 0.05
-            main convergency criterion. Largest harmonic amplitude
-            must be smaller than 'conver' times the fit rms.
+            main convergency criterion. Iterations stop when the
+            largest harmonic amplitude becomes smaller (in absolute
+            value) than 'conver' times the harmonic fit rms.
         :param minit: int, default = 10
-            minimum number of iterations to perform
+            minimum number of iterations to perform. A minimum of 10
+            iterations guarantees that, on average, 2 iterations will
+            be available for fitting each independent parameter (the
+            four harmonic amplitudes and the intensity level). In the
+            first isophote, the minimum number of iterations is 2 * 'minit',
+            to ensure that, even departing from not-so-good initial values,
+            the algorithm has a better chance to converge to a sensible
+            solution.
         :param maxit: int, default = 50
             maximum number of iterations to perform
         :param fflag: float, default = 0.7
             acceptable fraction of flagged data points in sample.
             If the actual number of valid data points is smaller
             than this, stop iterating and return current Isophote.
-            For now, flagged data points are points that lie outside
-            the image frame. In the future, it may include masked
-            pixels as well.
+            Flagged data points are points that either lie outside
+            the image frame, or where rejected by sigma-clipping.
         :param maxgerr: float, default = 0.5
             maximum acceptable relative error in the local radial
-            intensity gradient.
+            intensity gradient. This is the main control for preventing
+            ellipses to grow to regions of too low signal-to-noise ratio.
+            It specifies the maximum acceptable relative error in the
+            local radial intensity gradient. Experiments (see paper
+            quoted in the 'ellipse' help page) showed that the fitting
+            precision relates to that relative error. The usual behavior
+            of the gradient relative error is to increase with semi-major
+            axis, being larger in outer, fainter regions of a galaxy
+            image. In the current implementation, the 'maxgerr' criterion
+            is triggered only when two consecutive isophotes exceed the
+            value specified in the parameter. This prevents premature
+            stopping caused by contamination such as stars and HII
+            regions.
+            A number of actions may happen when the current gradient
+            error exceeds 'maxgerr' (or becomes non-significant and is
+            set to None) in the process of increasing semi-major axis
+            length. If the maximum semi-major axis specified by parameter
+            'maxsma' is set to None, semi-major axis grow is stopped and
+            the algorithm proceeds inwards to the galaxy image center. If
+            'maxsma' is set to some finite value, and this value is larger
+            than the current semi-major axis length, the algorithm enters
+            non-iterative mode and proceeds outwards until reaching '.maxsma'.
         :param going_inwards: boolean, default = False
-            defines the sense of SMA growth. This is used by stopping
-            criteria that depend on the gradient relative error.
+            defines the sense of SMA growth. This is used by the Ellipse
+            class for defining stopping criteria that depend on the gradient
+            relative error. When fitting just one isophote, this parameter
+            is used only by the code that defines the details of how
+            elliptical arc segments ("sectors") are extracted from the image,
+            when using area extraction modes (see parameter 'integrmode' in
+            the Sample class).
         :return: instance of Isophote
             isophote with the fitted sample plus additional fit status
             information
