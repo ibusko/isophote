@@ -87,11 +87,24 @@ class Ellipse():
     algorithm has capabilities to stop increasing semi-major axis based on several criteria, including
     signal-to-noise ratio.
 
-    The 'ellipse' algorithm provides a k-sigma clipping algorithm for cleaning deviant sample points
-    at each isophote, thus improving convergency stability against any non-elliptical structure such
-    as stars, spiral arms, HII regions, defects, etc.
-
     See documentation of class Isophote for the meaning of the stop code reported after each fit.
+
+    The fit algorithm provides a k-sigma clipping algorithm for cleaning deviant sample points at each
+    isophote, thus improving convergency stability against any non-elliptical structure such as stars,
+    spiral arms, HII regions, defects, etc.
+
+    The fit algorithm has no way of finding where, in the input image frame, the galaxy to be measured
+    sits in. The center X,Y coordinates need to be close to the actual center for the fit to work. An
+    "object locator" function helps to verify that the selected position can be used as starting point.
+    This function scans a 10 X 10 window centered either on the X,Y coordinates in the Geometry instance
+    passed to the constructor of the Ellipse class, or, if any one of them, or both, are set to None,
+    on the input image frame center. In case a successful acquisition takes place, the Geometry instance
+    is modified in place to reflect the solution of the object locator algorithm.
+
+    In some cases the object locator algorithm mail fail, even though there is enough signal-to-noise
+    to start a fit (e.g. in objects with very high ellipticity). In those cases the sensitivity of
+    the algorithm can be decreased by decreasing the value of the object locator threshold parameter.
+    The locator can be shut off entirely by setting the threshold to zero.
 
     A note of caution: the algorithm was designed explicitly with a (elliptical) galaxy brightness
     distribution in mind. In particular, a well defined negative radial intensity gradient across
@@ -100,7 +113,7 @@ class Ellipse():
     to any acceptable solution.
 
     '''
-    def __init__(self, image, geometry=None):
+    def __init__(self, image, geometry=None, olthreshold=1.0):
         '''
         Constructor
 
@@ -108,25 +121,36 @@ class Ellipse():
             image array
         :param geometry: instance of Geometry
             the optional geometry that describes the first ellipse to be fitted
+        :param olthreshold: float, default = 1.0
+            Threshold for the object locator algorithm. By lowering this value
+            the object locator becomes less strict, in the sense that it will
+            accept lower signal-to-noise data. If set to zero, the locator is
+            effectively shut off. In this case, either the geometry information
+            supplied by the 'geometry' parameter is used as is, or the fit
+            algorithm will terminate prematurely. Note that, once the object
+            locator runs successfully, the X and Y coordinates in the geometry
+            instance are modified for good.
         '''
         self.image = image
         self._geometry = geometry
 
+        self.object_locator(olthreshold)
+
     def fit_image(self, sma0 = 10.,
-                          minsma     = 0.,
-                          maxsma     = None,
-                          step       = DEFAULT_STEP,
-                          conver     = DEFAULT_CONVERGENCY,
-                          minit      = DEFAULT_MINIT,
-                          maxit      = DEFAULT_MAXIT,
-                          fflag      = DEFAULT_FFLAG,
-                          maxgerr    = DEFAULT_MAXGERR,
-                          sclip      = DEFAULT_SCLIP,
-                          nclip      = 0,
-                          integrmode = BI_LINEAR,
-                          linear     = False,
-                          maxrit     = None,
-                          verbose    = True):
+                          minsma      = 0.,
+                          maxsma      = None,
+                          step        = DEFAULT_STEP,
+                          conver      = DEFAULT_CONVERGENCY,
+                          minit       = DEFAULT_MINIT,
+                          maxit       = DEFAULT_MAXIT,
+                          fflag       = DEFAULT_FFLAG,
+                          maxgerr     = DEFAULT_MAXGERR,
+                          sclip       = DEFAULT_SCLIP,
+                          nclip       = 0,
+                          integrmode  = BI_LINEAR,
+                          linear      = False,
+                          maxrit      = None,
+                          verbose     = True):
         # This parameter list is quite large and should in principle be simplified
         # by re-distributing these controls to somewhere else. We keep this design
         # though because it better mimics the flat architecture used in the original
@@ -241,7 +265,6 @@ class Ellipse():
             this list stores fitted Isophote instances, sorted according
             to the semi-major axis length value.
         '''
-
         # multiple fitted isophotes will be stored here
         isophote_list = []
 
@@ -448,14 +471,10 @@ class Ellipse():
             the fitted isophote. The fitted isophote is also appended
             to the input list passed via parameter 'isophote_list'.
         '''
+        geometry = self._geometry
+
         # if available, geometry from last fitted isophote will be
         # used as initial guess for next isophote.
-
-
-#TODO add obj locator and modify geometry
-
-
-        geometry = self._geometry
         if isophote_list is not None and len(isophote_list) > 0:
             geometry = isophote_list[-1].sample.geometry
 
@@ -534,58 +553,116 @@ class Ellipse():
             # add new isophote to list
             isophote_list.append(new_isophote)
 
+    def object_locator(self, threshold):
+        '''
+        Runs the object locator, modifying in place the geometry
+        associated with this Ellipse instance.
 
-class Locator(object):
-    '''
-The algorithm has no ways of finding where, in the input image section,
-the galaxy to be measured sits in. That is, 'x0' and 'y0' must be properly
-set from start. Since they are set by default to INDEF, the task has a number
-of options to set them properly. First, an object locator routine is run,
-scanning a 10X10 window centered either on the input 'x0', 'y0' coordinates
-or, if any one of them, or both, are set to INDEF, on the input image section
-center. A number of actions are possible depending on the successful (or not)
-acquisition of an object. Below it is shown what takes place
-depending on the
-values of parameters 'interactive', 'recenter' and 'xylearn':
-.ls Successful acquisition:
-.ls Starting 'x0','y0' set to INDEF or outside image section boundaries:
-Task begins at once to fit at position found by object locator.
-.le
-.ls Valid starting 'x0','y0':
-Task looks to 'recenter' parameter. If 'yes', fit at position found by
-object locator. If 'no', fit at original 'x0','y0' position.
-.le
-.le
-.ls Not successful acquisition:
-.ls Starting 'x0','y0' set to INDEF or outside image section boundaries:
-.ls Interactive mode:
-Task issues a warning message and turns cursor on at once. User is supposed
-to identify galaxy center in the displayed image (using 'x' cursor keystroke).
-.le
-.ls Non-interactive mode:
-If 'xylearn' is set to 'yes', task prompts user at STDIN for 'x0','y0',
-even if it is being run with mode=h. If 'xylearn' is set to 'no', aborts.
-.le
-.le
-.ls Valid starting 'x0','y0':
-Atempts to fit at 'x0','y0' position anyway.
-.le
-.le
+        :param threshold: float, default = 1.0
+            object locator threshold. To turn off the locator, set this to zero.
+        '''
+        pass
 
-Parameter 'xylearn' is used to automatically update the pset when valid
-center coordinates become available. If 'xylearn' is set to 'yes' and
-'x0','y0' are set to INDEF, the task will write to the 'geompar' pset the
-valid values that will come either from the object locator or the
-cursor/STDIN input. If 'xylearn' is set to 'no', nothing happens. This
-feature is useful when trying several runs of 'ellipse' on the same
-object. The first time the task is run, the object center must be
-defined by the user, but in subsequent runs this step is skipped.
 
-In some cases the object locator algorithm mail fail, even though there
-is enough signal-to-noise to start a fit (e.g. in objects with very
-high ellipticity). In those cases the sensitivity of the algorithm
-can be decreased. See the 'controlpar' pset.
-
-    '''
-    pass
-
+#
+#         # First, locate probable object center. It is either pointed
+# 36	        # to by valid XC,YC pair, or sits in frame center.
+# 37	        if ((!IS_INDEFR (XC(is))) && (!IS_INDEFR (YC(is)))) {
+# 38
+# 39	            # Center coordinates are defined. Must check if they
+# 40	            # point to somewhere inside the frame. If not, set
+# 41	            # then to frame center.
+# 42	            if (PHYSICAL(is)) {
+# 43	                XC(is) = el_p2s (im, XC(is), 1)
+# 44	                YC(is) = el_p2s (im, YC(is), 2)
+# 45	            }
+# 46	            if ((XC(is) < 1.) || (XC(is) > IM_LEN(im,1)))
+# 47	                XC(is) = IM_LEN(im,1) / 2
+# 48	            if ((YC(is) < 1.) || (YC(is) > IM_LEN(im,2)))
+# 49	                YC(is) = IM_LEN(im,2) / 2
+# 50	        } else {
+# 51
+# 52	            # If center coordinates not defined, assume object is
+# 53	            # in frame center.
+# 54	            XC(is) = IM_LEN(im,1) / 2
+# 55	            YC(is) = IM_LEN(im,2) / 2
+# 56	        }
+# 57
+# 58	        # Check to see if valid object is there.
+# 59	        call malloc (bufx, SZ_BUFFER, TY_REAL)
+# 60	        call malloc (bufy, SZ_BUFFER, TY_REAL)
+# 61	        nbuffer = SZ_BUFFER
+# 62
+# 63	        # Limits of re-centering window.
+# 64	        i1 = max (1, int(XC(is)) - RWINDOW / 2)
+# 65	        j1 = max (1, int(YC(is)) - RWINDOW / 2)
+# 66	        i2 = min (IM_LEN(im,1), int(XC(is)) + RWINDOW / 2)
+# 67	        j2 = min (IM_LEN(im,2), int(YC(is)) + RWINDOW / 2)
+# 68	        ic = 0
+# 69	        jc = 0
+# 70	        fom = 0.
+# 71
+# 72	        if (list) {
+# 73	            call printf ("Running object locator... ")
+# 74	            call flush (STDOUT)
+# 75	        }
+# 76
+# 77	        # Scan window.
+# 78	        do j = j1, j2 {
+# 79	            do i = i1, i2 {
+# 80
+# 81	                # Extract two concentric circular samples.
+# 82	                call el_get (im, sec, real(i), real(j), INNER_RADIUS, 0.0, 0.0,
+# 83	                             bufx, bufy, nbuffer, NPOINT(is), NDATA(is),
+# 84	                             mean1, std1, ASTEP(al), LINEAR(al),
+# 85	                             INT_LINEAR, 4., 4.0, 0, SAREA(is))
+# 86	                call el_get (im, sec, real(i), real(j), OUTER_RADIUS, 0.0, 0.0,
+# 87	                             bufx, bufy, nbuffer, NPOINT(is), NDATA(is),
+# 88	                             mean2, std2, ASTEP(al), LINEAR(al),
+# 89	                             INT_LINEAR, 4., 4.0, 0, SAREA(is))
+# 90
+# 91	                # Figure of merit measures if there is reasonable
+# 92	                # signal at position i,j.
+# 93	                if (IS_INDEF(std1)) std1 = 0.0
+# 94	                if (IS_INDEF(std2)) std2 = 0.0
+# 95	                aux = std1 * std1 + std2 * std2
+# 96
+# 97
+# 98
+# 99	                if (aux > 0.0) {
+# 100	                    aux = (mean1 - mean2) / sqrt(aux)
+# 101	                    if (aux > fom) {
+# 102	                        fom = aux
+# 103	                        ic  = i
+# 104	                        jc  = j
+# 105	                    }
+# 106	                }
+# 107	            }
+# 108	        }
+# 109	        call mfree (bufy, TY_REAL)
+# 110	        call mfree (bufx, TY_REAL)
+# 111
+# 112	        if (list)
+# 113	            call printf ("Done.\n")
+# 114
+# 115	        # If valid object, re-center if asked for. Otherwise, no-detection
+# 116	        # is signaled by setting center coordinates to INDEF.
+# 117	        if (fom > thresh) {
+# 118	            if (recenter) {
+# 119	                XC(is) = real (ic)
+# 120	                YC(is) = real (jc)
+# 121	            }
+# 122	        } else {
+# 123	            XC(is) = INDEFR
+# 124	            YC(is) = INDEFR
+# 125	        }
+# 126
+# 127	        # Restore coordinates to physical system if needed.
+# 128	        if ((!IS_INDEFR (XC(is))) && (!IS_INDEFR (YC(is)))) {
+# 129	            if (PHYSICAL(is)) {
+# 130	                XC(is) = el_s2p (im, XC(is), 1)
+# 131	                YC(is) = el_s2p (im, YC(is), 2)
+# 132	            }
+# 133	        }
+# 134
+#
