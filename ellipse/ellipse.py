@@ -1,6 +1,9 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
-from ellipse.geometry import DEFAULT_STEP
+import numpy as np
+from numpy import ma as ma
+
+from ellipse.geometry import Geometry, DEFAULT_STEP, DEFAULT_EPS
 from ellipse.integrator import BI_LINEAR
 from ellipse.sample import Sample, CentralSample, DEFAULT_SCLIP
 from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED, \
@@ -10,6 +13,7 @@ from ellipse.isophote import Isophote, IsophoteList, print_header
 
 FIXED_ELLIPSE = 4
 FAILED_FIT = 5
+DEFAULT_THRESHOLD = 1.0
 
 
 class Ellipse():
@@ -101,7 +105,7 @@ class Ellipse():
     on the input image frame center. In case a successful acquisition takes place, the Geometry instance
     is modified in place to reflect the solution of the object locator algorithm.
 
-    In some cases the object locator algorithm mail fail, even though there is enough signal-to-noise
+    In some cases the object locator algorithm may fail, even though there is enough signal-to-noise
     to start a fit (e.g. in objects with very high ellipticity). In those cases the sensitivity of
     the algorithm can be decreased by decreasing the value of the object locator threshold parameter.
     The locator can be shut off entirely by setting the threshold to zero.
@@ -113,15 +117,17 @@ class Ellipse():
     to any acceptable solution.
 
     '''
-    def __init__(self, image, geometry=None, olthreshold=1.0):
+    def __init__(self, image, geometry=None, threshold=DEFAULT_THRESHOLD):
         '''
         Constructor
 
         :param image: np 2-D array
             image array
         :param geometry: instance of Geometry
-            the optional geometry that describes the first ellipse to be fitted
-        :param olthreshold: float, default = 1.0
+            the optional geometry that describes the first ellipse to be fitted.
+            If None, a default Geometry instance centered on the image frame and
+            with ellipticity 0.2 and position angle 90 deg. is created.
+        :param threshold: float, default = 1.0
             Threshold for the object locator algorithm. By lowering this value
             the object locator becomes less strict, in the sense that it will
             accept lower signal-to-noise data. If set to zero, the locator is
@@ -132,9 +138,27 @@ class Ellipse():
             instance are modified for good.
         '''
         self.image = image
-        self._geometry = geometry
 
-        self.object_locator(olthreshold)
+        if geometry:
+            self._geometry = geometry
+        else:
+            _x0 = image.shape[0] / 2
+            _y0 = image.shape[1] / 2
+
+            self._geometry = Geometry(_x0, _y0, 10., DEFAULT_EPS, np.pi/2)
+
+        # run object locator
+        self._locator = Locator(image, self._geometry)
+        self._locator.locate(threshold=threshold)
+
+    def set_threshold(self, threshold):
+        '''
+        Modify the threshold value used by the locator.
+
+        :param threshold: float
+            the new threshold value to use
+        '''
+        self._locator.threshold = threshold
 
     def fit_image(self, sma0 = 10.,
                           minsma      = 0.,
@@ -553,7 +577,69 @@ class Ellipse():
             # add new isophote to list
             isophote_list.append(new_isophote)
 
-    def object_locator(self, threshold):
+
+class Locator(object):
+    '''
+    Object locator.
+
+    '''
+    def __init__(self, image, geometry):
+        '''
+        Object locator.
+
+        :param image: np 2-D array
+            image array
+        :param geometry: instance of Geometry
+            geometry that directs the locator to look at its X/Y
+            coordinates. These are modified by the locator algorithm.
+        '''
+        self._image = image
+        self._geometry = geometry
+
+        self.threshold = DEFAULT_THRESHOLD
+
+        self._in_mask = [
+            [0,0,0,0,0, 0,0,0,0,0],
+            [0,0,0,0,0, 0,0,0,0,0],
+            [0,0,0,0,1, 1,0,0,0,0],
+            [0,0,0,1,0, 0,1,0,0,0],
+            [0,0,1,0,0, 0,0,1,0,0],
+
+            [0,0,1,0,0, 0,0,1,0,0],
+            [0,0,0,1,0, 0,1,0,0,0],
+            [0,0,0,0,1, 1,0,0,0,0],
+            [0,0,0,0,0, 0,0,0,0,0],
+            [0,0,0,0,0, 0,0,0,0,0],
+        ]
+        # self._in_mask = [
+        #     [0,0,0,0,0,0,0,0,0,0],
+        #     [0,0,0,0,0,0,0,0,0,0],
+        #     [0,0,0,0,0,0,0,0,0,0],
+        #     [0,0,0,1,1,1,1,0,0,0],
+        #     [0,0,0,1,1,1,1,0,0,0],
+        #     [0,0,0,1,1,1,1,0,0,0],
+        #     [0,0,0,1,1,1,1,0,0,0],
+        #     [0,0,0,0,0,0,0,0,0,0],
+        #     [0,0,0,0,0,0,0,0,0,0],
+        #     [0,0,0,0,0,0,0,0,0,0],
+        # ]
+        self._out_mask = [
+            [0,0,0,1,1,1,1,0,0,0],
+            [0,0,1,0,0,0,0,1,0,0],
+            [0,1,0,0,0,0,0,0,1,0],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,1],
+            [0,1,0,0,0,0,0,0,1,0],
+            [0,0,1,0,0,0,0,1,0,0],
+            [0,0,0,1,1,1,1,0,0,0],
+        ]
+
+        self._in_mask_npix = np.sum(np.array(self._in_mask))
+        self._out_mask_npix = np.sum(np.array(self._out_mask))
+
+    def locate(self, threshold=DEFAULT_THRESHOLD):
         '''
         Runs the object locator, modifying in place the geometry
         associated with this Ellipse instance.
@@ -561,43 +647,57 @@ class Ellipse():
         :param threshold: float, default = 1.0
             object locator threshold. To turn off the locator, set this to zero.
         '''
-        pass
+        # Check if center coordinates point to somewhere inside the frame.
+        # If not, set then to frame center.
+        _x0 =  self._geometry.x0
+        _y0 =  self._geometry.y0
+        if _x0 is None or _x0 < 0 or _x0 >= self._image.shape[0] or \
+           _y0 is None or _y0 < 0 or _y0 >= self._image.shape[1]:
+            _x0 = self._image.shape[0] / 2
+            _y0 = self._image.shape[1] / 2
+
+        # 1/2 size of square window
+        rwindow = len(self._in_mask) /2
+
+        max_fom = 0.
+        max_i = 0
+        max_j = 0
+
+        for i in range(int(_x0 - rwindow), int(_x0 + rwindow) + 1):
+            for j in range(int(_y0 - rwindow), int(_y0 + rwindow) + 1):
+                # Re-centering window.
+                i1 = max(0, i - rwindow)
+                j1 = max(0, j - rwindow)
+                i2 = min(self._image.shape[0]-1, i + rwindow)
+                j2 = min(self._image.shape[1]-1, j + rwindow)
+
+                window = self._image[j1:j2,i1:i2]
+
+                # averages in inner and outer regions.
+                inner = ma.masked_array(window, mask=self._in_mask)
+                outer = ma.masked_array(window, mask=self._out_mask)
+
+                inner_sum = np.sum(inner) / self._in_mask_npix
+                outer_sum = np.sum(outer) / self._out_mask_npix
+                # inner_sum = np.sum(inner)
+                # outer_sum = np.sum(outer)
+                inner_std = np.std(inner)
+                outer_std = np.std(outer)
+                stddev = np.sqrt(inner_std**2 + outer_std**2)
+
+                fom = (inner_sum - outer_sum) / stddev
+
+                if fom > max_fom:
+                    max_fom = fom
+                    max_i = i
+                    max_j = j
+
+                print ('@@@@@@     line: 679  - ', fom, max_fom, i, j, " - ", i1, i2, j1, j2, " - ", inner_sum, outer_sum, (inner_sum-outer_sum))
 
 
-#
-#         # First, locate probable object center. It is either pointed
-# 36	        # to by valid XC,YC pair, or sits in frame center.
-# 37	        if ((!IS_INDEFR (XC(is))) && (!IS_INDEFR (YC(is)))) {
-# 38
-# 39	            # Center coordinates are defined. Must check if they
-# 40	            # point to somewhere inside the frame. If not, set
-# 41	            # then to frame center.
-# 42	            if (PHYSICAL(is)) {
-# 43	                XC(is) = el_p2s (im, XC(is), 1)
-# 44	                YC(is) = el_p2s (im, YC(is), 2)
-# 45	            }
-# 46	            if ((XC(is) < 1.) || (XC(is) > IM_LEN(im,1)))
-# 47	                XC(is) = IM_LEN(im,1) / 2
-# 48	            if ((YC(is) < 1.) || (YC(is) > IM_LEN(im,2)))
-# 49	                YC(is) = IM_LEN(im,2) / 2
-# 50	        } else {
-# 51
-# 52	            # If center coordinates not defined, assume object is
-# 53	            # in frame center.
-# 54	            XC(is) = IM_LEN(im,1) / 2
-# 55	            YC(is) = IM_LEN(im,2) / 2
-# 56	        }
-# 57
-# 58	        # Check to see if valid object is there.
-# 59	        call malloc (bufx, SZ_BUFFER, TY_REAL)
-# 60	        call malloc (bufy, SZ_BUFFER, TY_REAL)
-# 61	        nbuffer = SZ_BUFFER
-# 62
-# 63	        # Limits of re-centering window.
-# 64	        i1 = max (1, int(XC(is)) - RWINDOW / 2)
-# 65	        j1 = max (1, int(YC(is)) - RWINDOW / 2)
-# 66	        i2 = min (IM_LEN(im,1), int(XC(is)) + RWINDOW / 2)
-# 67	        j2 = min (IM_LEN(im,2), int(YC(is)) + RWINDOW / 2)
+        print ('@@@@@@     line: 698  - ', max_i, max_j)
+
+
 # 68	        ic = 0
 # 69	        jc = 0
 # 70	        fom = 0.
