@@ -1,7 +1,6 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 import numpy as np
-from numpy import ma as ma
 
 from ellipse.geometry import Geometry, DEFAULT_STEP, DEFAULT_EPS
 from ellipse.integrator import BI_LINEAR
@@ -9,11 +8,12 @@ from ellipse.sample import Sample, CentralSample, DEFAULT_SCLIP
 from ellipse.fitter import Fitter, CentralFitter, TOO_MANY_FLAGGED, \
     DEFAULT_CONVERGENCY, DEFAULT_MINIT, DEFAULT_MAXIT, DEFAULT_FFLAG, DEFAULT_MAXGERR
 from ellipse.isophote import Isophote, IsophoteList, print_header
+from ellipse.centerer import Centerer, DEFAULT_THRESHOLD
 
 
 FIXED_ELLIPSE = 4
 FAILED_FIT = 5
-DEFAULT_THRESHOLD = 1.0
+
 
 
 class Ellipse():
@@ -99,16 +99,16 @@ class Ellipse():
 
     The fit algorithm has no way of finding where, in the input image frame, the galaxy to be measured
     sits in. The center X,Y coordinates need to be close to the actual center for the fit to work. An
-    "object locator" function helps to verify that the selected position can be used as starting point.
+    "object centerer" function helps to verify that the selected position can be used as starting point.
     This function scans a 10 X 10 window centered either on the X,Y coordinates in the Geometry instance
     passed to the constructor of the Ellipse class, or, if any one of them, or both, are set to None,
     on the input image frame center. In case a successful acquisition takes place, the Geometry instance
-    is modified in place to reflect the solution of the object locator algorithm.
+    is modified in place to reflect the solution of the object centerer algorithm.
 
-    In some cases the object locator algorithm may fail, even though there is enough signal-to-noise
+    In some cases the object centerer algorithm may fail, even though there is enough signal-to-noise
     to start a fit (e.g. in objects with very high ellipticity). In those cases the sensitivity of
-    the algorithm can be decreased by decreasing the value of the object locator threshold parameter.
-    The locator can be shut off entirely by setting the threshold to zero.
+    the algorithm can be decreased by decreasing the value of the object centerer threshold parameter.
+    The centerer can be shut off entirely by setting the threshold to zero.
 
     A note of caution: the algorithm was designed explicitly with a (elliptical) galaxy brightness
     distribution in mind. In particular, a well defined negative radial intensity gradient across
@@ -128,13 +128,13 @@ class Ellipse():
             If None, a default Geometry instance centered on the image frame and
             with ellipticity 0.2 and position angle 90 deg. is created.
         :param threshold: float, default = 1.0
-            Threshold for the object locator algorithm. By lowering this value
-            the object locator becomes less strict, in the sense that it will
-            accept lower signal-to-noise data. If set to zero, the locator is
+            Threshold for the object centerer algorithm. By lowering this value
+            the object centerer becomes less strict, in the sense that it will
+            accept lower signal-to-noise data. If set to zero, the centerer is
             effectively shut off. In this case, either the geometry information
             supplied by the 'geometry' parameter is used as is, or the fit
             algorithm will terminate prematurely. Note that, once the object
-            locator runs successfully, the X and Y coordinates in the geometry
+            centerer runs successfully, the X and Y coordinates in the geometry
             instance are modified for good.
         '''
         self.image = image
@@ -147,18 +147,18 @@ class Ellipse():
 
             self._geometry = Geometry(_x0, _y0, 10., DEFAULT_EPS, np.pi/2)
 
-        # run object locator
-        self._locator = Locator(image, self._geometry)
-        self._locator.locate(threshold=threshold)
+        # run object centerer
+        self._centerer = Centerer(image, self._geometry)
+        self._centerer.center(threshold=threshold)
 
     def set_threshold(self, threshold):
         '''
-        Modify the threshold value used by the locator.
+        Modify the threshold value used by the centerer.
 
         :param threshold: float
             the new threshold value to use
         '''
-        self._locator.threshold = threshold
+        self._centerer.threshold = threshold
 
     def fit_image(self, sma0 = 10.,
                           minsma      = 0.,
@@ -578,191 +578,3 @@ class Ellipse():
             isophote_list.append(new_isophote)
 
 
-class Locator(object):
-    '''
-    Object locator.
-
-    '''
-    def __init__(self, image, geometry):
-        '''
-        Object locator.
-
-        :param image: np 2-D array
-            image array
-        :param geometry: instance of Geometry
-            geometry that directs the locator to look at its X/Y
-            coordinates. These are modified by the locator algorithm.
-        '''
-        self._image = image
-        self._geometry = geometry
-
-        self.threshold = DEFAULT_THRESHOLD
-
-        self._in_mask = [
-            [0,0,0,0,0, 0,0,0,0,0],
-            [0,0,0,0,0, 0,0,0,0,0],
-            [0,0,0,0,1, 1,0,0,0,0],
-            [0,0,0,1,0, 0,1,0,0,0],
-            [0,0,1,0,0, 0,0,1,0,0],
-
-            [0,0,1,0,0, 0,0,1,0,0],
-            [0,0,0,1,0, 0,1,0,0,0],
-            [0,0,0,0,1, 1,0,0,0,0],
-            [0,0,0,0,0, 0,0,0,0,0],
-            [0,0,0,0,0, 0,0,0,0,0],
-        ]
-        # self._in_mask = [
-        #     [0,0,0,0,0,0,0,0,0,0],
-        #     [0,0,0,0,0,0,0,0,0,0],
-        #     [0,0,0,0,0,0,0,0,0,0],
-        #     [0,0,0,1,1,1,1,0,0,0],
-        #     [0,0,0,1,1,1,1,0,0,0],
-        #     [0,0,0,1,1,1,1,0,0,0],
-        #     [0,0,0,1,1,1,1,0,0,0],
-        #     [0,0,0,0,0,0,0,0,0,0],
-        #     [0,0,0,0,0,0,0,0,0,0],
-        #     [0,0,0,0,0,0,0,0,0,0],
-        # ]
-        self._out_mask = [
-            [0,0,0,1,1,1,1,0,0,0],
-            [0,0,1,0,0,0,0,1,0,0],
-            [0,1,0,0,0,0,0,0,1,0],
-            [1,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,0,0,0,1],
-            [0,1,0,0,0,0,0,0,1,0],
-            [0,0,1,0,0,0,0,1,0,0],
-            [0,0,0,1,1,1,1,0,0,0],
-        ]
-
-        self._in_mask_npix = np.sum(np.array(self._in_mask))
-        self._out_mask_npix = np.sum(np.array(self._out_mask))
-
-    def locate(self, threshold=DEFAULT_THRESHOLD):
-        '''
-        Runs the object locator, modifying in place the geometry
-        associated with this Ellipse instance.
-
-        :param threshold: float, default = 1.0
-            object locator threshold. To turn off the locator, set this to zero.
-        '''
-        # Check if center coordinates point to somewhere inside the frame.
-        # If not, set then to frame center.
-        _x0 =  self._geometry.x0
-        _y0 =  self._geometry.y0
-        if _x0 is None or _x0 < 0 or _x0 >= self._image.shape[0] or \
-           _y0 is None or _y0 < 0 or _y0 >= self._image.shape[1]:
-            _x0 = self._image.shape[0] / 2
-            _y0 = self._image.shape[1] / 2
-
-        # 1/2 size of square window
-        rwindow = len(self._in_mask) /2
-
-        max_fom = 0.
-        max_i = 0
-        max_j = 0
-
-        for i in range(int(_x0 - rwindow), int(_x0 + rwindow) + 1):
-            for j in range(int(_y0 - rwindow), int(_y0 + rwindow) + 1):
-                # Re-centering window.
-                i1 = max(0, i - rwindow)
-                j1 = max(0, j - rwindow)
-                i2 = min(self._image.shape[0]-1, i + rwindow)
-                j2 = min(self._image.shape[1]-1, j + rwindow)
-
-                window = self._image[j1:j2,i1:i2]
-
-                # averages in inner and outer regions.
-                inner = ma.masked_array(window, mask=self._in_mask)
-                outer = ma.masked_array(window, mask=self._out_mask)
-
-                inner_sum = np.sum(inner) / self._in_mask_npix
-                outer_sum = np.sum(outer) / self._out_mask_npix
-                # inner_sum = np.sum(inner)
-                # outer_sum = np.sum(outer)
-                inner_std = np.std(inner)
-                outer_std = np.std(outer)
-                stddev = np.sqrt(inner_std**2 + outer_std**2)
-
-                fom = (inner_sum - outer_sum) / stddev
-
-                if fom > max_fom:
-                    max_fom = fom
-                    max_i = i
-                    max_j = j
-
-                print ('@@@@@@     line: 679  - ', fom, max_fom, i, j, " - ", i1, i2, j1, j2, " - ", inner_sum, outer_sum, (inner_sum-outer_sum))
-
-
-        print ('@@@@@@     line: 698  - ', max_i, max_j)
-
-
-# 68	        ic = 0
-# 69	        jc = 0
-# 70	        fom = 0.
-# 71
-# 72	        if (list) {
-# 73	            call printf ("Running object locator... ")
-# 74	            call flush (STDOUT)
-# 75	        }
-# 76
-# 77	        # Scan window.
-# 78	        do j = j1, j2 {
-# 79	            do i = i1, i2 {
-# 80
-# 81	                # Extract two concentric circular samples.
-# 82	                call el_get (im, sec, real(i), real(j), INNER_RADIUS, 0.0, 0.0,
-# 83	                             bufx, bufy, nbuffer, NPOINT(is), NDATA(is),
-# 84	                             mean1, std1, ASTEP(al), LINEAR(al),
-# 85	                             INT_LINEAR, 4., 4.0, 0, SAREA(is))
-# 86	                call el_get (im, sec, real(i), real(j), OUTER_RADIUS, 0.0, 0.0,
-# 87	                             bufx, bufy, nbuffer, NPOINT(is), NDATA(is),
-# 88	                             mean2, std2, ASTEP(al), LINEAR(al),
-# 89	                             INT_LINEAR, 4., 4.0, 0, SAREA(is))
-# 90
-# 91	                # Figure of merit measures if there is reasonable
-# 92	                # signal at position i,j.
-# 93	                if (IS_INDEF(std1)) std1 = 0.0
-# 94	                if (IS_INDEF(std2)) std2 = 0.0
-# 95	                aux = std1 * std1 + std2 * std2
-# 96
-# 97
-# 98
-# 99	                if (aux > 0.0) {
-# 100	                    aux = (mean1 - mean2) / sqrt(aux)
-# 101	                    if (aux > fom) {
-# 102	                        fom = aux
-# 103	                        ic  = i
-# 104	                        jc  = j
-# 105	                    }
-# 106	                }
-# 107	            }
-# 108	        }
-# 109	        call mfree (bufy, TY_REAL)
-# 110	        call mfree (bufx, TY_REAL)
-# 111
-# 112	        if (list)
-# 113	            call printf ("Done.\n")
-# 114
-# 115	        # If valid object, re-center if asked for. Otherwise, no-detection
-# 116	        # is signaled by setting center coordinates to INDEF.
-# 117	        if (fom > thresh) {
-# 118	            if (recenter) {
-# 119	                XC(is) = real (ic)
-# 120	                YC(is) = real (jc)
-# 121	            }
-# 122	        } else {
-# 123	            XC(is) = INDEFR
-# 124	            YC(is) = INDEFR
-# 125	        }
-# 126
-# 127	        # Restore coordinates to physical system if needed.
-# 128	        if ((!IS_INDEFR (XC(is))) && (!IS_INDEFR (YC(is)))) {
-# 129	            if (PHYSICAL(is)) {
-# 130	                XC(is) = el_s2p (im, XC(is), 1)
-# 131	                YC(is) = el_s2p (im, YC(is), 2)
-# 132	            }
-# 133	        }
-# 134
-#
