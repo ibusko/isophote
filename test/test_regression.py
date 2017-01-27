@@ -63,10 +63,10 @@ class TestRegression(unittest.TestCase):
         self.integrmode = BI_LINEAR
         # self.integrmode = MEAN
 
-        # self._do_regression("M51")
+        self._do_regression("M51")
         # self._do_regression("synth")
         # self._do_regression("synth_lowsnr")
-        self._do_regression("synth_highsnr")
+        # self._do_regression("synth_highsnr")
 
     def _do_regression(self, name):
 

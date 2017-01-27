@@ -30,7 +30,7 @@ class TestEllipse(unittest.TestCase):
         # centered, tilted galaxy.
         test_data = build_test_data.build(pa=PA)
 
-        ellipse = Ellipse(test_data)
+        ellipse = Ellipse(test_data, verbose=False)
         isophote_list = ellipse.fit_image(verbose=False)
 
         self.assertIsInstance(isophote_list, IsophoteList)
@@ -47,7 +47,7 @@ class TestEllipse(unittest.TestCase):
     def test_fit_one_ellipse(self):
         test_data = build_test_data.build(pa=PA)
 
-        ellipse = Ellipse(test_data)
+        ellipse = Ellipse(test_data, verbose=False)
         isophote = ellipse.fit_isophote(40.)
 
         self.assertIsInstance(isophote, Isophote)
@@ -57,7 +57,7 @@ class TestEllipse(unittest.TestCase):
         # A first guess ellipse that is centered in the image frame.
         # This should result in failure since the real galaxy
         # image is off-center by a large offset.
-        ellipse = Ellipse(OFFSET_GALAXY)
+        ellipse = Ellipse(OFFSET_GALAXY, verbose=False)
         isophote_list = ellipse.fit_image(verbose=False)
 
         self.assertEqual(len(isophote_list), 0)
@@ -66,7 +66,7 @@ class TestEllipse(unittest.TestCase):
         # A first guess ellipse that is roughly centered on the
         # offset galaxy image.
         g = Geometry(POS+5, POS+5, 10., DEFAULT_EPS, PA, 0.1, False)
-        ellipse = Ellipse(OFFSET_GALAXY, geometry=g)
+        ellipse = Ellipse(OFFSET_GALAXY, geometry=g, verbose=False)
         isophote_list = ellipse.fit_image(verbose=False)
 
         # the fit should stop when too many potential sample
@@ -78,7 +78,7 @@ class TestEllipse(unittest.TestCase):
         # Same as before, but now force the fit to goo
         # beyond the image frame limits.
         g = Geometry(POS+5, POS+5, 10., DEFAULT_EPS, PA, 0.1, False)
-        ellipse = Ellipse(OFFSET_GALAXY, geometry=g)
+        ellipse = Ellipse(OFFSET_GALAXY, geometry=g, verbose=False)
         isophote_list = ellipse.fit_image(maxsma=400., verbose=False)
 
         # the fit should go to maxsma, but with fixed geometry

@@ -117,7 +117,7 @@ class Ellipse():
     to any acceptable solution.
 
     '''
-    def __init__(self, image, geometry=None, threshold=DEFAULT_THRESHOLD):
+    def __init__(self, image, geometry=None, threshold=DEFAULT_THRESHOLD, verbose=True):
         '''
         Constructor
 
@@ -127,7 +127,7 @@ class Ellipse():
             the optional geometry that describes the first ellipse to be fitted.
             If None, a default Geometry instance centered on the image frame and
             with ellipticity 0.2 and position angle 90 deg. is created.
-        :param threshold: float, default = 1.0
+        :param threshold: float, default = 0.1
             Threshold for the object centerer algorithm. By lowering this value
             the object centerer becomes less strict, in the sense that it will
             accept lower signal-to-noise data. If set to zero, the centerer is
@@ -136,6 +136,8 @@ class Ellipse():
             algorithm will terminate prematurely. Note that, once the object
             centerer runs successfully, the X and Y coordinates in the geometry
             instance are modified for good.
+        :param verbose: boolean, default True
+            print object centering info
         '''
         self.image = image
 
@@ -148,8 +150,10 @@ class Ellipse():
             self._geometry = Geometry(_x0, _y0, 10., DEFAULT_EPS, np.pi/2)
 
         # run object centerer
-        self._centerer = Centerer(image, self._geometry)
-        self._centerer.center(threshold=threshold)
+        self._centerer = Centerer(image, self._geometry, verbose)
+
+        #TODO it's shut off for now.
+        # self._centerer.center(threshold=threshold)
 
     def set_threshold(self, threshold):
         '''
