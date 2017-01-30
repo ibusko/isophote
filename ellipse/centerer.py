@@ -8,42 +8,41 @@ DEFAULT_THRESHOLD = 0.1
 WINDOW_HALF_SIZE = 5
 
 _in_mask = [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
-    [0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0],
-    [0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0],
-    [0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0],
-    [0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0],
-    [0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0],
-    [0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0],
-    [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],
+    [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+    [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ]
 _out_mask = [
-    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-    [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
-    [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
-    [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
-    [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
-    [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
-    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+    [1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1],
+    [1,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1],
+    [1,1,0,1,1,1,1,1,1,1,1,1,1,0,1,1],
+    [1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+    [1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1],
+    [1,1,0,1,1,1,1,1,1,1,1,1,1,0,1,1],
+    [1,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1],
+    [1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1],
 ]
-
 
 class Centerer(object):
     '''
@@ -68,18 +67,25 @@ class Centerer(object):
 
         self.threshold = DEFAULT_THRESHOLD
 
-        self._in_mask_npix = np.sum(np.array(_in_mask))
-        self._out_mask_npix = np.sum(np.array(_out_mask))
-
         self._mask_half_size = len(_in_mask) / 2
+
+        # number of pixels in each mask
+        sz = len(_in_mask)
+        self._ones_in  = ma.masked_array(np.ones(shape=(sz,sz)), mask=_in_mask)
+        self._ones_out = ma.masked_array(np.ones(shape=(sz,sz)), mask=_out_mask)
+
+        self._in_mask_npix = np.sum(self._ones_in)
+        self._out_mask_npix = np.sum(self._ones_out)
+
 
     def center(self, threshold=DEFAULT_THRESHOLD):
         '''
-        Runs the object centerer, modifying in place the geometry
-        associated with this Ellipse instance.
+        Runs the object centerer, eventually modifying in place
+        the geometry associated with this Ellipse instance.
 
         :param threshold: float, default = 0.1
-            object centerer threshold. To turn off the centerer, set this to 1.
+            object centerer threshold. To turn off the centerer, set this
+            to a large value >> 1.
         '''
         if self._verbose:
             print("Centering on object....   ", end="")
@@ -112,23 +118,20 @@ class Centerer(object):
                 # averages in inner and outer regions.
                 inner = ma.masked_array(window, mask=_in_mask)
                 outer = ma.masked_array(window, mask=_out_mask)
-
                 inner_avg = np.sum(inner) / self._in_mask_npix
                 outer_avg = np.sum(outer) / self._out_mask_npix
 
+                # standard deviation and figure of merit
                 inner_std = np.std(inner)
                 outer_std = np.std(outer)
                 stddev = np.sqrt(inner_std**2 + outer_std**2)
-                fom = (inner_avg - outer_avg) / stddev
 
-                # fom = (inner_avg - outer_avg) / (inner_avg + outer_avg)
+                fom = (inner_avg - outer_avg) / stddev
 
                 if fom > max_fom:
                     max_fom = fom
                     max_i = i
                     max_j = j
-
-                print("@@@@@@  file centerer.py; line 133 - ",  fom, i, j, "  ", i1, i2, j1, j2, " ", inner_avg, outer_avg)
 
         # figure of merit > threshold: update geometry with new coordinates.
         if max_fom > threshold:

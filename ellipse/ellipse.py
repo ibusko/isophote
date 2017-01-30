@@ -15,7 +15,6 @@ FIXED_ELLIPSE = 4
 FAILED_FIT = 5
 
 
-
 class Ellipse():
     '''
     This class provides the main access point to the isophote fitting algorithm.
@@ -108,7 +107,9 @@ class Ellipse():
     In some cases the object centerer algorithm may fail, even though there is enough signal-to-noise
     to start a fit (e.g. in objects with very high ellipticity). In those cases the sensitivity of
     the algorithm can be decreased by decreasing the value of the object centerer threshold parameter.
-    The centerer can be shut off entirely by setting the threshold to zero.
+    The centerer works by looking to where a quantity akin to a signal-to-noise ratio is maximized within
+    the 10 X 10 window. The centerer can thus be shut off entirely by setting the threshold to a large
+    value >> 1.
 
     A note of caution: the algorithm was designed explicitly with a (elliptical) galaxy brightness
     distribution in mind. In particular, a well defined negative radial intensity gradient across
@@ -130,10 +131,10 @@ class Ellipse():
         :param threshold: float, default = 0.1
             Threshold for the object centerer algorithm. By lowering this value
             the object centerer becomes less strict, in the sense that it will
-            accept lower signal-to-noise data. If set to zero, the centerer is
-            effectively shut off. In this case, either the geometry information
-            supplied by the 'geometry' parameter is used as is, or the fit
-            algorithm will terminate prematurely. Note that, once the object
+            accept lower signal-to-noise data. If set to a very large value, the
+            centerer is effectively shut off. In this case, either the geometry
+            information supplied by the 'geometry' parameter is used as is, or t
+            he fit algorithm will terminate prematurely. Note that, once the object
             centerer runs successfully, the X and Y coordinates in the geometry
             instance are modified for good.
         :param verbose: boolean, default True
@@ -151,9 +152,7 @@ class Ellipse():
 
         # run object centerer
         self._centerer = Centerer(image, self._geometry, verbose)
-
-        #TODO it's shut off for now.
-        # self._centerer.center(threshold=threshold)
+        self._centerer.center(threshold)
 
     def set_threshold(self, threshold):
         '''
