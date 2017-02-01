@@ -59,6 +59,14 @@ class Isophote:
             semi-major axis length (pixels)
         :param intens: float
             mean intensity value along the elliptical path
+        :param eps: float
+            ellipticity
+        :param pa: float
+            position angle
+        :param x0: float
+            center coordinate (pixel)
+        :param y0: float
+            center coordinate (pixel)
         :param rms: float
             root-mean-sq of intensity values along the elliptical path
         :param int_err: float
@@ -120,6 +128,22 @@ class Isophote:
         # deviations from a perfect ellipse
         self.a3, self.b3, self.a3_err, self.b3_err = self._compute_deviations(sample, 3)
         self.a4, self.b4, self.a4_err, self.b4_err = self._compute_deviations(sample, 4)
+
+    @property
+    def eps(self):
+        return self.sample.geometry.eps
+
+    @property
+    def pa(self):
+        return self.sample.geometry.pa
+
+    @property
+    def x0(self):
+        return self.sample.geometry.x0
+
+    @property
+    def y0(self):
+        return self.sample.geometry.y0
 
     def _compute_fluxes(self):
         # Compute integrated flux inside ellipse, as well as inside
@@ -411,6 +435,18 @@ class IsophoteList(Isophote, list):
     @property
     def intens(self):
         return self._collect_as_array('intens')
+    @property
+    def eps(self):
+        return self._collect_as_array('eps')
+    @property
+    def pa(self):
+        return self._collect_as_array('pa')
+    @property
+    def x0(self):
+        return self._collect_as_array('x0')
+    @property
+    def y0(self):
+        return self._collect_as_array('y0')
     @property
     def rms(self):
         return self._collect_as_array('rms')
