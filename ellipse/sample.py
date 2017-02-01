@@ -332,8 +332,8 @@ class Sample(object):
         y = np.zeros(len(angles))
 
         for i in range(len(x)):
-            x[i] = radii[i] * np.cos (angles[i] + self.geometry.pa) + self.geometry.x0
-            y[i] = radii[i] * np.sin (angles[i] + self.geometry.pa) + self.geometry.y0
+            x[i] = radii[i] * np.cos(angles[i] + self.geometry.pa) + self.geometry.x0
+            y[i] = radii[i] * np.sin(angles[i] + self.geometry.pa) + self.geometry.y0
 
         return x, y
 

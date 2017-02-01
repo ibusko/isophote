@@ -3,6 +3,8 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 
+from ellipse.geometry import PHI_MIN
+
 EPSILON = 1.e-8
 SMOOTH = 1.e-8
 MARGIN = 10
@@ -33,8 +35,6 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
     :return: numpy 2-D array
         with the model image
     '''
-    result = np.zeros(shape=image.shape)
-
     # a small amount of smoothing seems necessary for the interpolator
     # to behave properly. We may have to test this under a wider
     # variety of circumstances.
@@ -49,50 +49,110 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
 
     # interpolate ellipse parameters
     interpolator = UnivariateSpline(isolist.sma, isolist.intens, s=smoothing_factor)
-    intens = interpolator(finely_spaced_sma)
+    intens_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma, isolist.eps, s=smoothing_factor)
-    eps = interpolator(finely_spaced_sma)
+    eps_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma, isolist.pa, s=smoothing_factor)
-    pa = interpolator(finely_spaced_sma)
+    pa_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma, isolist.x0, s=smoothing_factor)
-    x0 = interpolator(finely_spaced_sma)
+    x0_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma, isolist.y0, s=smoothing_factor)
-    y0 = interpolator(finely_spaced_sma)
+    y0_array = interpolator(finely_spaced_sma)
 
     # discard central point since these attributes are None at the center.
     interpolator = UnivariateSpline(isolist.sma[1:], isolist.grad[1:], s=smoothing_factor)
-    grad = interpolator(finely_spaced_sma)
+    grad_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma[1:], isolist.a3[1:], s=smoothing_factor)
-    a3 = interpolator(finely_spaced_sma)
+    a3_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma[1:], isolist.b3[1:], s=smoothing_factor)
-    b3 = interpolator(finely_spaced_sma)
+    b3_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma[1:], isolist.a4[1:], s=smoothing_factor)
-    a4 = interpolator(finely_spaced_sma)
+    a4_array = interpolator(finely_spaced_sma)
 
     interpolator = UnivariateSpline(isolist.sma[1:], isolist.b4[1:], s=smoothing_factor)
-    b4 = interpolator(finely_spaced_sma)
+    b4_array = interpolator(finely_spaced_sma)
+
+    # Return deviations from ellipticity to their original amplitude meaning.
+    a3_array = - a3_array * grad_array * finely_spaced_sma
+    b3_array = - b3_array * grad_array * finely_spaced_sma
+    a4_array = - a4_array * grad_array * finely_spaced_sma
+    b4_array = - b4_array * grad_array * finely_spaced_sma
 
     if verbose:
         print("Done")
 
-    # for each interpolated isophote, generate intensity values
-    # on the output image array
-    for index in range(len(finely_spaced_sma)):
-        pass
+    result = np.zeros(shape=image.shape)
+    weight = np.zeros(shape=image.shape)
+
+    eps_array[np.where(eps_array < 0.)] = 0.05
+
+    # for each interpolated isophote, generate intensity values on the output image array
+    # for index in range(len(finely_spaced_sma)):
+
+    for index in range(1, len(finely_spaced_sma)):
+        phi = 0.
+        sma0 = finely_spaced_sma[index]
+        eps = eps_array[index]
+        pa = pa_array[index]
+        x0 = x0_array[index]
+        y0 = y0_array[index]
+        intens = intens_array[index]
+
+        if verbose:
+            print(sma0)
+
+        # scan angles
+        r = sma0
+        while (phi <= 2*np.pi):
+
+            # get image coordinates of (r, phi) pixel
+            x = r * np.cos(phi + pa) + x0
+            y = r * np.sin(phi + pa) + y0
+            i = int(x)
+            j = int(y)
+
+            # if outside image boundaries, ignore.
+            if i > 0 and i < image.shape[0] and j > 0 and j < image.shape[1]:
+
+                # get fractional deviations relative to target array
+                fx = x - float(i)
+                fy = y - float(j)
+
+                # add up the isophote contribution to the overlapping pixels
+                result[j,i]     += intens * (1. - fy) * (1. - fx)
+                result[j,i+1]   += intens * (1. - fy) *       fx
+                result[j+1,i]   += intens *       fy  * (1. - fx)
+                result[j+1,i+1] += intens *       fy  *       fx
+
+                # add up the fractional area contribution to the overlapping pixels
+                weight[j,i]     += (1. - fy) * (1. - fx)
+                weight[j,i+1]   += (1. - fy) *       fx
+                weight[j+1,i]   +=       fy  * (1. - fx)
+                weight[j+1,i+1] +=       fy  *       fx
+
+                print("@@@@@@  file model.py; line 131 - ",  r, phi, i, j, eps)
+
+
+#TODO here we add the higher harmonics
+
+                # step towards next pixel on ellipse
+                phi = max((phi + 0.75 / r), PHI_MIN)
+                r = sma0 * (1. - eps / np.sqrt(((1. - eps) * np.cos(phi))**2 + (np.sin(phi))**2))
+
+                if r < 0.:
+                    pass
 
 
 
 
-
-
-
+    result /= weight
 
 
 
