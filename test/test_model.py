@@ -16,8 +16,8 @@ class TestModel(unittest.TestCase):
         name = "M51"
         test_data = fits.open(DATA + name + ".fits")
         image = test_data[0].data
-        ellipse = Ellipse(image, verbose=False)
-        isophote_list = ellipse.fit_image(verbose=False)
+        ellipse = Ellipse(image, verbose=True)
+        isophote_list = ellipse.fit_image(verbose=True)
 
         model = build_model(image, isophote_list)
 
