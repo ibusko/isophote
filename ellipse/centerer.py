@@ -108,10 +108,10 @@ class Centerer(object):
             for j in range(int(_y0 - WINDOW_HALF_SIZE), int(_y0 + WINDOW_HALF_SIZE) + 1):
 
                 # ensure that it stays inside image frame
-                i1 = max(0, i - self._mask_half_size)
-                j1 = max(0, j - self._mask_half_size)
-                i2 = min(self._image.shape[0]-1, i + self._mask_half_size)
-                j2 = min(self._image.shape[1]-1, j + self._mask_half_size)
+                i1 = int(max(0, i - self._mask_half_size))
+                j1 = int(max(0, j - self._mask_half_size))
+                i2 = int(min(self._image.shape[0]-1, i + self._mask_half_size))
+                j2 = int(min(self._image.shape[1]-1, j + self._mask_half_size))
 
                 window = self._image[j1:j2,i1:i2]
 

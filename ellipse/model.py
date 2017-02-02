@@ -24,7 +24,7 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
     :param isolist: IsophoteList instance
         the list created by class Ellipse
     :param background: float, default = 0.
-        constant value to be added to each pixel
+        constant value to fill empty pixels
     :param high_harmonics: boolean, default True
         add higher harmonics (A3,B3,A4,B4) to result?
     :param verbose: boolean, default True
@@ -86,7 +86,7 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
         intens = intens_array[index]
 
         if verbose:
-            print("SMA =%5.1f" % sma0, end="\r")
+            print("SMA=%5.1f" % sma0, end="\r")
             sys.stdout.flush()
 
         # scan angles
@@ -137,9 +137,8 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
     if verbose:
         print("\nDone")
 
-    # add background *after* model image was added *and* normalized,
-    # otherwise normalization will be wrong.
-    result += background
+    # fill background value
+    result[np.where(weight == 1.)] = background
 
     return result
 
