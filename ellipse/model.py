@@ -134,11 +134,11 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
     # normalize
     result /= weight
 
+    # fill background value
+    result[np.where(result == 0.)] = background
+
     if verbose:
         print("\nDone")
-
-    # fill background value
-    result[np.where(weight == 1.)] = background
 
     return result
 
