@@ -1,13 +1,10 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import sys
 import numpy as np
-from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import LSQUnivariateSpline
 
 from ellipse.geometry import PHI_MIN
-
-EPSILON = 1.e-8
-SMOOTH = 1.e-8
-MARGIN = 10
 
 
 def build_model(image, isolist, background=0., high_harmonics=True, verbose=True):
@@ -35,11 +32,6 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
     :return: numpy 2-D array
         with the model image
     '''
-    # a small amount of smoothing seems necessary for the interpolator
-    # to behave properly. We may have to test this under a wider
-    # variety of circumstances.
-    smoothing_factor = SMOOTH *len(isolist.sma)
-
     # the target grid is spaced in 0.1 pixel intervals so as
     # to ensure no gaps will result on the output array.
     finely_spaced_sma = np.arange(isolist[0].sma, isolist[-1].sma, 0.1)
@@ -48,42 +40,30 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
         print("Interpolating....", end="")
 
     # interpolate ellipse parameters
-    interpolator = UnivariateSpline(isolist.sma, isolist.intens, s=smoothing_factor)
-    intens_array = interpolator(finely_spaced_sma)
 
-    interpolator = UnivariateSpline(isolist.sma, isolist.eps, s=smoothing_factor)
-    eps_array = interpolator(finely_spaced_sma)
+    # End points must be discarded, but how many?
+    # This seems to work so far
+    nodes = isolist.sma[2:-2]
 
-    interpolator = UnivariateSpline(isolist.sma, isolist.pa, s=smoothing_factor)
-    pa_array = interpolator(finely_spaced_sma)
-
-    interpolator = UnivariateSpline(isolist.sma, isolist.x0, s=smoothing_factor)
-    x0_array = interpolator(finely_spaced_sma)
-
-    interpolator = UnivariateSpline(isolist.sma, isolist.y0, s=smoothing_factor)
-    y0_array = interpolator(finely_spaced_sma)
-
-    # discard central point since these attributes are None at the center.
-    interpolator = UnivariateSpline(isolist.sma[1:], isolist.grad[1:], s=smoothing_factor)
-    grad_array = interpolator(finely_spaced_sma)
-
-    interpolator = UnivariateSpline(isolist.sma[1:], isolist.a3[1:], s=smoothing_factor)
-    a3_array = interpolator(finely_spaced_sma)
-
-    interpolator = UnivariateSpline(isolist.sma[1:], isolist.b3[1:], s=smoothing_factor)
-    b3_array = interpolator(finely_spaced_sma)
-
-    interpolator = UnivariateSpline(isolist.sma[1:], isolist.a4[1:], s=smoothing_factor)
-    a4_array = interpolator(finely_spaced_sma)
-
-    interpolator = UnivariateSpline(isolist.sma[1:], isolist.b4[1:], s=smoothing_factor)
-    b4_array = interpolator(finely_spaced_sma)
+    intens_array = LSQUnivariateSpline(isolist.sma, isolist.intens, nodes)(finely_spaced_sma)
+    eps_array    = LSQUnivariateSpline(isolist.sma, isolist.eps,    nodes)(finely_spaced_sma)
+    pa_array     = LSQUnivariateSpline(isolist.sma, isolist.pa,     nodes)(finely_spaced_sma)
+    x0_array     = LSQUnivariateSpline(isolist.sma, isolist.x0,     nodes)(finely_spaced_sma)
+    y0_array     = LSQUnivariateSpline(isolist.sma, isolist.y0,     nodes)(finely_spaced_sma)
+    grad_array   = LSQUnivariateSpline(isolist.sma, isolist.grad,   nodes)(finely_spaced_sma)
+    a3_array     = LSQUnivariateSpline(isolist.sma, isolist.a3,     nodes)(finely_spaced_sma)
+    b3_array     = LSQUnivariateSpline(isolist.sma, isolist.b3,     nodes)(finely_spaced_sma)
+    a4_array     = LSQUnivariateSpline(isolist.sma, isolist.a4,     nodes)(finely_spaced_sma)
+    b4_array     = LSQUnivariateSpline(isolist.sma, isolist.b4,     nodes)(finely_spaced_sma)
 
     # Return deviations from ellipticity to their original amplitude meaning.
-    a3_array = - a3_array * grad_array * finely_spaced_sma
-    b3_array = - b3_array * grad_array * finely_spaced_sma
-    a4_array = - a4_array * grad_array * finely_spaced_sma
-    b4_array = - b4_array * grad_array * finely_spaced_sma
+    a3_array = -a3_array * grad_array * finely_spaced_sma
+    b3_array = -b3_array * grad_array * finely_spaced_sma
+    a4_array = -a4_array * grad_array * finely_spaced_sma
+    b4_array = -b4_array * grad_array * finely_spaced_sma
+
+    # correct deviations cased by fluctuations in spline solution
+    eps_array[np.where(eps_array < 0.)] = 0.
 
     if verbose:
         print("Done")
@@ -106,7 +86,8 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
         intens = intens_array[index]
 
         if verbose:
-            print(sma0)
+            print("SMA =%5.1f" % sma0, end="\r")
+            sys.stdout.flush()
 
         # scan angles
         r = sma0
@@ -137,8 +118,6 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
                 weight[j+1,i]   +=       fy  * (1. - fx)
                 weight[j+1,i+1] +=       fy  *       fx
 
-                print("@@@@@@  file model.py; line 131 - ",  r, phi, i, j, eps)
-
 
 #TODO here we add the higher harmonics
 
@@ -149,13 +128,14 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
                 if r < 0.:
                     pass
 
+    # zero weight values must be set to 1.
+    weight[np.where(weight <= 0.)] = 1.
 
-
-
+    # normalize
     result /= weight
 
-
-
+    if verbose:
+        print("\nDone")
 
     # add background *after* model image was added *and* normalized,
     # otherwise normalization will be wrong.

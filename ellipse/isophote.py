@@ -348,7 +348,7 @@ class CentralPixel(Isophote):
         self.rms = None
         self.int_err = None
         self.pix_stddev = None
-        self.grad = None
+        self.grad = 0.0   # to ease model building
         self.grad_error = None
         self.grad_r_error = None
         self.sarea = None
@@ -357,8 +357,8 @@ class CentralPixel(Isophote):
 
         self.tflux_e = self.tflux_c = self.npix_e = self.npix_c = None
 
-        self.a3 = self.b3 = None
-        self.a4 = self.b4 = None
+        self.a3 = self.b3 = 0.0  # to ease model building
+        self.a4 = self.b4 = 0.0
 
     def print(self, verbose=False):
         if verbose:
@@ -417,7 +417,7 @@ class IsophoteList(Isophote, list):
         return self._list[index]
 
     def _collect_as_array(self, attr_name):
-        return np.array(self._collect_as_list(attr_name))
+        return np.array(self._collect_as_list(attr_name), dtype=np.float64)
 
     def _collect_as_list(self, attr_name):
         result = []
