@@ -7,7 +7,7 @@ from scipy.interpolate import LSQUnivariateSpline
 from ellipse.geometry import PHI_MIN
 
 
-def build_model(image, isolist, background=0., high_harmonics=True, verbose=True):
+def build_model(image, isolist, fill=0., high_harmonics=True, verbose=True):
     '''
     Builds model galaxy image from isophote list.
 
@@ -23,7 +23,7 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
         so coordinates will match.
     :param isolist: IsophoteList instance
         the list created by class Ellipse
-    :param background: float, default = 0.
+    :param fill: float, default = 0.
         constant value to fill empty pixels
     :param high_harmonics: boolean, default True
         add higher harmonics (A3,B3,A4,B4) to result?
@@ -85,6 +85,8 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
         y0 = y0_array[index]
         intens = intens_array[index]
 
+        print("@@@@@@  file model.py; line 88 - ", sma0, " ", eps, " ", pa, x0, y0)
+
         if verbose:
             print("SMA=%5.1f" % sma0, end="\r")
             sys.stdout.flush()
@@ -100,7 +102,7 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
             j = int(y)
 
             # if outside image boundaries, ignore.
-            if i > 0 and i < image.shape[0] and j > 0 and j < image.shape[1]:
+            if i > 0 and i < image.shape[0]-1 and j > 0 and j < image.shape[1]-1:
 
                 # get fractional deviations relative to target array
                 fx = x - float(i)
@@ -125,8 +127,16 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
                 phi = max((phi + 0.75 / r), PHI_MIN)
                 r = sma0 * (1. - eps / np.sqrt(((1. - eps) * np.cos(phi))**2 + (np.sin(phi))**2))
 
+
+#TODO we might handle this by checking first if at any phi in the current ellipse, we hit
+#TODO the condition r < 0. If so, give up and adopt the last successful ellipse geometry.
+
                 if r < 0.:
                     pass
+                    print("@@@@@@  file model.py; line 98 - ",  sma0, r, phi, eps)
+
+                    break
+
 
     # zero weight values must be set to 1.
     weight[np.where(weight <= 0.)] = 1.
@@ -134,8 +144,8 @@ def build_model(image, isolist, background=0., high_harmonics=True, verbose=True
     # normalize
     result /= weight
 
-    # fill background value
-    result[np.where(result == 0.)] = background
+    # fill value
+    result[np.where(result == 0.)] = fill
 
     if verbose:
         print("\nDone")
