@@ -62,7 +62,7 @@ class Isophote:
         :param eps: float
             ellipticity
         :param pa: float
-            position angle
+            position angle (rad)
         :param x0: float
             center coordinate (pixel)
         :param y0: float
@@ -71,6 +71,14 @@ class Isophote:
             root-mean-sq of intensity values along the elliptical path
         :param int_err: float
             error of the mean (rms / sqrt(# data points)))
+        :param ellip_err: float
+            ellipticity error
+        :param pa_err: float
+            position angle error (rad)
+        :param x0_err: float
+            error of center coordinate X
+        :param y0_err: float
+            error of center coordinate Y
         :param pix_stddev: float
             estimate of pixel standard deviation (rms * sqrt(average sector integration area))
         :param grad: float
@@ -345,10 +353,12 @@ class CentralPixel(Isophote):
 
         self.intens = sample.mean
 
+        # some values are set to zero to ease certain tasks
+        # such as model building and plotting magnitude errors
         self.rms = None
-        self.int_err = None
+        self.int_err = 0.0
         self.pix_stddev = None
-        self.grad = 0.0   # to ease model building
+        self.grad = 0.0
         self.grad_error = None
         self.grad_r_error = None
         self.sarea = None
@@ -357,8 +367,28 @@ class CentralPixel(Isophote):
 
         self.tflux_e = self.tflux_c = self.npix_e = self.npix_c = None
 
-        self.a3 = self.b3 = 0.0  # to ease model building
+        self.a3 = self.b3 = 0.0
         self.a4 = self.b4 = 0.0
+        self.a3_err = self.b3_err = 0.0
+        self.a4_err = self.b4_err = 0.0
+
+        self.ellip_err = 0.
+        self.pa_err = 0.
+        self.x0_err = 0.
+        self.y0_err = 0.
+
+    @property
+    def eps(self):
+        return 0.
+    @property
+    def pa(self):
+        return 0.
+    @property
+    def x0(self):
+        return self.sample.geometry.x0
+    @property
+    def x0(self):
+        return self.sample.geometry.x0
 
     def print(self, verbose=False):
         if verbose:
@@ -398,6 +428,9 @@ class IsophoteList(Isophote, list):
 
     def __getitem__(self, index):
         return self._list.__getitem__(index)
+
+    def __iter__(self):
+        return self._list.__iter__()
 
     def append(self, value):
         self.insert(len(self) + 1, value)
@@ -457,6 +490,18 @@ class IsophoteList(Isophote, list):
     def pix_stddev(self):
         return self._collect_as_array('pix_stddev')
     @property
+    def ellip_err(self):
+        return self._collect_as_array('ellip_err')
+    @property
+    def pa_err(self):
+        return self._collect_as_array('pa_err')
+    @property
+    def x0_err(self):
+        return self._collect_as_array('x0_err')
+    @property
+    def y0_err(self):
+        return self._collect_as_array('y0_err')
+    @property
     def grad(self):
         return self._collect_as_array('grad')
     @property
@@ -507,5 +552,17 @@ class IsophoteList(Isophote, list):
     @property
     def b4(self):
         return self._collect_as_array('b4')
+    @property
+    def a3_err(self):
+        return self._collect_as_array('a3_err')
+    @property
+    def b3_err(self):
+        return self._collect_as_array('b3_err')
+    @property
+    def a4_err(self):
+        return self._collect_as_array('a4_err')
+    @property
+    def b4_err(self):
+        return self._collect_as_array('b4_err')
 
 
