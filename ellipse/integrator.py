@@ -130,38 +130,43 @@ class BiLinearIntegrator(Integrator):
             # need to handle masked pixels here
             qx = 1. - fx
             qy = 1. - fy
-            if (self._geometry.sma > 20.):
-                sample = self._image[j][i]     * qx * qy + \
-    	                 self._image[j+1][i]   * qx * fy + \
-    	                 self._image[j][i+1]   * fx * qy + \
-    	                 self._image[j+1][i+1] * fy * fx
-            else:
-                sample = self._subpix (self._image, i, j, fx, fy)
+            # if (self._geometry.sma > 20.):
+            #     sample = self._image[j][i]     * qx * qy + \
+    	     #             self._image[j+1][i]   * qx * fy + \
+    	     #             self._image[j][i+1]   * fx * qy + \
+    	     #             self._image[j+1][i+1] * fy * fx
+            # else:
+            #     sample = self._subpix (self._image, i, j, fx, fy)
+
+            sample = self._image[j][i]     * qx * qy + \
+                     self._image[j+1][i]   * qx * fy + \
+                     self._image[j][i+1]   * fx * qy + \
+                     self._image[j+1][i+1] * fy * fx
 
             # store results
             self._store_results(phi, radius, sample)
 
-    def _subpix(self, image, i, j, fx, fy):
-
-        z1 = image[j][i]
-        z2 = image[j][i+1]
-        z3 = image[j+1][i]
-        z4 = image[j+1][i+1]
-
-        sum = 0.
-        a1  = z2 - z1
-        a2  = z4 - z3
-        a3  = 1./ NCELL
-        correction = 0.5 + a3 / 2.
-        for j in range(0, NCELL):
-            y = j * a3 + fy - correction
-            for i in range(0, NCELL):
-                x = i * a3 + fx - correction
-                za = a1 * x + z1
-                zb = a2 * x + z3
-                z  = (zb - za) * y + za
-                sum += z
-        return sum / NCELL**2
+    # def _subpix(self, image, i, j, fx, fy):
+    #
+    #     z1 = image[j][i]
+    #     z2 = image[j][i+1]
+    #     z3 = image[j+1][i]
+    #     z4 = image[j+1][i+1]
+    #
+    #     sum = 0.
+    #     a1  = z2 - z1
+    #     a2  = z4 - z3
+    #     a3  = 1./ NCELL
+    #     correction = 0.5 + a3 / 2.
+    #     for j in range(0, NCELL):
+    #         y = j * a3 + fy - correction
+    #         for i in range(0, NCELL):
+    #             x = i * a3 + fx - correction
+    #             za = a1 * x + z1
+    #             zb = a2 * x + z3
+    #             z  = (zb - za) * y + za
+    #             sum += z
+    #     return sum / NCELL**2
 
     def get_polar_angle_step(self):
         return 1. / self._r

@@ -4,10 +4,10 @@ import sys
 import numpy as np
 from scipy.interpolate import LSQUnivariateSpline
 
-from ellipse.geometry import PHI_MIN
+from ellipse.geometry import Geometry, PHI_MIN
 
 
-def build_model(image, isolist, fill=0., high_harmonics=True, verbose=True):
+def build_model(image, isolist, fill=0., high_harmonics=False, verbose=True):
     '''
     Builds model galaxy image from isophote list.
 
@@ -25,7 +25,7 @@ def build_model(image, isolist, fill=0., high_harmonics=True, verbose=True):
         the list created by class Ellipse
     :param fill: float, default = 0.
         constant value to fill empty pixels
-    :param high_harmonics: boolean, default True
+    :param high_harmonics: boolean, default False
         add higher harmonics (A3,B3,A4,B4) to result?
     :param verbose: boolean, default True
         print info
@@ -77,23 +77,30 @@ def build_model(image, isolist, fill=0., high_harmonics=True, verbose=True):
     # for index in range(len(finely_spaced_sma)):
 
     for index in range(1, len(finely_spaced_sma)):
-        phi = 0.
         sma0 = finely_spaced_sma[index]
         eps = eps_array[index]
         pa = pa_array[index]
         x0 = x0_array[index]
         y0 = y0_array[index]
-        intens = intens_array[index]
+        geometry = Geometry(x0, y0, sma0, eps, pa)
 
-        print("@@@@@@  file model.py; line 88 - ", sma0, " ", eps, " ", pa, x0, y0)
+        intens = intens_array[index]
 
         if verbose:
             print("SMA=%5.1f" % sma0, end="\r")
             sys.stdout.flush()
 
-        # scan angles
+        # scan angles. Need to go a bit beyond full circle to ensure full coverage.
         r = sma0
-        while (phi <= 2*np.pi):
+        phi = 0.
+        while (phi <= 2*np.pi + PHI_MIN):
+
+            # we might want to add the 3rd and 4th harmonics
+            # to the basic isophotal intensity.
+            harm = 0.
+            if high_harmonics:
+                harm = a3_array[index] * np.sin(3.*phi) + b3_array[index] * np.cos(3.*phi) + \
+                       a4_array[index] * np.sin(4.*phi) + b4_array[index] * np.cos(4.*phi) / 4.
 
             # get image coordinates of (r, phi) pixel
             x = r * np.cos(phi + pa) + x0
@@ -109,10 +116,10 @@ def build_model(image, isolist, fill=0., high_harmonics=True, verbose=True):
                 fy = y - float(j)
 
                 # add up the isophote contribution to the overlapping pixels
-                result[j,i]     += intens * (1. - fy) * (1. - fx)
-                result[j,i+1]   += intens * (1. - fy) *       fx
-                result[j+1,i]   += intens *       fy  * (1. - fx)
-                result[j+1,i+1] += intens *       fy  *       fx
+                result[j,i]     += intens * (1. - fy) * (1. - fx) + harm
+                result[j,i+1]   += intens * (1. - fy) *       fx  + harm
+                result[j+1,i]   += intens *       fy  * (1. - fx) + harm
+                result[j+1,i+1] += intens *       fy  *       fx  + harm
 
                 # add up the fractional area contribution to the overlapping pixels
                 weight[j,i]     += (1. - fy) * (1. - fx)
@@ -120,23 +127,9 @@ def build_model(image, isolist, fill=0., high_harmonics=True, verbose=True):
                 weight[j+1,i]   +=       fy  * (1. - fx)
                 weight[j+1,i+1] +=       fy  *       fx
 
-
-#TODO here we add the higher harmonics
-
                 # step towards next pixel on ellipse
                 phi = max((phi + 0.75 / r), PHI_MIN)
-                r = sma0 * (1. - eps / np.sqrt(((1. - eps) * np.cos(phi))**2 + (np.sin(phi))**2))
-
-
-#TODO we might handle this by checking first if at any phi in the current ellipse, we hit
-#TODO the condition r < 0. If so, give up and adopt the last successful ellipse geometry.
-
-                if r < 0.:
-                    pass
-                    print("@@@@@@  file model.py; line 98 - ",  sma0, r, phi, eps)
-
-                    break
-
+                r = geometry.radius(phi)
 
     # zero weight values must be set to 1.
     weight[np.where(weight <= 0.)] = 1.

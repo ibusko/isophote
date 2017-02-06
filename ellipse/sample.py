@@ -4,7 +4,7 @@ import copy
 
 import numpy as np
 
-from ellipse.geometry import Geometry, DEFAULT_EPS, DEFAULT_STEP
+from ellipse.geometry import Geometry, DEFAULT_EPS, DEFAULT_STEP, PHI_MIN
 from ellipse.integrator import integrators, BI_LINEAR
 
 DEFAULT_SCLIP = 3.
@@ -185,8 +185,9 @@ class Sample(object):
                 integrator = integrators[self.integrmode](self.image, self.geometry, angles, radii, intensities)
 
         # walk along elliptical path, integrating at specified
-        # places defined by polar vector.
-        while (phi < np.pi*2.):
+        # places defined by polar vector. Need to go a bit beyond
+        # full circle to ensure full coverage.
+        while (phi <= np.pi*2.+PHI_MIN):
 
             # do the integration at phi-radius position, and append
             # results to the angles, radii, and intensities lists.

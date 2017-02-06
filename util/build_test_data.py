@@ -57,7 +57,7 @@ def build(nx=DEFAULT_SIZE, ny=DEFAULT_SIZE, x0=None, y0=None, background=100., n
             image[j,i] += value
 
     # central pixel is messed up; replace it with interpolated value
-    image[x1, y1] = (image[x1-1, y1] + image[x1+1, y1]) / 2
+    image[int(x1), int(y1)] = (image[int(x1-1), int(y1)] + image[int(x1+1), int(y1)]) / 2.
 
     image += np.random.normal(0., noise, image.shape)
 
