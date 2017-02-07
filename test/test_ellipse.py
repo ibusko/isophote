@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import unittest
 
 import numpy as np
+from astropy.io import fits
 
 from util import build_test_data
 from ellipse.geometry import Geometry
@@ -22,6 +23,8 @@ PA = 10. / 180. * np.pi
 # of Geometry. The code may eventually modify it's contents. The safe
 # bet is to build it wherever it's needed. The cost is negligible.
 OFFSET_GALAXY = build_test_data.build(x0=POS, y0=POS, pa=PA, noise=1.E-12)
+
+DATA = "data/"
 
 
 class TestEllipse(unittest.TestCase):
@@ -84,3 +87,15 @@ class TestEllipse(unittest.TestCase):
         # the fit should go to maxsma, but with fixed geometry
         self.assertEqual(len(isophote_list), 71)
         self.assertEqual(isophote_list[-1].stop_code, FIXED_ELLIPSE)
+
+
+class TestOnRealData(unittest.TestCase):
+
+    def test_basic(self):
+        image = fits.open(DATA + "M105-S001-RGB.fits")
+        test_data = image[0].data[0]
+
+        g = Geometry(530., 511, 10., 0.2, 20./180.*3.14)
+
+        ellipse = Ellipse(test_data, geometry=g)
+        isophote_list = ellipse.fit_image()

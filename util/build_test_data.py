@@ -4,11 +4,10 @@ import numpy as np
 
 import astropy.io.fits as fits
 
-from ellipse.geometry import Geometry
+from ellipse.geometry import Geometry, DEFAULT_EPS
 
 DEFAULT_SIZE = 512
 DEFAULT_POS = int(DEFAULT_SIZE / 2)
-DEFAULT_EPS = 0.2
 DEFAULT_PA = 0.
 
 
@@ -57,7 +56,8 @@ def build(nx=DEFAULT_SIZE, ny=DEFAULT_SIZE, x0=None, y0=None, background=100., n
             image[j,i] += value
 
     # central pixel is messed up; replace it with interpolated value
-    image[int(x1), int(y1)] = (image[int(x1-1), int(y1)] + image[int(x1+1), int(y1)]) / 2.
+    image[int(x1), int(y1)] = (image[int(x1-1), int(y1)]   + image[int(x1+1), int(y1)] +
+                               image[int(x1),   int(y1-1)] + image[int(x1),   int(y1+1)]) / 4.
 
     image += np.random.normal(0., noise, image.shape)
 
