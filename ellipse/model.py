@@ -116,10 +116,10 @@ def build_model(image, isolist, fill=0., high_harmonics=False, verbose=True):
                 fy = y - float(j)
 
                 # add up the isophote contribution to the overlapping pixels
-                result[j,i]     += intens * (1. - fy) * (1. - fx) + harm
-                result[j,i+1]   += intens * (1. - fy) *       fx  + harm
-                result[j+1,i]   += intens *       fy  * (1. - fx) + harm
-                result[j+1,i+1] += intens *       fy  *       fx  + harm
+                result[j,i]     += (intens + harm) * (1. - fy) * (1. - fx)
+                result[j,i+1]   += (intens + harm) * (1. - fy) *       fx
+                result[j+1,i]   += (intens + harm) *       fy  * (1. - fx)
+                result[j+1,i+1] += (intens + harm) *       fy  *       fx
 
                 # add up the fractional area contribution to the overlapping pixels
                 weight[j,i]     += (1. - fy) * (1. - fx)
