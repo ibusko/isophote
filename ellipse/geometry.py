@@ -71,12 +71,13 @@ class Geometry(object):
              ellipticity
         :param pa: float, units radians
              position angle of semi-major axis in relation to the +X axis of
-             the image array. Position angles are defined in the range
-             0 < PA <= np.pi. Avoid using as starting position angle 'pa0 = 0.',
-             since the fit algorithm may not work properly. When the ellipses
-             are such that position angles are near either extreme of the range,
-             noise can make the solution jump back and forth between successive
-             isophotes, by amounts close to 180 degrees.
+             the image array (rotating towards the +Y axis). Position angles
+             are defined in the range 0 < PA <= np.pi. Avoid using as starting
+             position angle 'pa0 = 0.', since the fit algorithm may not work
+             properly. When the ellipses are such that position angles are near
+             either extreme of the range, noise can make the solution jump back
+             and forth between successive isophotes, by amounts close to 180
+             degrees.
         :param astep: float, default = 0.1
             step value for growing/shrinking the semi-major axis. It can be
             expressed either in pixels (when 'linear_growth'=True) or in relative

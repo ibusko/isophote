@@ -25,7 +25,7 @@ def first_and_2nd_harmonic_function(phi, c):
     function = c[0] + c[1]*sin(phi) + c[2]*cos(phi) + c[3]*sin(2*phi) + c[4]*cos(2*phi)
 
     :param phi: float or np.array
-        angle(s) along the elliptical path, going counterclockwise,
+        angle(s) along the elliptical path, going towards the +Y axis,
         starting coincident with the position angle. That is, the
         angles are defined from the semi-major axis that lies in
         the +X quadrant.
