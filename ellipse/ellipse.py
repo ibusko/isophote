@@ -133,10 +133,10 @@ class Ellipse():
             the object centerer becomes less strict, in the sense that it will
             accept lower signal-to-noise data. If set to a very large value, the
             centerer is effectively shut off. In this case, either the geometry
-            information supplied by the 'geometry' parameter is used as is, or t
-            he fit algorithm will terminate prematurely. Note that, once the object
+            information supplied by the 'geometry' parameter is used as is, or the
+            fit algorithm will terminate prematurely. Note that, once the object
             centerer runs successfully, the X and Y coordinates in the geometry
-            instance are modified for good.
+            instance are modified in place.
         :param verbose: boolean, default True
             print object centering info
         '''

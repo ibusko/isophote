@@ -37,8 +37,9 @@ class Sample(object):
         :param eps: ellipticity, default=0.2
              ellipticity
         :param pa: float, default=0.0
-             position angle of ellipse in relation
-             to the +X axis of the image array.
+             position angle of ellipse in relation to the
+             +X axis of the image array (rotating towards
+             the +Y axis).
         :param sclip: float, default=3.0
              sigma-clip value
         :param nclip: int, default=0
