@@ -38,3 +38,6 @@ Makefile*
 # QtCtreator CMake
 CMakeLists.txt.user
 
+# PyCharm
+.idea
+
