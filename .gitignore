@@ -39,5 +39,5 @@ Makefile*
 CMakeLists.txt.user
 
 # PyCharm
-.idea/
+.idea
 
