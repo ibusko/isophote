@@ -118,12 +118,12 @@ class TestHarmonics(unittest.TestCase):
         harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
         y0, a1, b1, a2, b2 = harmonics[0]
 
-        self.assertAlmostEqual(y0, 245.136, 3)
-        self.assertAlmostEqual(a1, 0.000197, 3)
-        self.assertAlmostEqual(b1, 0.0191, 3)
+        self.assertAlmostEqual(y0, 245.102, 3)
+        self.assertAlmostEqual(a1, -0.00310, 3)
+        self.assertAlmostEqual(b1, -0.0578, 3)
         # these drive the correction for position angle
-        self.assertAlmostEqual(a2, 28.788, 3)
-        self.assertAlmostEqual(b2, -63.108, 3)
+        self.assertAlmostEqual(a2, 28.781, 3)
+        self.assertAlmostEqual(b2, -63.184, 3)
 
     def test_fit_sample_3(self):
 
@@ -136,12 +136,12 @@ class TestHarmonics(unittest.TestCase):
         harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
         y0, a1, b1, a2, b2 = harmonics[0]
 
-        self.assertAlmostEqual(y0, 188.677, 3)
+        self.assertAlmostEqual(y0, 188.686, 3)
         self.assertAlmostEqual(a1, 0.000283, 3)
-        self.assertAlmostEqual(b1, -0.0121, 3)
-        self.assertAlmostEqual(a2, -0.00091, 3)
+        self.assertAlmostEqual(b1, 0.00692, 3)
+        self.assertAlmostEqual(a2, -0.000215, 3)
         # this drives the correction for ellipticity
-        self.assertAlmostEqual(b2, 10.134, 3)
+        self.assertAlmostEqual(b2, 10.153, 3)
 
     def test_fit_sample_4(self):
 
@@ -154,10 +154,10 @@ class TestHarmonics(unittest.TestCase):
         harmonics = fit_1st_and_2nd_harmonics(s[0], s[2])
         y0, a1, b1, a2, b2 = harmonics[0]
 
-        self.assertAlmostEqual(y0, 152.857, 3)
-        self.assertAlmostEqual(a1, 55.348, 3)
-        self.assertAlmostEqual(b1, 33.508, 3)
-        self.assertAlmostEqual(a2, 33.056, 3)
-        self.assertAlmostEqual(b2, -13.890, 3)
+        self.assertAlmostEqual(y0, 152.660, 3)
+        self.assertAlmostEqual(a1, 55.338, 3)
+        self.assertAlmostEqual(b1, 33.091, 3)
+        self.assertAlmostEqual(a2, 33.036, 3)
+        self.assertAlmostEqual(b2, -14.306, 3)
 
 

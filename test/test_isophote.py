@@ -70,15 +70,15 @@ class TestIsophote(unittest.TestCase):
         self.assertLessEqual(g.pa,     0.62 + 0.05)
 
         # fitted values
-        self.assertAlmostEqual(iso.intens,     674.1,  1)
-        self.assertAlmostEqual(iso.rms,         85.38, 2)
-        self.assertAlmostEqual(iso.int_err,      7.79, 2)
-        self.assertAlmostEqual(iso.pix_stddev, 120.7,  1)
-        self.assertAlmostEqual(iso.grad,       -34.49, 2)
+        self.assertAlmostEqual(iso.intens,     682.9,  1)
+        self.assertAlmostEqual(iso.rms,         83.27, 2)
+        self.assertAlmostEqual(iso.int_err,      7.63, 2)
+        self.assertAlmostEqual(iso.pix_stddev, 117.8,  1)
+        self.assertAlmostEqual(iso.grad,       -36.08, 2)
 
         # integrals
-        self.assertLessEqual(iso.tflux_e,    1.21E6, 2)
-        self.assertGreaterEqual(iso.tflux_e, 1.20E6, 2)
+        self.assertLessEqual(iso.tflux_e,    1.20E6, 2)
+        self.assertGreaterEqual(iso.tflux_e, 1.19E6, 2)
         self.assertLessEqual(iso.tflux_c,    1.38E6, 2)
         self.assertGreaterEqual(iso.tflux_c, 1.36E6, 2)
 
@@ -100,7 +100,7 @@ class TestIsophote(unittest.TestCase):
         iso = fitter.fit()
 
         self.assertTrue(iso.valid)
-        self.assertEqual(iso.niter, 20)
+        self.assertEqual(iso.niter, 50)
 
 class TestIsophoteList(unittest.TestCase):
 

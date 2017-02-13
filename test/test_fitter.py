@@ -174,16 +174,16 @@ class TestFitter(unittest.TestCase):
         fitter = Fitter(sample)
         isophote = fitter.fit()
 
-        self.assertEqual(isophote.ndata, 118)
-        self.assertAlmostEqual(isophote.intens, 685.2, 1)
+        self.assertEqual(isophote.ndata, 119)
+        self.assertAlmostEqual(isophote.intens, 685.4, 1)
 
         # last sample taken by the original code, before turning inwards.
         sample = Sample(test_data, 61.16, eps=0.219, position_angle=((77.5+90)/180*np.pi))
         fitter = Fitter(sample)
         isophote = fitter.fit()
 
-        self.assertEqual(isophote.ndata, 378)
-        self.assertAlmostEqual(isophote.intens, 155.4, 1)
+        self.assertEqual(isophote.ndata, 382)
+        self.assertAlmostEqual(isophote.intens, 155.0, 1)
 
     def test_m51_central(self):
         image = fits.open("data/M51.fits")
@@ -201,5 +201,5 @@ class TestFitter(unittest.TestCase):
         # the central pixel intensity is about 3% larger than
         # found by the spp code.
         self.assertEqual(isophote.ndata, 1)
-        self.assertLessEqual(isophote.intens, 7990.)
-        self.assertGreaterEqual(isophote.intens, 7950.)
+        self.assertLessEqual(isophote.intens, 7560.)
+        self.assertGreaterEqual(isophote.intens, 7550.)
